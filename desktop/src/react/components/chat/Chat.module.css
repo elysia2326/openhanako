@@ -1198,6 +1198,16 @@
     gap: var(--space-sm);
 }
 
+:global(.mobile-desktop-root) .sessionPanel {
+    padding-left: var(--space-md);
+    padding-right: var(--space-md);
+}
+
+:global(.mobile-desktop-root) .messageUser,
+:global(.mobile-desktop-root) .messageAssistant {
+    font-size: 1rem;
+}
+
 .timelineNav {
     position: absolute;
     top: 76px;
