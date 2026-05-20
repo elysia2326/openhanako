@@ -252,6 +252,31 @@ describe("loadSessionHistoryMessages", () => {
       { id: expect.any(String), role: "assistant", text: "new answer" },
     ]);
   });
+
+  it("从 Pi session 分支恢复 custom_message 供后台结果重建 UI 块", async () => {
+    const sessionDir = path.join(tmpDir, "sessions");
+    const manager = SessionManager.create(tmpDir, sessionDir);
+    manager.appendMessage({ role: "assistant", content: [{ type: "text", text: "submitted" }] });
+    manager.appendCustomMessageEntry(
+      "hana-background-result",
+      "<hana-background-result task-id=\"task-img\" status=\"success\" type=\"image-generation\">{}</hana-background-result>",
+      false,
+      { source: "test" },
+    );
+
+    const result = await loadSessionHistoryMessages({}, manager.getSessionFile());
+
+    expect(result).toHaveLength(2);
+    expect(result[1]).toMatchObject({
+      role: "custom",
+      customType: "hana-background-result",
+      content: "<hana-background-result task-id=\"task-img\" status=\"success\" type=\"image-generation\">{}</hana-background-result>",
+      display: false,
+      details: { source: "test" },
+    });
+    expect(result[1].id).toEqual(expect.any(String));
+    expect(result[1].timestamp).toEqual(expect.any(String));
+  });
 });
 
 describe("loadLatestAssistantSummaryFromSessionFile", () => {

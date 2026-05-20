@@ -867,6 +867,75 @@ describe("sessions route", () => {
     });
   });
 
+  it("restores completed image generation as a session file block and suppresses the old iframe card", async () => {
+    const { createSessionsRoute } = await import("../server/routes/sessions.js");
+    const msgUtils = await import("../core/message-utils.js");
+    const app = new Hono();
+    const sessionPath = "/tmp/agents/hana/sessions/image-gen.jsonl";
+    const resultBody = JSON.stringify({
+      sessionFiles: [{
+        fileId: "sf_img",
+        filePath: "/cache/generated.png",
+        label: "generated.png",
+        ext: "png",
+        mime: "image/png",
+        kind: "image",
+        storageKind: "plugin_data",
+        status: "available",
+      }],
+    }, null, 2).replace(/"/g, "&quot;");
+
+    vi.mocked(msgUtils.extractTextContent)
+      .mockReturnValueOnce({ text: "submitted image", images: [], thinking: "", toolUses: [] });
+    vi.mocked(msgUtils.loadSessionHistoryMessages).mockResolvedValueOnce([
+      { role: "assistant", content: "submitted image" },
+      {
+        role: "toolResult",
+        toolName: "image-gen_generate-image",
+        details: {
+          card: {
+            type: "iframe",
+            route: "/card?batch=old",
+            title: "图片生成",
+            pluginId: "image-gen",
+          },
+        },
+      },
+      {
+        role: "custom",
+        customType: "hana-background-result",
+        content: `<hana-background-result task-id="task-img" status="success" type="image-generation">\n${resultBody}\n</hana-background-result>`,
+        display: false,
+      },
+    ]);
+
+    const engine = {
+      agentsDir: "/tmp/agents",
+      currentSessionPath: sessionPath,
+      deferredResults: null,
+    };
+
+    app.route("/api", createSessionsRoute(engine));
+
+    const res = await app.request(`/api/sessions/messages?path=${encodeURIComponent(sessionPath)}`);
+    const data = await res.json();
+
+    expect(res.status).toBe(200);
+    expect(data.blocks).toEqual([{
+      type: "file",
+      afterIndex: 0,
+      replacesTaskId: "task-img",
+      fileId: "sf_img",
+      filePath: "/cache/generated.png",
+      label: "generated.png",
+      ext: "png",
+      mime: "image/png",
+      kind: "image",
+      storageKind: "plugin_data",
+      status: "available",
+    }]);
+  });
+
   it("prefers explicit executor metadata over owner-path inference", async () => {
     const { createSessionsRoute } = await import("../server/routes/sessions.js");
     const msgUtils = await import("../core/message-utils.js");
