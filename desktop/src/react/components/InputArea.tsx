@@ -45,6 +45,7 @@ import {
 } from '../utils/chat-image-send-preflight';
 import { openProviderModelSettings } from '../utils/model-settings-navigation';
 import { shouldShowThinkingControl } from '../utils/model-thinking';
+import { shouldAllowInputFocus } from '../utils/input-focus-policy';
 import { calculateInputCardBottomInset, parseCssPixels } from '../utils/input-card-layout';
 import {
   XING_PROMPT, executeDiary, executeCompact, buildSlashCommands, getSlashMatches,
@@ -413,7 +414,9 @@ function InputAreaInner({ surface }: Required<InputAreaProps>) {
   // Focus trigger from store
   const inputFocusTrigger = useStore(s => s.inputFocusTrigger);
   useEffect(() => {
-    if (inputFocusTrigger > 0) editor?.commands.focus();
+    if (inputFocusTrigger > 0 && shouldAllowInputFocus({ inputRoot: inputSurfaceRef.current })) {
+      editor?.commands.focus();
+    }
   }, [inputFocusTrigger, editor]);
 
   // Doc context
