@@ -55,4 +55,23 @@ describe('SelectionQuoteActionSurface', () => {
     act(() => { vi.advanceTimersByTime(1); });
     expect(screen.getByRole('tooltip').textContent).toBe('引用到对话');
   });
+
+  it('renders a compact SVG quote action shifted slightly to the right of the selection center', () => {
+    useStore.getState().setQuoteCandidate({
+      text: '第一段引用',
+      sourceTitle: 'Assistant message',
+      sourceKind: 'chat',
+      charCount: 5,
+      anchorRect: { left: 100, right: 180, top: 120, bottom: 140, width: 80, height: 20 },
+    });
+    render(<SelectionQuoteActionSurface />);
+
+    const button = screen.getByRole('button', { name: '引用到对话' });
+    const surface = button.closest('[data-selection-ignore="true"]') as HTMLElement;
+
+    expect(button.querySelector('svg')).not.toBeNull();
+    expect(button.textContent).not.toContain('"');
+    expect(surface.style.left).toBe('147px');
+    expect(surface.style.top).toBe('86px');
+  });
 });

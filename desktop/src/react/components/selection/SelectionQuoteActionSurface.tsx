@@ -3,7 +3,8 @@ import { useStore } from '../../stores';
 import { computeFloatingInputPosition } from '../floating-input/position';
 import styles from './SelectionQuoteActionSurface.module.css';
 
-const ACTION_SIZE = 36;
+const TOOLBAR_SIZE = 26;
+const TOOLBAR_CROSS_AXIS_OFFSET = 20;
 const TOOLTIP_DELAY_MS = 500;
 
 function getViewportSize() {
@@ -39,10 +40,11 @@ export function SelectionQuoteActionSurface() {
     return computeFloatingInputPosition(
       anchorRect,
       viewport,
-      { width: ACTION_SIZE, height: ACTION_SIZE },
+      { width: TOOLBAR_SIZE, height: TOOLBAR_SIZE },
       8,
       16,
       'top',
+      TOOLBAR_CROSS_AXIS_OFFSET,
     );
   }, [quoteCandidate?.anchorRect, viewport]);
 
@@ -75,6 +77,12 @@ export function SelectionQuoteActionSurface() {
   if (!quoteCandidate || !position) return null;
 
   const tooltipId = 'selection-quote-action-tooltip';
+  const actions = [{
+    id: 'quote',
+    label: '引用到对话',
+    onClick: handleAddQuote,
+    icon: <QuoteIcon />,
+  }];
 
   return (
     <div
@@ -83,25 +91,48 @@ export function SelectionQuoteActionSurface() {
       data-selection-ignore="true"
       style={{ left: `${position.left}px`, top: `${position.top}px` }}
     >
-      <button
-        type="button"
-        className={styles.button}
-        aria-label="引用到对话"
-        aria-describedby={tooltipVisible ? tooltipId : undefined}
-        onMouseDown={(event) => event.preventDefault()}
-        onClick={handleAddQuote}
-        onMouseEnter={showTooltipLater}
-        onMouseLeave={hideTooltip}
-        onFocus={showTooltipLater}
-        onBlur={hideTooltip}
-      >
-        <span className={styles.icon} aria-hidden="true">"</span>
-      </button>
+      {actions.map(action => (
+        <button
+          key={action.id}
+          type="button"
+          className={styles.button}
+          aria-label={action.label}
+          aria-describedby={tooltipVisible ? tooltipId : undefined}
+          onMouseDown={(event) => event.preventDefault()}
+          onClick={action.onClick}
+          onMouseEnter={showTooltipLater}
+          onMouseLeave={hideTooltip}
+          onFocus={showTooltipLater}
+          onBlur={hideTooltip}
+        >
+          {action.icon}
+        </button>
+      ))}
       {tooltipVisible && (
         <div id={tooltipId} role="tooltip" className={styles.tooltip}>
           引用到对话
         </div>
       )}
     </div>
+  );
+}
+
+function QuoteIcon() {
+  return (
+    <svg
+      className={styles.icon}
+      width="12"
+      height="12"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.7"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+    >
+      <path d="M8 11H5.5A2.5 2.5 0 0 1 8 8.5V7a4 4 0 0 0-4 4v5h4v-5Z" />
+      <path d="M18 11h-2.5A2.5 2.5 0 0 1 18 8.5V7a4 4 0 0 0-4 4v5h4v-5Z" />
+    </svg>
   );
 }

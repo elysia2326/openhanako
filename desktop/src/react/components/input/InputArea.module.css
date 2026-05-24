@@ -1355,11 +1355,12 @@
     padding: var(--space-sm) 0 var(--space-xs);
 }
 
-/* 左侧附件/引用区域 — 纵向排列 */
+/* 左侧附件/引用区域 — 文件与文字引用同一横向流 */
 .input-context-left {
     display: flex;
-    flex-direction: column;
-    align-items: flex-start;
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: center;
     gap: 0.35rem;
     flex: 1;
     min-width: 0;
@@ -1368,9 +1369,7 @@
 
 /* 文件标签容器（输入框上方） */
 .attached-files {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.3rem;
+    display: contents;
 }
 
 .input-box p:global(.is-editor-empty):first-child::before {
