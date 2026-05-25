@@ -12,7 +12,7 @@ import {
   createTaskId,
   imageDeferredMeta,
   normalizeSessionPath,
-  resolveImageAdapter,
+  resolveImageTarget,
   runSubmitInBackground,
 } from "../lib/image-task-runner.js";
 
@@ -48,8 +48,14 @@ export async function execute(input, ctx) {
   // Build adapter context
   const submitCtx = createSubmitContext(ctx);
 
-  // Resolve adapter: explicit → configured default → latest credentialed adapter.
-  const adapter = await resolveImageAdapter(input, registry, submitCtx);
+  // Resolve target: explicit → configured default → first credentialed media provider → legacy adapter fallback.
+  let target;
+  try {
+    target = await resolveImageTarget(input, registry, submitCtx);
+  } catch (err) {
+    return { content: [{ type: "text", text: err?.message || String(err) }] };
+  }
+  const adapter = target?.adapter || null;
   if (!adapter) {
     return { content: [{ type: "text", text: "没有可用的图片生成 provider" }] };
   }
@@ -57,7 +63,14 @@ export async function execute(input, ctx) {
   const count = Math.min(Math.max(input.count || 1, 1), 9);
   const batchId = createTaskId();
 
-  const params = buildImageParams(input);
+  const params = {
+    ...buildImageParams(input),
+    providerId: target.providerId,
+    ...(target.modelId ? { modelId: target.modelId, model: target.modelId } : {}),
+    ...(target.protocolId ? { protocolId: target.protocolId } : {}),
+    ...(target.credentialLaneId ? { credentialLaneId: target.credentialLaneId } : {}),
+    ...(target.credentialProviderId ? { credentialProviderId: target.credentialProviderId } : {}),
+  };
 
   const submitted = [];
   const deliveryTarget = bridgeDeliveryTarget(ctx);
@@ -68,6 +81,10 @@ export async function execute(input, ctx) {
     store.add({
       taskId,
       adapterId: adapter.id,
+      providerId: target.providerId,
+      modelId: target.modelId,
+      protocolId: target.protocolId,
+      credentialLaneId: target.credentialLaneId,
       batchId,
       type: "image",
       prompt: input.prompt,

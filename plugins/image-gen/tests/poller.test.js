@@ -81,6 +81,7 @@ function makePoller(overrides = {}) {
     store: mockStore,
     registry: mockRegistry,
     bus: mockBus,
+    dataDir: "/tmp/image-gen-data",
     generatedDir: "/tmp/image-gen-generated",
     log,
     registerSessionFile: overrides.registerSessionFile,
@@ -232,7 +233,10 @@ describe("Poller", () => {
 
     expect(mockAdapter.query).toHaveBeenCalledWith(
       "task1",
-      expect.objectContaining({ generatedDir: "/tmp/image-gen-generated" })
+      expect.objectContaining({
+        dataDir: "/tmp/image-gen-data",
+        generatedDir: "/tmp/image-gen-generated",
+      })
     );
 
     poller.stop();
@@ -288,7 +292,10 @@ describe("Poller", () => {
 
     expect(mockAdapter.query).toHaveBeenCalledWith(
       "remote-task",
-      expect.objectContaining({ generatedDir: "/tmp/image-gen-generated" }),
+      expect.objectContaining({
+        dataDir: "/tmp/image-gen-data",
+        generatedDir: "/tmp/image-gen-generated",
+      }),
     );
     expect(mockBus.request).toHaveBeenCalledWith(
       "deferred:resolve",

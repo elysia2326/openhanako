@@ -76,21 +76,186 @@ async function adapterIsAvailable(adapter, submitCtx) {
   }
 }
 
-export async function resolveImageAdapter(input, registry, submitCtx) {
-  if (input.provider) return registry.get(input.provider);
+function targetFromAdapter(adapter, input, media = {}) {
+  if (!adapter) return null;
+  return {
+    adapter,
+    providerId: media.providerId || input.provider || adapter.id,
+    modelId: media.modelId || input.model || null,
+    protocolId: media.protocolId || adapter.protocolId || null,
+    credentialLaneId: media.credentialLaneId || null,
+    credentialProviderId: media.credentialProviderId || media.providerId || input.provider || adapter.id,
+  };
+}
+
+async function listMediaProviders(submitCtx) {
+  try {
+    const result = await submitCtx.bus?.request?.("provider:media-providers", { capability: "image_generation" });
+    return result?.providers && typeof result.providers === "object" ? result.providers : {};
+  } catch {
+    return {};
+  }
+}
+
+async function resolveMediaModel(submitCtx, ref) {
+  try {
+    const result = await submitCtx.bus?.request?.("provider:resolve-media-model", {
+      providerId: ref.providerId,
+      modelId: ref.modelId,
+      capability: "image_generation",
+      ...(ref.credentialLaneId ? { credentialLaneId: ref.credentialLaneId } : {}),
+    });
+    if (result?.error) return { error: result.error };
+    if (!result?.protocolId) return { error: `media model "${ref.providerId}/${ref.modelId}" missing protocolId` };
+    return { media: result };
+  } catch (err) {
+    return { error: errorMessage(err) };
+  }
+}
+
+function explicitProviderError(providerId, detail = "") {
+  return `指定的图片生成 provider "${providerId}" 不可用${detail ? `：${detail}` : ""}`;
+}
+
+function explicitModelError(modelId, detail = "") {
+  return `指定的图片生成模型 "${modelId}" 不可用${detail ? `：${detail}` : ""}`;
+}
+
+async function availableAdapterOrThrow(adapter, submitCtx, providerId) {
+  if (!adapter) throw new Error(explicitProviderError(providerId));
+  if (typeof adapter.checkAuth === "function") {
+    try {
+      const auth = await adapter.checkAuth(submitCtx);
+      if (auth?.ok === false) {
+        throw new Error(auth.message || "credentials unavailable");
+      }
+    } catch (err) {
+      throw new Error(explicitProviderError(providerId, errorMessage(err)));
+    }
+  }
+  return adapter;
+}
+
+async function targetFromMediaRef(input, registry, submitCtx, ref, { strict = false } = {}) {
+  if (!ref?.providerId) return null;
+  let modelId = ref.modelId || null;
+  if (!modelId) {
+    const providers = await listMediaProviders(submitCtx);
+    modelId = providers[ref.providerId]?.models?.[0]?.id || null;
+    if (!modelId) {
+      if (strict && providers[ref.providerId]) {
+        throw new Error(explicitProviderError(ref.providerId, "没有配置可用的生图模型"));
+      }
+      return null;
+    }
+  }
+
+  const { media, error } = await resolveMediaModel(submitCtx, { providerId: ref.providerId, modelId });
+  if (!media) {
+    if (strict) throw new Error(explicitProviderError(ref.providerId, error || `找不到模型 ${modelId}`));
+    return null;
+  }
+  const adapter = registry.getProtocol?.(media.protocolId) || registry.get(media.providerId);
+  if (!adapter) {
+    if (strict) throw new Error(explicitProviderError(ref.providerId, `没有注册协议 ${media.protocolId}`));
+    return null;
+  }
+  return targetFromAdapter(adapter, input, media);
+}
+
+async function targetFromExplicitProvider(input, registry, submitCtx) {
+  const mediaTarget = await targetFromMediaRef(input, registry, submitCtx, {
+    providerId: input.provider,
+    modelId: input.model || null,
+  }, { strict: !!input.model });
+  if (mediaTarget) return mediaTarget;
+
+  const adapter = await availableAdapterOrThrow(registry.get(input.provider), submitCtx, input.provider);
+  return targetFromAdapter(adapter, input, {
+    providerId: input.provider,
+    modelId: input.model || null,
+    credentialProviderId: input.provider,
+  });
+}
+
+async function targetFromExplicitModel(input, registry, submitCtx) {
+  if (!input.model) return null;
+  const providers = await listMediaProviders(submitCtx);
+  const matches = [];
+  for (const provider of Object.values(providers)) {
+    const model = provider?.models?.find((item) => item?.id === input.model);
+    if (model) matches.push({ providerId: provider.providerId, modelId: model.id });
+  }
+  if (matches.length === 1) {
+    return targetFromMediaRef(input, registry, submitCtx, matches[0], { strict: true });
+  }
+  if (matches.length > 1) {
+    throw new Error(explicitModelError(input.model, "多个 provider 都有同名模型，请同时指定 provider"));
+  }
+  throw new Error(explicitModelError(input.model, "没有在 media provider 中找到这个模型"));
+}
+
+async function targetFromConfiguredDefault(input, registry, submitCtx) {
+  const defaultModel = submitCtx.config?.get?.("defaultImageModel");
+  if (!defaultModel?.provider) return null;
+  return targetFromMediaRef(input, registry, submitCtx, {
+    providerId: defaultModel.provider,
+    modelId: defaultModel.id,
+  }, { strict: true });
+}
+
+async function targetFromFirstAvailableProvider(input, registry, submitCtx) {
+  const providers = await listMediaProviders(submitCtx);
+  for (const provider of Object.values(providers)) {
+    if (provider?.hasCredentials === false) continue;
+    const model = provider?.models?.find((item) => registry.getProtocol?.(item.protocolId));
+    if (!model) continue;
+    const target = await targetFromMediaRef(input, registry, submitCtx, {
+      providerId: provider.providerId,
+      modelId: model.id,
+    });
+    if (target) return target;
+  }
+  return null;
+}
+
+async function legacyAdapterTarget(input, registry, submitCtx) {
+  if (input.provider) return targetFromAdapter(registry.get(input.provider), input);
 
   const defaultProvider = submitCtx.config?.get?.("defaultImageModel")?.provider;
   if (defaultProvider) {
     const adapter = registry.get(defaultProvider);
-    if (adapter && await adapterIsAvailable(adapter, submitCtx)) return adapter;
+    if (adapter && await adapterIsAvailable(adapter, submitCtx)) return targetFromAdapter(adapter, input);
   }
 
   const adapters = registry.getByType("image");
   for (let i = adapters.length - 1; i >= 0; i--) {
     const adapter = adapters[i];
-    if (await adapterIsAvailable(adapter, submitCtx)) return adapter;
+    if (await adapterIsAvailable(adapter, submitCtx)) return targetFromAdapter(adapter, input);
   }
-  return adapters.at(-1) || null;
+  return targetFromAdapter(adapters.at(-1), input);
+}
+
+export async function resolveImageTarget(input, registry, submitCtx) {
+  if (input.provider) {
+    return targetFromExplicitProvider(input, registry, submitCtx);
+  }
+
+  if (input.model) {
+    return targetFromExplicitModel(input, registry, submitCtx);
+  }
+
+  const configured = await targetFromConfiguredDefault(input, registry, submitCtx);
+  if (configured) return configured;
+
+  const available = await targetFromFirstAvailableProvider(input, registry, submitCtx);
+  if (available) return available;
+
+  return legacyAdapterTarget(input, registry, submitCtx);
+}
+
+export async function resolveImageAdapter(input, registry, submitCtx) {
+  return (await resolveImageTarget(input, registry, submitCtx))?.adapter || null;
 }
 
 export function markSubmitFailed({ taskId, err, store, ctx }) {
