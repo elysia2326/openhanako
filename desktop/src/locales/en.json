@@ -1071,6 +1071,7 @@
       "defaultModel": "Default Image Model",
       "credentialOk": "API Key configured (reuses provider settings)",
       "credentialMissing": "Not configured, go to Provider settings",
+      "adapterMissing": "Image adapter missing",
       "addModel": "Add Image Model",
       "providerDefaults": "Default Parameters",
       "size": "Size",

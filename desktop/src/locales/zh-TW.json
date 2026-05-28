@@ -1063,6 +1063,7 @@
       "defaultModel": "預設圖片模型",
       "credentialOk": "API Key 已設定（複用供應商設定）",
       "credentialMissing": "未設定，前往供應商設定",
+      "adapterMissing": "缺少圖片生成適配器",
       "addModel": "新增圖片模型",
       "providerDefaults": "預設參數",
       "size": "尺寸",

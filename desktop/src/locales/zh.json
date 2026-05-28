@@ -1071,6 +1071,7 @@
       "defaultModel": "默认图片模型",
       "credentialOk": "API Key 已配置（复用供应商设置）",
       "credentialMissing": "未配置，前往供应商设置",
+      "adapterMissing": "缺少图片生成适配器",
       "addModel": "添加图片模型",
       "providerDefaults": "默认参数",
       "size": "尺寸",

@@ -1071,6 +1071,7 @@
       "defaultModel": "デフォルト画像モデル",
       "credentialOk": "API Key 設定済み（プロバイダー設定を共用）",
       "credentialMissing": "未設定です。プロバイダー設定へ移動してください",
+      "adapterMissing": "画像生成アダプターがありません",
       "addModel": "画像モデルを追加",
       "providerDefaults": "デフォルトパラメータ",
       "size": "サイズ",
