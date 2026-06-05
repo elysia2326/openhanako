@@ -1,4 +1,3 @@
-// @ts-nocheck
 import { getLocale } from "../lib/i18n.ts";
 import { modelSupportsDirectImageInput } from "../shared/model-capabilities.ts";
 import { prepareModelImageInputsForPrompt } from "./model-image-preprocess.ts";
@@ -13,7 +12,7 @@ export function isAbortLikeError(err) {
 function abortError() {
   const err = new Error("This operation was aborted");
   err.name = "AbortError";
-  err.type = "aborted";
+  (err as any).type = "aborted";
   return err;
 }
 

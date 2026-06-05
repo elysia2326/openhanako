@@ -1,4 +1,3 @@
-// @ts-nocheck
 import path from "path";
 import { loadConfig } from "../memory/config-loader.ts";
 
@@ -45,7 +44,7 @@ export function readBoolean(value) {
   return value === true || value === "true";
 }
 
-export function normalizeAgentPhoneModelOverride({ enabled, id, provider } = {}) {
+export function normalizeAgentPhoneModelOverride({ enabled, id, provider }: { enabled?: any; id?: any; provider?: any } = {}) {
   if (!readBoolean(enabled)) return { enabled: false, model: null };
   const modelId = typeof id === "string" ? id.trim() : "";
   const modelProvider = typeof provider === "string" ? provider.trim() : "";
@@ -53,7 +52,7 @@ export function normalizeAgentPhoneModelOverride({ enabled, id, provider } = {})
   return { enabled: true, model: { id: modelId, provider: modelProvider } };
 }
 
-export function resolveAgentPhoneReflectionGuide({ agentId, agent = null, agentsDir = null } = {}) {
+export function resolveAgentPhoneReflectionGuide({ agentId, agent = null, agentsDir = null }: { agentId?: any; agent?: any; agentsDir?: any } = {}) {
   try {
     let cfg = agent?.config || null;
     if (!cfg && agentsDir && agentId) {
@@ -86,7 +85,7 @@ export function formatAgentPhonePromptGuidance({
   isZh = false,
   zhConversationName = "对话",
   enConversationName = "conversation",
-} = {}) {
+}: { agentId?: any; agent?: any; agentsDir?: any; settings?: any; isZh?: boolean; zhConversationName?: string; enConversationName?: string } = {}) {
   const guide = resolveAgentPhoneReflectionGuide({ agentId, agent, agentsDir });
   const lines = [];
   if (guide) {

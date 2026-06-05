@@ -1,11 +1,10 @@
-// @ts-nocheck
 const DEFAULT_LOOPBACK_WEB_ORIGIN = /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/;
 const ELECTRON_FILE_ORIGINS = new Set(["file://", "file:///"]);
 
 export function isCorsOriginAllowed({
   origin,
   configuredOrigin = "",
-} = {}) {
+}: { origin?: string; configuredOrigin?: string } = {}) {
   const value = String(origin || "");
   if (!value) return false;
   if (configuredOrigin) return value === configuredOrigin;

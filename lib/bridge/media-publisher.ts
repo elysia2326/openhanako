@@ -1,4 +1,3 @@
-// @ts-nocheck
 import crypto from "node:crypto";
 import fs from "fs";
 import path from "path";
@@ -7,6 +6,14 @@ const DEFAULT_TTL_MS = 5 * 60 * 1000;
 const DEFAULT_MAX_DOWNLOADS = 5;
 
 export class MediaPublisher {
+  declare baseUrl: string;
+  declare allowedRoots: any[];
+  declare ttlMs: number;
+  declare maxDownloads: number;
+  declare now: () => number;
+  declare randomToken: () => string;
+  declare _tokens: Map<string, any>;
+
   constructor({
     baseUrl = "",
     allowedRoots = [],
@@ -24,17 +31,17 @@ export class MediaPublisher {
     this._tokens = new Map();
   }
 
-  setBaseUrl(baseUrl) {
+  setBaseUrl(baseUrl: any) {
     this.baseUrl = normalizeBaseUrl(baseUrl);
     return this.baseUrl;
   }
 
-  setAllowedRoots(allowedRoots) {
+  setAllowedRoots(allowedRoots: any) {
     this.allowedRoots = normalizeAllowedRoots(allowedRoots);
     return this.allowedRoots;
   }
 
-  publish(sessionFile) {
+  publish(sessionFile: any) {
     if (!this.baseUrl) {
       throw new Error("public media base URL is not configured");
     }
@@ -73,7 +80,7 @@ export class MediaPublisher {
     };
   }
 
-  resolve(token) {
+  resolve(token: any) {
     const record = this._tokens.get(token);
     if (!record) return null;
     const entry = record.entry;
@@ -98,11 +105,11 @@ export class MediaPublisher {
     return entry;
   }
 
-  revoke(token) {
+  revoke(token: any) {
     return this._tokens.delete(token);
   }
 
-  _assertAllowed(realPath) {
+  _assertAllowed(realPath: any) {
     if (!this.allowedRoots.length) {
       throw new Error("media file is outside allowed roots");
     }
@@ -119,7 +126,7 @@ export class MediaPublisher {
   }
 }
 
-function normalizeBaseUrl(baseUrl) {
+function normalizeBaseUrl(baseUrl: any) {
   const value = String(baseUrl || "").trim();
   if (!value) return "";
   const parsed = new URL(value);
@@ -129,7 +136,7 @@ function normalizeBaseUrl(baseUrl) {
   return value.replace(/\/+$/, "");
 }
 
-function normalizeAllowedRoots(roots) {
+function normalizeAllowedRoots(roots: any) {
   return [...new Set((roots || []).filter(Boolean).map((root) => {
     const resolved = path.resolve(root);
     const realRoot = (() => {
@@ -143,18 +150,18 @@ function normalizeAllowedRoots(roots) {
   }))];
 }
 
-function normalizeMaxDownloads(maxDownloads) {
+function normalizeMaxDownloads(maxDownloads: any) {
   const value = Number(maxDownloads);
   if (!Number.isFinite(value) || value < 1) return DEFAULT_MAX_DOWNLOADS;
   return Math.floor(value);
 }
 
-function realFilePath(filePath) {
+function realFilePath(filePath: any) {
   const resolved = path.resolve(filePath);
   return fs.realpathSync(resolved);
 }
 
-function isInsideRoot(filePath, root) {
+function isInsideRoot(filePath: any, root: any) {
   if (filePath === root) return true;
   const relative = path.relative(root, filePath);
   return !!relative && !relative.startsWith("..") && !path.isAbsolute(relative);

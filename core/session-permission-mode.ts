@@ -1,4 +1,3 @@
-// @ts-nocheck
 export const SESSION_PERMISSION_MODES = Object.freeze({
   AUTO: "auto",
   OPERATE: "operate",
@@ -101,7 +100,7 @@ export function isReadOnlyPermissionMode(mode) {
   return normalizeSessionPermissionMode(mode) === SESSION_PERMISSION_MODES.READ_ONLY;
 }
 
-function blocked(toolName, { code = "ACTION_BLOCKED_BY_READ_ONLY", message } = {}) {
+function blocked(toolName, { code = "ACTION_BLOCKED_BY_READ_ONLY", message }: { code?: string; message?: string } = {}) {
   return {
     action: "deny",
     code,
@@ -148,7 +147,7 @@ function classifySessionFoldersAction(mode, action) {
   return { action: "allow" };
 }
 
-export function classifySessionPermission({ mode, toolName, params, context } = {}) {
+export function classifySessionPermission({ mode, toolName, params, context }: { mode?: any; toolName?: any; params?: any; context?: any } = {}) {
   let normalized = normalizeSessionPermissionMode(mode);
   const name = typeof toolName === "string" ? toolName : "";
   if (!name) return { action: "allow" };

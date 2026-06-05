@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * check-deferred-tool.js — 查询当前 session 的异步任务状态
  *

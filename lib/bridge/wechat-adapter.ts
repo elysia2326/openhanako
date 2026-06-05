@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * wechat-adapter.js — 微信 iLink Bridge Adapter
  *
@@ -166,7 +165,7 @@ function loadContextCache(filePath, now = Date.now()) {
     if (!fs.existsSync(filePath)) return cache;
     const data = JSON.parse(fs.readFileSync(filePath, "utf-8"));
     const entries = data?.entries && typeof data.entries === "object" ? data.entries : {};
-    for (const [chatId, raw] of Object.entries(entries)) {
+    for (const [chatId, raw] of Object.entries(entries) as [string, any][]) {
       const token = typeof raw?.token === "string" ? raw.token : "";
       const ts = Number(raw?.ts);
       const expiresAt = Number(raw?.expiresAt || (Number.isFinite(ts) ? ts + CONTEXT_TOKEN_TTL_MS : 0));
@@ -249,7 +248,7 @@ export function createWechatAdapter({ botToken, hanaHome, agentId, onMessage, on
   const baseUrl = DEFAULT_BASE_URL;
   let generation = 0;
   let abortController = new AbortController();
-  const timers = new Set();
+  const timers = new Set<ReturnType<typeof setTimeout>>();
   let lastStatus = null;
   let lastError = null;
 
@@ -259,7 +258,7 @@ export function createWechatAdapter({ botToken, hanaHome, agentId, onMessage, on
   const contextCache = loadContextCache(contextCachePath); // chatId → { token, ts }
 
   /** apiPost 带上当前 abortController.signal，stop() 时自动中断所有请求 */
-  function api(endpoint, body, timeoutMs) {
+  function api(endpoint, body, timeoutMs?) {
     return apiPost(baseUrl, endpoint, body, botToken, timeoutMs, abortController.signal);
   }
 
@@ -296,7 +295,7 @@ export function createWechatAdapter({ botToken, hanaHome, agentId, onMessage, on
     return entry.token;
   }
 
-  function reportStatus(status, error) {
+  function reportStatus(status, error?) {
     const normalizedError = error || null;
     if (lastStatus === status && lastError === normalizedError) return;
     lastStatus = status;

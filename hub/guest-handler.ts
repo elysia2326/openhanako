@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * GuestHandler — Guest 留言机处理
  *
@@ -10,6 +9,8 @@
 import { getLocale } from "../lib/i18n.ts";
 
 export class GuestHandler {
+  declare _hub: any;
+
   /**
    * @param {object} opts
    * @param {import('./index.ts').Hub} opts.hub
@@ -26,7 +27,7 @@ export class GuestHandler {
    * @param {object} [opts]  { isGroup }
    * @returns {Promise<string|null>}
    */
-  async handle(text, sessionKey, meta, opts = {}) {
+  async handle(text, sessionKey, meta, opts: any = {}) {
     const isZh = getLocale().startsWith("zh");
     const senderName = meta?.name || (isZh ? "访客" : "Guest");
     const isGroup = opts.isGroup || false;

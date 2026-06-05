@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * session-stream-store.js
  *
@@ -27,7 +26,7 @@ const LARGE_FIELD_KEYS = new Set([
 ]);
 
 /** 创建初始流状态 */
-export function createSessionStreamState(opts = {}) {
+export function createSessionStreamState(opts: { maxEvents?: number; maxBytes?: number; maxEventBytes?: number } = {}) {
   return {
     streamId: null,
     nextSeq: 1,
@@ -94,7 +93,7 @@ export function finishSessionStream(state) {
  * @param {object} state
  * @param {{ streamId?: string|null, sinceSeq?: number }} [opts]
  */
-export function resumeSessionStream(state, opts = {}) {
+export function resumeSessionStream(state, opts: { streamId?: string | null; sinceSeq?: number } = {}) {
   const requestedStreamId = opts.streamId ?? state.streamId ?? null;
   const currentStreamId = state.streamId ?? null;
   const requestedSinceSeq = normalizeSeq(opts.sinceSeq);
@@ -218,7 +217,7 @@ function compactValue(value, seen) {
       .slice(0, MAX_COMPACT_ARRAY_ITEMS)
       .map((item) => compactValue(item, seen));
   }
-  const out = {};
+  const out: Record<string, any> = {};
   let count = 0;
   for (const [key, item] of Object.entries(value)) {
     if (count >= MAX_COMPACT_OBJECT_KEYS) {

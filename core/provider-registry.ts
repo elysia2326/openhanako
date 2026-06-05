@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * ProviderRegistry — 声明式 provider 插件注册表
  *
@@ -69,8 +68,8 @@ function normalizeDeletedProviders(value) {
 
 function normalizeModelDefaults(value) {
   if (!isPlainObject(value)) return {};
-  const out = {};
-  for (const [rawModelId, rawEntry] of Object.entries(value)) {
+  const out: any = {};
+  for (const [rawModelId, rawEntry] of Object.entries(value) as [string, any][]) {
     const modelId = typeof rawModelId === "string" ? rawModelId.trim() : "";
     if (!modelId || !isPlainObject(rawEntry)) continue;
     const rawLevel = rawEntry.thinking_level ?? rawEntry.thinkingLevel;
@@ -117,7 +116,7 @@ function normalizeProviderUserConfig(value) {
 
 function normalizeProviderUserConfigMap(providers) {
   if (!isPlainObject(providers)) return {};
-  const normalized = {};
+  const normalized: any = {};
   for (const [providerId, config] of Object.entries(providers)) {
     if (!providerId) continue;
     normalized[providerId] = normalizeProviderUserConfig(config);
@@ -127,7 +126,7 @@ function normalizeProviderUserConfigMap(providers) {
 
 function stripProviderRuntimeMeta(config) {
   const normalized = normalizeProviderUserConfig(config);
-  const clean = {};
+  const clean: any = {};
   for (const [key, value] of Object.entries(normalized)) {
     if (PROVIDER_RUNTIME_META_KEYS.has(key)) continue;
     clean[key] = value;
@@ -137,7 +136,7 @@ function stripProviderRuntimeMeta(config) {
 
 function stripProviderRuntimeMetaMap(providers) {
   if (!isPlainObject(providers)) return {};
-  const clean = {};
+  const clean: any = {};
   for (const [providerId, config] of Object.entries(providers)) {
     clean[providerId] = stripProviderRuntimeMeta(config);
   }
@@ -168,7 +167,7 @@ function normalizeProviderSource(plugin, isBuiltin) {
   return { kind: isBuiltin ? "builtin" : "user" };
 }
 
-function normalizeMediaModel(model, fallback = {}) {
+function normalizeMediaModel(model, fallback: any = {}) {
   if (!model) return null;
   const isObj = typeof model === "object";
   const id = isObj ? model.id : model;
@@ -236,7 +235,7 @@ function normalizeCapabilities(plugin, entry) {
     chat: raw.chat ? { ...defaultChatCapability(entry.id), ...raw.chat } : defaultChatCapability(entry.id),
   };
   const rawMedia = raw.media || {};
-  const media = {};
+  const media: any = {};
   for (const [rawKey, rawCapability] of Object.entries(rawMedia)) {
     const key = capabilityKey(rawKey);
     const normalized = normalizeMediaCapability(rawCapability, entry);
@@ -282,7 +281,7 @@ function inferMediaProtocolId(providerId, capability, modelId) {
 }
 
 function omitUndefined(value) {
-  const result = {};
+  const result: any = {};
   for (const [key, item] of Object.entries(value || {})) {
     if (item !== undefined) result[key] = item;
   }
@@ -423,6 +422,13 @@ const BUILTIN_PLUGINS = [
 // ── ProviderRegistry ─────────────────────────────────────────────────────────
 
 export class ProviderRegistry {
+  declare _addedModelsCache: any;
+  declare _addedModelsMtime: any;
+  declare _authJsonCache: any;
+  declare _authJsonMtime: any;
+  declare _entries: any;
+  declare _hanakoHome: any;
+  declare _plugins: any;
   /**
    * @param {string} hanakoHome - 用户数据根目录（如 ~/.hanako-dev）
    */
@@ -467,7 +473,7 @@ export class ProviderRegistry {
    * @param {string} agentsDir - agents 目录
    * @param {Function} [log] - 日志函数
    */
-  migrateOverridesToAddedModels(agentsDir, log = () => {}) {
+  migrateOverridesToAddedModels(agentsDir, log: (...args: any[]) => void = () => {}) {
     // 能力字段白名单：image 是新标准名；vision 是旧名，读到时转写为 image
     const CAPABILITY_KEYS = ["context", "maxOutput", "image", "video", "reasoning"];
     const userConfig = this._loadAddedModels();
@@ -486,9 +492,9 @@ export class ProviderRegistry {
       const overrides = cfg.models.overrides;
       let cfgChanged = false;
 
-      for (const [modelId, ov] of Object.entries(overrides)) {
+      for (const [modelId, ov] of Object.entries(overrides) as [string, any][]) {
         if (!ov || typeof ov !== "object") continue;
-        const meta = {};
+        const meta: any = {};
         // 旧字段 vision 重命名为 image（兼容两个版本后可删）
         if (ov.vision !== undefined && ov.image === undefined) {
           ov.image = ov.vision;
@@ -507,7 +513,7 @@ export class ProviderRegistry {
         if (Object.keys(meta).length === 0) continue;
 
         // 找到对应 provider 并更新条目
-        for (const [provName, prov] of Object.entries(userConfig)) {
+        for (const [provName, prov] of Object.entries(userConfig) as [string, any][]) {
           if (!prov.models || !Array.isArray(prov.models)) continue;
           const idx = prov.models.findIndex(m => (typeof m === "object" ? m.id : m) === modelId);
           if (idx === -1) continue;
@@ -559,7 +565,7 @@ export class ProviderRegistry {
   }
 
   /** 将 providers 对象写入 _hanakoHome/added-models.yaml */
-  _saveAddedModels(providers, meta = {}) {
+  _saveAddedModels(providers, meta: any = {}) {
     const ymlPath = path.join(this._hanakoHome, "added-models.yaml");
     // 读取现有文件以保留 _migrated 等顶层元数据
     const existing = safeReadYAMLSync(ymlPath, {}, YAML) || {};
@@ -600,7 +606,7 @@ export class ProviderRegistry {
     }
 
     // 2. 处理 added-models.yaml 中有但没有对应插件的条目（用户自定义 provider）
-    for (const [id, uc] of Object.entries(userConfig)) {
+    for (const [id, uc] of Object.entries(userConfig) as [string, any][]) {
       if (this._entries.has(id)) continue;
       // 没有插件声明，从配置推断
       const syntheticPlugin = {
@@ -623,7 +629,7 @@ export class ProviderRegistry {
    */
   _merge(plugin, userConfig, isBuiltin) {
     const runtime = plugin.runtime ? validateProviderRuntime(plugin.runtime) : null;
-    const entry = {
+    const entry: any = {
       id: plugin.id,
       displayName: userConfig.display_name || plugin.displayName,
       authType: normalizeProviderAuthType(userConfig.auth_type || plugin.authType),
@@ -1153,7 +1159,7 @@ export class ProviderRegistry {
 
     // 白名单：只允许模型能力字段（image 是标准名，vision 为旧名不写入）
     const ALLOWED = ["name", "context", "maxOutput", "image", "video", "reasoning", "type", "defaultThinkingLevel"];
-    const safe = {};
+    const safe: any = {};
     for (const key of ALLOWED) {
       if (meta[key] !== undefined) safe[key] = meta[key];
     }

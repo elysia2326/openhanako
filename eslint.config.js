@@ -128,11 +128,9 @@ export default [
     },
   },
 
-  // Migrated JS→TS files: allow @ts-nocheck until fully typed
+  // Remaining migrated JS→TS surfaces: allow @ts-nocheck until fully typed
   {
     files: [
-      'cli/**/*.ts', 'core/**/*.ts', 'hub/**/*.ts',
-      'lib/**/*.ts', 'server/**/*.ts', 'shared/**/*.ts',
       'plugins/**/*.ts',
       'tests/**/*.{ts,tsx}',
     ],

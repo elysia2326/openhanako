@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * debug-log.js — 持久化调试日志
  *
@@ -15,6 +14,12 @@ import os from "os";
 import { redactLogLabel, redactLogText } from "./log-redactor.ts";
 
 class DebugLog {
+  declare _dedup: any;
+  declare _filePath: any;
+  declare _logDir: any;
+  declare _redactOptions: any;
+  declare _size: any;
+  declare _truncated: any;
   /**
    * @param {string} logDir - 日志目录路径（如 ~/.hanako/logs）
    */
@@ -52,7 +57,7 @@ class DebugLog {
    * @param {string} version - 应用版本号
    * @param {object} info - 启动信息
    */
-  header(version, info = {}) {
+  header(version, info: any = {}) {
     const lines = [
       "═".repeat(60),
       `HanaAgent v${version} — started at ${new Date().toISOString()}`,

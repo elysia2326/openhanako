@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * dm.js — DM 私信 REST API
  *
@@ -59,7 +58,7 @@ export function createDmRoute(engine, hub = null) {
     return !peerId || /[\/\\]|\.\./.test(peerId);
   }
 
-  function dmProjectionMeta(agent, peerId) {
+  function dmProjectionMeta(agent, peerId): Record<string, any> {
     try {
       return readAgentPhoneProjection(getAgentPhoneProjectionPath(agent.agentDir, `dm:${peerId}`)).meta;
     } catch {

@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * heartbeat.js — 日常巡检 + 笺目录扫描
  *
@@ -68,7 +67,7 @@ function formatLocalMinute(date = new Date()) {
 }
 
 function markdownFenceFor(text) {
-  const matches = String(text || "").match(/`{3,}/g) || [];
+  const matches: string[] = String(text || "").match(/`{3,}/g) || [];
   const longest = matches.reduce((max, run) => Math.max(max, run.length), 2);
   return "`".repeat(longest + 1);
 }

@@ -1,4 +1,3 @@
-// @ts-nocheck
 import readline from "readline";
 import { createTerminalTheme, ansi, paint } from "./terminal-theme.ts";
 
@@ -29,7 +28,7 @@ export async function printSessions(client, { limit = 20 } = {}) {
   return sessions;
 }
 
-export async function startChat(client, connection, opts = {}) {
+export async function startChat(client, connection, opts: { session?: any; target?: any; plain?: boolean } = {}) {
   const ctx = await loadContext(client);
   let theme = createTerminalTheme(ctx.agentYuan);
   let session = await resolveChatSession(client, opts.session || opts.target);

@@ -1,4 +1,3 @@
-// @ts-nocheck
 import crypto from "crypto";
 import {
   normalizePrincipal,
@@ -24,7 +23,7 @@ const READ_MESSAGE_TYPES = new Set([
   "context_usage",
 ]);
 
-export function createWsClientRecord({ principal, subscriptions = [], clientId = `wsc_${crypto.randomUUID()}` } = {}) {
+export function createWsClientRecord({ principal, subscriptions = [], clientId = `wsc_${crypto.randomUUID()}` }: { principal?: any; subscriptions?: any[]; clientId?: string } = {}) {
   return Object.freeze({
     clientId,
     principal: normalizePrincipal(principal || { kind: "unknown" }),

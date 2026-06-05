@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * update-settings-tool.js — 设置修改工具（渐进式披露）
  *
@@ -20,7 +19,7 @@ import {
 /**
  * i18n key → 本地化标签 批量转换
  */
-function i18nLabels(keyMap) {
+function i18nLabels(keyMap: Record<string, string>) {
   return Object.fromEntries(Object.entries(keyMap).map(([k, v]) => [k, t(v)]));
 }
 
@@ -318,7 +317,7 @@ function searchSettings(query, engine) {
   const q = query.trim().toLowerCase();
   if (!q) return [];
   const results = [];
-  for (const [key, reg] of Object.entries({ ...SETTINGS_REGISTRY, ...MCP_SETTINGS_ACTIONS })) {
+  for (const [key, reg] of Object.entries({ ...SETTINGS_REGISTRY, ...MCP_SETTINGS_ACTIONS }) as [string, any][]) {
     const options = resolveOptions(reg, engine);
     const optionLabels = resolveOptionLabels(reg, engine);
     const haystack = [
@@ -433,7 +432,7 @@ async function applyMcpSettingsAction(engine, key, value, agentId) {
 
 // ── 工具 ──
 
-export function createUpdateSettingsTool(deps = {}) {
+export function createUpdateSettingsTool(deps: Record<string, any> = {}) {
   const {
     getEngine,
     getAgent,

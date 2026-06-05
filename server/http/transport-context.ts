@@ -1,9 +1,8 @@
-// @ts-nocheck
 export function inferHttpConnectionKind({
   hostHeader,
   remoteAddress,
   networkMode = "loopback",
-} = {}) {
+}: { hostHeader?: string; remoteAddress?: string; networkMode?: string } = {}) {
   const mode = typeof networkMode === "string" && networkMode.trim()
     ? networkMode.trim()
     : "loopback";

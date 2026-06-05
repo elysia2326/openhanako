@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * channel-tool.js — Agent 使用的频道工具
  *
@@ -23,6 +22,12 @@ import {
 } from "../channels/channel-store.ts";
 import fs from "fs";
 import path from "path";
+
+interface ChannelMeta {
+  name?: string;
+  description?: string;
+  members?: string[];
+}
 
 function safeChannelFilePath(channelsDir, channelId) {
   if (!channelId || /[/\\]|\.\./.test(channelId)) return null;
@@ -49,7 +54,7 @@ function listJoinedChannels({ channelsDir, agentsDir, agentId }) {
     .map((fileName) => {
       const id = fileName.replace(/\.md$/, "");
       const filePath = path.join(channelsDir, fileName);
-      const meta = getChannelMeta(filePath);
+      const meta = getChannelMeta(filePath) as ChannelMeta;
       const members = Array.isArray(meta.members) ? meta.members : [];
       return {
         id,
@@ -86,7 +91,7 @@ function resolveChannelReference({ channelsDir, agentsDir, agentId, channel }) {
 
   const exactPath = safeChannelFilePath(channelsDir, requested);
   if (exactPath && fs.existsSync(exactPath)) {
-    const meta = getChannelMeta(exactPath);
+    const meta = getChannelMeta(exactPath) as ChannelMeta;
     const members = Array.isArray(meta.members) ? meta.members : [];
     if (!members.includes(agentId)) {
       return {
@@ -232,7 +237,7 @@ export function createChannelTool({
           if (!resolved.ok) return channelResolveErrorResult("read", params.channel, resolved);
 
           const count = params.count || 20;
-          const messages = getRecentMessages(resolved.filePath, count);
+          const messages = getRecentMessages(resolved.filePath, count, undefined);
           const text = messages.length > 0
             ? formatMessagesForLLM(messages)
             : t("error.channelNoMessages");
@@ -306,7 +311,9 @@ export function createChannelTool({
                 addUserBookmark: true,
               })
               : await createChannel(channelsDir, {
+                id: undefined,
                 name: params.name,
+                description: undefined,
                 members,
                 intro: params.intro,
               });

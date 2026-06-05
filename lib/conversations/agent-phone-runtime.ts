@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * Agent Phone Runtime
  *
@@ -26,7 +25,7 @@ export function readAgentPhoneRuntime(agentDir, conversationId) {
   }
 }
 
-export function resolveAgentPhoneRuntimeSessionPath(agentDir, runtime = {}) {
+export function resolveAgentPhoneRuntimeSessionPath(agentDir, runtime: Record<string, any> = {}) {
   const stored = runtime?.phoneSessionFile;
   if (!stored || typeof stored !== "string") return null;
   const resolved = path.resolve(agentDir, ...stored.split("/").filter(Boolean));

@@ -1,4 +1,3 @@
-// @ts-nocheck
 import {
   computeToolSnapshot,
   DEFAULT_DISABLED_TOOL_NAMES,
@@ -11,13 +10,13 @@ export function toolNamesFromObjects(tools, { includePluginTools = true } = {}) 
     .filter(Boolean);
 }
 
-export function getStableFeatureDisabledToolNames({ channelsEnabled } = {}) {
+export function getStableFeatureDisabledToolNames({ channelsEnabled }: { channelsEnabled?: any } = {}) {
   const disabled = [];
   if (channelsEnabled === false) disabled.push("channel", "dm");
   return disabled;
 }
 
-export function computeRuntimeDisabledToolNames(tools, agentConfig, context = {}, options = {}) {
+export function computeRuntimeDisabledToolNames(tools, agentConfig, context = {}, options: { warn?: any } = {}) {
   const disabled = [];
   const warn = typeof options.warn === "function" ? options.warn : null;
   for (const tool of tools || []) {
@@ -34,7 +33,7 @@ export function computeRuntimeDisabledToolNames(tools, agentConfig, context = {}
   return disabled;
 }
 
-export function computeAvailableToolNames(tools, agentConfig, context = {}, options = {}) {
+export function computeAvailableToolNames(tools, agentConfig, context = {}, options: { includeRuntimeEnablement?: any; extraDisabled?: any[]; includePluginTools?: any; warn?: any } = {}) {
   const disabled = agentConfig?.tools?.disabled ?? DEFAULT_DISABLED_TOOL_NAMES;
   const runtimeDisabled = options.includeRuntimeEnablement === false
     ? []
@@ -51,7 +50,7 @@ export function computeAvailableToolNames(tools, agentConfig, context = {}, opti
   );
 }
 
-export function filterToolObjectsByAvailability(tools, agentConfig, context = {}, options = {}) {
+export function filterToolObjectsByAvailability(tools, agentConfig, context = {}, options: { includeRuntimeEnablement?: any; extraDisabled?: any[]; includePluginTools?: any; warn?: any } = {}) {
   const availableNames = new Set(computeAvailableToolNames(tools, agentConfig, context, options));
   return (tools || []).filter((tool) => tool?.name && availableNames.has(tool.name));
 }

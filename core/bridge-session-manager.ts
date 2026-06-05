@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * BridgeSessionManager — Bridge（外部平台）session 管理
  *
@@ -231,6 +230,11 @@ function readLastJsonlEntry(filePath) {
  */
 
 export class BridgeSessionManager {
+  declare _activeSessionRoles: any;
+  declare _activeSessions: any;
+  declare _deps: any;
+  declare _prePromptAbortControllers: any;
+  declare _sessionPathBridgeContexts: any;
   /**
    * @param {object} deps - 注入依赖（不持有 engine 引用）
    * @param {() => object} deps.getAgent - 返回当前 agent（需 sessionDir, yuanPrompt）
@@ -278,7 +282,7 @@ export class BridgeSessionManager {
   }
 
   /** 指定 bridge session 是否正在 streaming */
-  isSessionStreaming(sessionKey, opts = {}) {
+  isSessionStreaming(sessionKey, opts: any = {}) {
     if (!this._activeSessionRoleMatches(sessionKey, opts.role)) return false;
     return this._prePromptAbortControllers.has(sessionKey)
       || (this._activeSessions.get(sessionKey)?.isStreaming ?? false);
@@ -318,7 +322,7 @@ export class BridgeSessionManager {
     return path.join(a.sessionDir, "bridge", "bridge-sessions.json");
   }
 
-  _resolveAgent(opts = {}, operation = "operation") {
+  _resolveAgent( opts: any = {}, operation = "operation") {
     if (opts.agentId) {
       const agent = this._deps.getAgentById?.(opts.agentId) || null;
       if (!agent) throw new Error(`bridge ${operation}: agent "${opts.agentId}" not found`);
@@ -365,7 +369,7 @@ export class BridgeSessionManager {
       let cleaned = 0;
 
       for (const [sessionKey, raw] of Object.entries(index)) {
-        const entry = typeof raw === "string" ? { file: raw } : raw;
+        const entry: any = typeof raw === "string" ? { file: raw } : raw;
         if (!entry.file) continue;
         const fp = path.join(bridgeDir, entry.file);
         if (!fs.existsSync(fp)) {
@@ -443,7 +447,7 @@ export class BridgeSessionManager {
     return { changed: true, file: entry.file };
   }
 
-  _buildBridgeContext(sessionKey, meta = {}, opts = {}, agent = null) {
+  _buildBridgeContext(sessionKey, meta: any = {}, opts: any = {}, agent = null) {
     return buildBridgeContext({
       ...(meta || {}),
       sessionKey,
@@ -452,7 +456,7 @@ export class BridgeSessionManager {
     }, getLocale());
   }
 
-  _bridgeContextMeta(context, meta = {}) {
+  _bridgeContextMeta(context, meta: any = {}) {
     return bridgeContextIndexMeta(context, meta || {});
   }
 
@@ -491,7 +495,7 @@ export class BridgeSessionManager {
     return this._buildPromptSnapshot(agent, systemPrompt);
   }
 
-  _buildGuestPromptSnapshot(agent, bridgeContext, opts = {}) {
+  _buildGuestPromptSnapshot(agent, bridgeContext, opts: any = {}) {
     const bridgePromptLine = appendBridgePromptLine("", bridgeContext, getLocale()).trim();
     const parts = [agent.yuanPrompt, agent.publicIshiki, opts.contextTag, bridgePromptLine].filter(Boolean);
     return this._buildPromptSnapshot(agent, parts.join("\n\n"), {
@@ -530,8 +534,7 @@ export class BridgeSessionManager {
 
   _buildFreshCompactSatisfactionPatch(agent, {
     now = new Date(),
-    reason = "daily",
-    usage = {},
+    reason = "daily", usage = {} as any,
     bridgeContext = null,
   } = {}) {
     const homeCwd = this._deps.getHomeCwd(agent.id) || process.cwd();
@@ -548,7 +551,7 @@ export class BridgeSessionManager {
     };
   }
 
-  isFreshCompactAlreadySatisfied(sessionKey, opts = {}) {
+  isFreshCompactAlreadySatisfied(sessionKey, opts: any = {}) {
     const agent = this._resolveAgent(opts, "fresh compact inspect");
     const sessionPath = opts.sessionPath || this._resolveBridgeSessionEntry(agent, sessionKey, "fresh compact inspect").sessionFilePath;
     const lastEntry = readLastJsonlEntry(sessionPath);
@@ -558,7 +561,7 @@ export class BridgeSessionManager {
     return { satisfied: false, reason: null };
   }
 
-  async markFreshCompactSatisfied(sessionKey, opts = {}) {
+  async markFreshCompactSatisfied(sessionKey, opts: any = {}) {
     const agent = this._resolveAgent(opts, "fresh compact mark");
     const { entry, sessionFilePath } = this._resolveBridgeSessionEntry(agent, sessionKey, "fresh compact mark");
     const bridgeContext = this.getBridgeContextForSessionPath(sessionFilePath, { agentId: agent.id })
@@ -600,7 +603,7 @@ export class BridgeSessionManager {
     this._sessionPathBridgeContexts.set(path.resolve(sessionPath), raw);
   }
 
-  getBridgeContextForSessionPath(sessionPath, opts = {}) {
+  getBridgeContextForSessionPath(sessionPath, opts: any = {}) {
     if (!sessionPath) return null;
     const resolved = path.resolve(sessionPath);
     const cached = this._sessionPathBridgeContexts.get(resolved);
@@ -629,7 +632,7 @@ export class BridgeSessionManager {
     return null;
   }
 
-  recordCustomEntryForSessionPath(sessionPath, customType, data, opts = {}) {
+  recordCustomEntryForSessionPath(sessionPath, customType, data, opts: any = {}) {
     if (!sessionPath) throw new Error("recordCustomEntryForSessionPath: sessionPath is required");
     if (!customType) throw new Error("recordCustomEntryForSessionPath: customType is required");
     const context = this.getBridgeContextForSessionPath(sessionPath, opts);
@@ -654,7 +657,7 @@ export class BridgeSessionManager {
     return { ok: true, mode: "bridge-file" };
   }
 
-  _buildOwnerFreshCompactContext(agent, homeCwd, opts = {}) {
+  _buildOwnerFreshCompactContext(agent, homeCwd, opts: any = {}) {
     const prefs = this._deps.getPreferences();
     const mm = this._deps.getModelManager();
     const chatRef = agent.config?.models?.chat;
@@ -704,7 +707,7 @@ export class BridgeSessionManager {
    * @param {object} [opts] - { guest: boolean, contextTag?: string, onDelta? }
    * @returns {Promise<string|null>} agent 的回复文本
    */
-  async executeExternalMessage(prompt, sessionKey, meta, opts = {}) {
+  async executeExternalMessage(prompt, sessionKey, meta, opts: any = {}) {
     try {
       let promptText = prompt;
       const isGuest = opts.guest === true;
@@ -1016,7 +1019,7 @@ export class BridgeSessionManager {
    * @param {string} text
    * @returns {boolean} 是否成功注入
    */
-  steerSession(sessionKey, text, opts = {}) {
+  steerSession(sessionKey, text, opts: any = {}) {
     if (!this._activeSessionRoleMatches(sessionKey, opts.role)) return false;
     const session = this._activeSessions.get(sessionKey);
     if (!session?.isStreaming) return false;
@@ -1033,7 +1036,7 @@ export class BridgeSessionManager {
    * @param {object} [opts] - { agentId?: string, createIfMissing?: boolean, meta?: object }
    * @returns {boolean}
    */
-  recordAssistantMessage(sessionKey, text, opts = {}) {
+  recordAssistantMessage(sessionKey, text, opts: any = {}) {
     const agent = this._resolveAgent(opts, "recordAssistantMessage");
     try {
       const bridgeContext = this._buildBridgeContext(sessionKey, opts.meta, { ...opts, guest: false }, agent);
@@ -1092,7 +1095,7 @@ export class BridgeSessionManager {
   /**
    * Back-compat wrapper used by slash/session ops.
    */
-  injectMessage(sessionKey, text, opts = {}) {
+  injectMessage(sessionKey, text, opts: any = {}) {
     return this.recordAssistantMessage(sessionKey, text, { ...opts, createIfMissing: false });
   }
 
@@ -1130,7 +1133,7 @@ export class BridgeSessionManager {
    * @param {string} homeCwd
    * @returns {object} sessionOpts for createAgentSession
    */
-  _buildOwnerSessionOpts(agent, mm, homeCwd, sessionPathRef = { current: null }, targetModelRef = { current: null }, opts = {}) {
+  _buildOwnerSessionOpts(agent, mm, homeCwd, sessionPathRef = { current: null }, targetModelRef = { current: null }, opts: any = {}) {
     const prefs = this._deps.getPreferences();
     const bridgeReadOnly = prefs?.bridge?.readOnly === true;
     const bridgePermissionMode = bridgeReadOnly
@@ -1229,7 +1232,7 @@ export class BridgeSessionManager {
    * @param {{ agentId?: string }} opts
    * @returns {Promise<{ tokensBefore: number|null, tokensAfter: number|null, contextWindow: number|null }>}
    */
-  async compactSession(sessionKey, opts = {}) {
+  async compactSession(sessionKey, opts: any = {}) {
     // 1. 定位 agent
     let agent = this._resolveAgent(opts, "compactSession");
     agent = await this._ensureAgentRuntime(agent, "compactSession");
@@ -1309,7 +1312,7 @@ export class BridgeSessionManager {
       }
       let after = null;
       try {
-        await compactSessionWithCachePreservation(session);
+        await compactSessionWithCachePreservation(session, undefined);
         after = session.getContextUsage?.() ?? null;
       } catch (err) {
         const noopReason = freshContext ? getFreshCompactNoopReason(err) : null;
@@ -1350,7 +1353,7 @@ export class BridgeSessionManager {
 
       const shouldPersistToolNames = activeToolNames.length && !sameToolNames(activeToolNames, entry.toolNames);
       if (!restoredPromptSnapshot || shouldPersistToolNames) {
-        const patch = {};
+        const patch: any = {};
         if (!restoredPromptSnapshot) patch.promptSnapshot = promptSnapshot;
         if (activeToolNames.length) patch.toolNames = activeToolNames;
         this._writeIndexEntryPatch(agent, sessionKey, patch);
@@ -1362,11 +1365,11 @@ export class BridgeSessionManager {
         session,
         label: `bridge.compactSession[${sessionKey}]`,
         warn: (msg) => log.warn(msg),
-      });
+      } as any);
     }
   }
 
-  async freshCompactSession(sessionKey, opts = {}) {
+  async freshCompactSession(sessionKey, opts: any = {}) {
     return this.compactSession(sessionKey, {
       ...opts,
       fresh: true,

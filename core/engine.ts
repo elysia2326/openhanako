@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * HanaEngine — Hanako 的核心引擎（Thin Facade）
  *
@@ -168,6 +167,64 @@ function sessionBelongsToProject(projectId) {
 }
 
 export class HanaEngine {
+  declare _activityHub: any;
+  declare _agentMgr: any;
+  declare _approvalGateway: any;
+  declare _bridge: any;
+  declare _channels: any;
+  declare _checkpointStore: any;
+  declare _computerHost: any;
+  declare _computerProviders: any;
+  declare _configCoord: any;
+  declare _confirmStore: any;
+  declare _coreExtensionFactories: any;
+  declare _currentTurnNativeMedia: any;
+  declare _deferredResultCoordinator: any;
+  declare _deferredResultStore: any;
+  declare _devLogs: any;
+  declare _devLogsMax: any;
+  declare _discoveredExternalPaths: any;
+  declare _eventBus: any;
+  declare _extensionFactories: any;
+  declare _frameworkExtFactories: any;
+  declare _hubCallbacks: any;
+  declare _imageStripNotified: any;
+  declare _listeners: any;
+  declare _models: any;
+  declare _notifications: any;
+  declare _outboundProxyRuntime: any;
+  declare _pluginDevEventBusCleanup: any;
+  declare _pluginDevService: any;
+  declare _pluginInstallRecords: any;
+  declare _pluginManager: any;
+  declare _prefs: any;
+  declare _resourceAccess: any;
+  declare _resourceLoader: any;
+  declare _resources: any;
+  declare _runtimeContext: any;
+  declare _sessionCoord: any;
+  declare _sessionFiles: any;
+  declare _sessionProjects: any;
+  declare _skills: any;
+  declare _slashSystem: any;
+  declare _speechRecognition: any;
+  declare _studioCronService: any;
+  declare _subagentControllers: any;
+  declare _subagentRunStore: any;
+  declare _subagentThreadStore: any;
+  declare _taskRegistry: any;
+  declare _terminalSessions: any;
+  declare _uiContextBySession: any;
+  declare _usageLedger: any;
+  declare _videoStripNotified: any;
+  declare _visionBridge: any;
+  declare _win32LegacySandboxCleanupQueue: any;
+  declare agentsDir: any;
+  declare appVersion: any;
+  declare channelsDir: any;
+  declare hanakoHome: any;
+  declare productDir: any;
+  declare userDir: any;
   /**
    * @param {object} dirs
    * @param {string} dirs.hanakoHome
@@ -446,7 +503,7 @@ export class HanaEngine {
   get agent() { return this._agentMgr.agent; }
   get usageLedger() { return this._usageLedger; }
   getAgent(agentId) { return this._agentMgr.getAgent(agentId); }
-  async ensureAgentRuntime(agentId, opts = {}) {
+  async ensureAgentRuntime(agentId, opts: any = {}) {
     const targetId = agentId || this.currentAgentId;
     return this._agentMgr.ensureAgentRuntime(targetId, opts);
   }
@@ -529,7 +586,7 @@ export class HanaEngine {
     return this._runtimeContext;
   }
 
-  createExecutionBoundary(options = {}) {
+  createExecutionBoundary( options: any = {}) {
     return createRuntimeExecutionBoundary(this.getRuntimeContext(), options);
   }
 
@@ -543,7 +600,7 @@ export class HanaEngine {
     this._emitSessionFileUpdatedEvent(file, entry);
     return file;
   }
-  _emitSessionFileUpdatedEvent(file, entry = {}) {
+  _emitSessionFileUpdatedEvent(file, entry: any = {}) {
     const origin = typeof file?.origin === "string" ? file.origin : entry?.origin;
     if (origin !== "agent_write" && origin !== "agent_edit") return;
 
@@ -638,7 +695,7 @@ export class HanaEngine {
   async deleteAgent(agentId) { return this._agentMgr.deleteAgent(agentId); }
   setPrimaryAgent(agentId) { return this._agentMgr.setPrimaryAgent(agentId); }
   agentIdFromSessionPath(p) { return this._agentMgr.agentIdFromSessionPath(p); }
-  async createSessionForAgent(agentId, cwd, mem, model, opts = {}) {
+  async createSessionForAgent(agentId, cwd, mem, model, opts: any = {}) {
     return this._agentMgr.createSessionForAgent(agentId, cwd, mem, model, opts);
   }
 
@@ -664,10 +721,10 @@ export class HanaEngine {
   get cwd() { return this._sessionCoord.session?.sessionManager?.getCwd?.() ?? process.cwd(); }
   get deskCwd() { return this._sessionCoord.session?.sessionManager?.getCwd?.() || this.homeCwd || null; }
 
-  async createSession(mgr, cwd, mem, model, opts = {}) {
+  async createSession(mgr, cwd, mem, model, opts: any = {}) {
     return this._sessionCoord.createSession(mgr, cwd, mem, model, opts);
   }
-  async createDetachedSession(opts = {}) {
+  async createDetachedSession( opts: any = {}) {
     return this._sessionCoord.createDetachedSession(opts);
   }
   buildSessionCacheSnapshot(p, opts) {
@@ -723,10 +780,10 @@ export class HanaEngine {
     if (bridgeResult?.ok) return bridgeResult;
     return this._sessionCoord.recordCustomEntry(sessionPath, customType, data);
   }
-  getBridgeContextForSessionPath(sessionPath, opts = {}) {
+  getBridgeContextForSessionPath(sessionPath, opts: any = {}) {
     return this._bridge?.getBridgeContextForSessionPath?.(sessionPath, opts) || null;
   }
-  async deliverNotification(payload, opts = {}) {
+  async deliverNotification(payload, opts: any = {}) {
     return this._notifications.notify(payload, opts);
   }
   get slashRegistry() { return this._slashSystem?.registry ?? null; }
@@ -943,7 +1000,7 @@ export class HanaEngine {
   setSearchConfig(p) { return this._configCoord.setSearchConfig(p); }
   getUtilityApi() { return this._configCoord.getUtilityApi(); }
   setUtilityApi(p) { return this._configCoord.setUtilityApi(p); }
-  resolveUtilityConfig(options = {}) {
+  resolveUtilityConfig( options: any = {}) {
     const resolvedOptions = { ...(options || {}) };
     if (!resolvedOptions.agentId && resolvedOptions.sessionPath) {
       const ownerAgentId = this.agentIdFromSessionPath(resolvedOptions.sessionPath);
@@ -1033,7 +1090,7 @@ export class HanaEngine {
   setQuickChatPreferences(p) { return this._prefs.setQuickChatPreferences(p); }
   getWorkspaceUiState(workspaceRoot, surface) { return this._prefs.getWorkspaceUiState(workspaceRoot, surface); }
   setWorkspaceUiState(workspaceRoot, surface, state) { return this._prefs.setWorkspaceUiState(workspaceRoot, surface, state); }
-  gcWorkspacePersistence(options = {}) {
+  gcWorkspacePersistence( options: any = {}) {
     const configResults = options?.agentId
       ? [this._configCoord.gcWorkspaceConfig(options.agentId, options)]
       : this._configCoord.gcAllWorkspaceConfigs(options);
@@ -1110,14 +1167,14 @@ export class HanaEngine {
     if (session.isCompacting) throw new Error("compactDesktopSession: already compacting");
     let before = session.getContextUsage?.() ?? null;
     try {
-      await compactSessionWithCachePreservation(session);
+      await compactSessionWithCachePreservation(session, undefined);
     } catch (error) {
       if (!isStaleExtensionContextError(error)) throw error;
       session = await this.reloadSessionRuntime(sessionPath);
       if (!session) throw error;
       if (session.isCompacting) throw new Error("compactDesktopSession: already compacting");
       before = session.getContextUsage?.() ?? before;
-      await compactSessionWithCachePreservation(session);
+      await compactSessionWithCachePreservation(session, undefined);
     }
     const after = session.getContextUsage?.() ?? null;
     return {
@@ -1278,7 +1335,7 @@ export class HanaEngine {
   //  生命周期
   // ════════════════════════════
 
-  async init(log = () => {}) {
+  async init(log: any = () => {}) {
     const startupTimer = Date.now();
 
     // 0. Config scope 迁移（全局字段从 agent config → preferences）
@@ -1586,6 +1643,7 @@ export class HanaEngine {
 
     this._pluginManager = new PluginManager({
       pluginsDirs: [builtinPluginsDir, userPluginsDir],
+      pluginsDir: undefined,
       dataDir: pluginDataDir,
       bus,
       preferencesManager: this._prefs,
@@ -1593,6 +1651,8 @@ export class HanaEngine {
       getSessionPath: () => this.currentSessionPath,
       registerSessionFile: (entry) => this.registerSessionFile(entry),
       slashRegistry: this._slashSystem?.registry ?? null,
+      loadTimeoutMs: undefined,
+      lifecycleTimeoutMs: undefined,
       logSink: (entry) => this._pluginDevService?.recordLog(entry),
       runtimeContext: this.getRuntimeContext(),
     });
@@ -1678,7 +1738,7 @@ export class HanaEngine {
   //  工具构建
   // ════════════════════════════
 
-  buildTools(cwd, customTools, opts = {}) {
+  buildTools(cwd, customTools, opts: any = {}) {
     let ct = customTools;
     let agentId;
     let toolAgent;
@@ -1793,7 +1853,7 @@ export class HanaEngine {
         : this._readPreferences().sandbox_network !== false,
       getExternalReadPaths,
       getSessionPath,
-      resolveSessionFile: (fileId, options = {}) => {
+      resolveSessionFile: (fileId, options: any = {}) => {
         const lookupSessionPath = options?.sessionPath || getSessionPath() || null;
         return this.getSessionFile?.(fileId, { sessionPath: lookupSessionPath }) || null;
       },
@@ -1801,7 +1861,7 @@ export class HanaEngine {
       getVisionBridge: () => this.getVisionBridge(),
       isVisionAuxiliaryEnabled: () => this.isVisionAuxiliaryEnabled(),
       legacyCleanupQueue: this._win32LegacySandboxCleanupQueue,
-    });
+    } as any);
 
     // Checkpoint wrapper (outside sandbox layer)
     const backupCfg = this._prefs.getFileBackup();
@@ -1870,7 +1930,7 @@ export class HanaEngine {
     if (callbacks?.hub) this._slashSystem?.dispatcher?.setHub(callbacks.hub);
   }
 
-  registerAgentPhoneAbortHandler(handler, meta = {}) {
+  registerAgentPhoneAbortHandler(handler, meta: any = {}) {
     return this._hubCallbacks?.registerAgentPhoneAbortHandler?.(handler, meta) || (() => {});
   }
 
@@ -1903,7 +1963,7 @@ export class HanaEngine {
 
   emitEvent(event, sessionPath) { this._emitEvent(event, sessionPath); }
 
-  _emitAppEvent(type, payload = {}) {
+  _emitAppEvent(type, payload: any = {}) {
     if (typeof type !== "string" || !type) return;
     const normalizedPayload = payload && typeof payload === "object" && !Array.isArray(payload)
       ? payload
@@ -1980,7 +2040,7 @@ export class HanaEngine {
     });
   }
 
-  _utilityOptionsForContext(opts = {}) {
+  _utilityOptionsForContext( opts: any = {}) {
     if (opts?.agentId) return { agentId: opts.agentId, sessionPath: opts.sessionPath || null };
     if (opts?.sessionPath) {
       const agentId = this.agentIdFromSessionPath(opts.sessionPath);
@@ -1989,11 +2049,11 @@ export class HanaEngine {
     return undefined;
   }
 
-  async summarizeTitle(ut, at, opts = {}) {
+  async summarizeTitle(ut, at, opts: any = {}) {
     return _summarizeTitle(this.resolveUtilityConfig(this._utilityOptionsForContext(opts)), ut, at, opts);
   }
 
-  async translateSkillNames(names, lang, opts = {}) {
+  async translateSkillNames(names, lang, opts: any = {}) {
     const skills = Array.isArray(opts.skills)
       ? opts.skills
       : (opts.agentId ? this.getAllSkills(opts.agentId) : []);
@@ -2010,7 +2070,7 @@ export class HanaEngine {
     });
   }
 
-  async summarizeActivity(sp, preloaded, opts = {}) {
+  async summarizeActivity(sp, preloaded, opts: any = {}) {
     const utilityOptions = this._utilityOptionsForContext({ ...opts, sessionPath: opts.sessionPath || sp });
     return _summarizeActivity(this.resolveUtilityConfig(utilityOptions), sp, (msg) => this.emitDevLog(msg), preloaded);
   }

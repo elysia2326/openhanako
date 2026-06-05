@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * 配置管理 REST 路由
  */
@@ -55,21 +54,21 @@ import {
 import { denySecretMutationWithoutScope, denyWithoutScope } from "../http/capability-guard.ts";
 import { recordSecurityAuditEvent } from "../http/security-audit.ts";
 
-function hasOwn(value, key) {
+function hasOwn(value: any, key: string) {
   return !!value && typeof value === "object" && Object.prototype.hasOwnProperty.call(value, key);
 }
 
-function hasProviderMutationPatch(partial) {
+function hasProviderMutationPatch(partial: any) {
   if (!partial || typeof partial !== "object") return false;
   if (hasOwn(partial, "providers")) return true;
   return ["api", "embedding_api", "utility_api"].some((key) => hasInlineProviderCredentialPatch(partial[key]));
 }
 
-function getGlobalValue(globalFields, key) {
+function getGlobalValue(globalFields: any[], key: string) {
   return globalFields.find((field) => field.key === key)?.value;
 }
 
-function emitConfigAppEvents(engine, { globalFields, agentPartial, providersChanged }) {
+function emitConfigAppEvents(engine: any, { globalFields, agentPartial, providersChanged }: any) {
   const agentId = engine.currentAgentId || null;
   if (
     providersChanged
@@ -108,7 +107,7 @@ function emitConfigAppEvents(engine, { globalFields, agentPartial, providersChan
   }
 }
 
-function latestIso(values) {
+function latestIso(values: any[]) {
   let latest = null;
   let latestTime = -Infinity;
   for (const value of values) {
@@ -123,7 +122,7 @@ function latestIso(values) {
   return latest;
 }
 
-function normalizeMemoryStepHealth(step) {
+function normalizeMemoryStepHealth(step: any) {
   const failCount = Number(step?.failCount);
   return {
     lastSuccessAt: typeof step?.lastSuccessAt === "string" ? step.lastSuccessAt : null,
@@ -133,7 +132,7 @@ function normalizeMemoryStepHealth(step) {
   };
 }
 
-function buildMemoryHealth(agent) {
+function buildMemoryHealth(agent: any) {
   const base = {
     enabled: agent.memoryMasterEnabled !== false,
     reason: null,
@@ -162,7 +161,7 @@ function buildMemoryHealth(agent) {
   }
 
   const rawSteps = agent.memoryTicker.getHealthStatus();
-  const steps = {};
+  const steps: Record<string, any> = {};
   for (const [key, value] of Object.entries(rawSteps || {})) {
     steps[key] = normalizeMemoryStepHealth(value);
   }
@@ -185,7 +184,7 @@ function buildMemoryHealth(agent) {
   };
 }
 
-export function createConfigRoute(engine) {
+export function createConfigRoute(engine: any) {
   const route = new Hono();
 
   // 读取配置（脱敏：隐藏 API key，附带 _raw 原始结构 + providers）
@@ -204,8 +203,8 @@ export function createConfigRoute(engine) {
 
       // 供应商列表（附带 model_count）
       const rawProviders = engine.providerRegistry.getAllProvidersRaw();
-      const providerEntries = {};
-      for (const [name, p] of Object.entries(rawProviders)) {
+      const providerEntries: Record<string, any> = {};
+      for (const [name, p] of Object.entries(rawProviders) as [string, any][]) {
         const entry = engine.providerRegistry.get(name);
         providerEntries[name] = {
           base_url: p.base_url || entry?.baseUrl || "",
@@ -290,13 +289,13 @@ export function createConfigRoute(engine) {
         if (providerDenied) return providerDenied;
       }
       const secretFields = [
-        ...collectSecretPatchPaths(partial, ["api_key"]),
+        ...collectSecretPatchPaths(partial, ["api_key"] as any),
         ...collectProviderHeaderSecretPatchPathsFromConfig(partial),
       ];
       const secretDenied = denySecretMutationWithoutScope(c, secretFields);
       if (secretDenied) return secretDenied;
       // ── schema-driven 全局字段分流 ──
-      const { global: globalFields, agent: agentPartial } = splitByScope(partial);
+      const { global: globalFields, agent: agentPartial } = splitByScope(partial) as { global: any[], agent: Record<string, any> };
       for (const { setter, value } of globalFields) {
         engine[setter](value);
       }
@@ -312,13 +311,13 @@ export function createConfigRoute(engine) {
             const resolvedPatch = resolveSecretPatch({
               patch: data,
               existing: rawProviders[name] || {},
-              secretKeys: ["api_key"],
+              secretKeys: ["api_key"] as any,
             });
-            if (hasOwn(data, "headers")) {
-              resolvedPatch.headers = resolveProviderHeadersPatch({
-                patch: data.headers,
+            if (hasOwn(data as any, "headers")) {
+              (resolvedPatch as any).headers = resolveProviderHeadersPatch({
+                patch: (data as any).headers,
                 existing: rawProviders[name]?.headers || {},
-              });
+              } as any);
             }
             engine.providerRegistry.saveProvider(name, resolvedPatch);
           }
@@ -353,14 +352,14 @@ export function createConfigRoute(engine) {
       }
 
       if (providersChanged && Object.keys(agentPartial).length === 0) {
-        clearConfigCache();
+        clearConfigCache(undefined as any);
         await engine.updateConfig({});
         emitConfigAppEvents(engine, { globalFields, agentPartial, providersChanged });
         recordSecurityAuditEvent(c, engine, {
           action: "settings.config.update",
           target: "config",
           secretFields,
-        });
+        } as any);
         return c.json({ ok: true });
       }
 
@@ -370,18 +369,18 @@ export function createConfigRoute(engine) {
           action: "settings.config.update",
           target: "config",
           secretFields,
-        });
+        } as any);
         return c.json({ ok: true });
       }
       debugLog()?.log("api", `PUT /api/config keys=[${Object.keys(agentPartial).join(",")}]`);
-      if (providersChanged) clearConfigCache();
+      if (providersChanged) clearConfigCache(undefined as any);
       await engine.updateConfig(agentPartial);
       emitConfigAppEvents(engine, { globalFields, agentPartial, providersChanged });
       recordSecurityAuditEvent(c, engine, {
         action: "settings.config.update",
         target: "config",
         secretFields,
-      });
+      } as any);
       return c.json({ ok: true });
     } catch (err) {
       debugLog()?.error("api", `PUT /api/config failed: ${err.message}`);
@@ -551,7 +550,7 @@ export function createConfigRoute(engine) {
    * 否则临时打开那个 agent 的 facts.db。
    * 返回 { store, isTemp }，调用方用完 isTemp===true 的 store 需要 close。
    */
-  function getStoreForAgent(agentId) {
+  function getStoreForAgent(agentId: string) {
     if (!agentId) throw new Error("agentId is required");
     const resolvedId = agentId;
     const agent = engine.getAgent(resolvedId);
@@ -733,7 +732,7 @@ export function createConfigRoute(engine) {
   return route;
 }
 
-async function gcConfigWorkspacePersistence(engine) {
+async function gcConfigWorkspacePersistence(engine: any) {
   if (typeof engine.gcWorkspacePersistence === "function") {
     await engine.gcWorkspacePersistence({ agentId: engine.currentAgentId || undefined });
     return;

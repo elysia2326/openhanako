@@ -1,4 +1,3 @@
-// @ts-nocheck
 import { createModuleLogger } from "../lib/debug-log.ts";
 import { t } from "../lib/i18n.ts";
 
@@ -10,7 +9,13 @@ const DEFAULT_TIMEOUT_MS = 30_000;
 const ADMIN_SOURCES = new Set(["desktop"]);
 
 export class SlashCommandDispatcher {
-  constructor({ registry, engine, hub, sessionOps, timeoutMs } = {}) {
+  declare _registry: any;
+  declare _engine: any;
+  declare _hub: any;
+  declare _sessionOps: any;
+  declare _timeoutMs: number;
+
+  constructor({ registry, engine, hub, sessionOps, timeoutMs }: any = {}) {
     this._registry = registry;
     this._engine = engine || null;
     this._hub = hub || null;
@@ -21,16 +26,16 @@ export class SlashCommandDispatcher {
   }
 
   /** 外部注入 hub 的 setter（engine.setHubCallbacks 里调），避免访问私有字段 */
-  setHub(hub) { this._hub = hub; }
+  setHub(hub: any) { this._hub = hub; }
 
-  parse(text) {
+  parse(text: any) {
     if (!text) return null;
     const m = CMD_RE.exec(text);
     if (!m) return null;
     return { commandName: m[1], args: m[2] || "" };
   }
 
-  async tryDispatch(text, ctx) {
+  async tryDispatch(text: any, ctx: any) {
     const parsed = this.parse(text);
     if (!parsed) return { handled: false };
     const def = this._registry?.lookup(parsed.commandName);
@@ -93,7 +98,7 @@ export class SlashCommandDispatcher {
     return { handled: true };
   }
 
-  _resolveRole(ctx) {
+  _resolveRole(ctx: any) {
     // I2 fix：从 ADMIN_SOURCES 常量判定而非硬编码字符串，便于未来审计
     // 当前识别的 source：
     //   - 'desktop' → admin（桌面端用户即 owner，享最高权限）

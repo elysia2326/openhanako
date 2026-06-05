@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * experience.js — recall_experience / record_experience 工具
  *
@@ -101,7 +100,7 @@ export function syncExperienceCategories(experienceDir, indexPath, categories) {
   fs.mkdirSync(experienceDir, { recursive: true });
 
   const existingDocs = listExperienceDocuments(experienceDir);
-  const existingByTitle = new Map(existingDocs.map((doc) => [doc.title, doc]));
+  const existingByTitle: Map<string, { file: string; filePath: string; title: string; body: string }> = new Map(existingDocs.map((doc) => [doc.title, doc]));
   const nextFiles = new Set();
 
   for (const [rawCategory, rawBody] of categories) {
@@ -150,7 +149,7 @@ function pausedResult() {
  * @param {() => boolean} [opts.isEnabled] - 当前 agent 是否启用经验能力
  * @returns {import('../pi-sdk/index.ts').ToolDefinition[]}
  */
-export function createExperienceTools(agentDir, opts = {}) {
+export function createExperienceTools(agentDir, opts: { isEnabled?: () => boolean } = {}) {
   const experienceDir = path.join(agentDir, "experience");
   const indexPath = path.join(agentDir, "experience.md");
   const { isEnabled } = opts;

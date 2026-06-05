@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * desk.js — Desk 系统 REST API
  *
@@ -180,7 +179,7 @@ async function listWorkspaceFiles(dir) {
         }
       })
   );
-  return items.filter(Boolean).sort((a, b) => new Date(b.mtime) - new Date(a.mtime));
+  return items.filter(Boolean).sort((a, b) => new Date(b.mtime).getTime() - new Date(a.mtime).getTime());
 }
 
 const WORKSPACE_SEARCH_SKIP_DIRS = new Set([
@@ -502,7 +501,7 @@ export function createDeskRoute(engine, hub) {
     if (fileError) return c.json({ error: fileError }, 400);
 
     const access = validateMarkdownCoverSystemAccess();
-    if (access.error) return c.json({ error: access.error }, access.status);
+    if (access.error) return c.json({ error: access.error }, access.status as any);
 
     const imageFilePath = typeof body?.imageFilePath === "string"
       ? body.imageFilePath
@@ -512,7 +511,7 @@ export function createDeskRoute(engine, hub) {
     }
 
     try {
-      const result = await applyMarkdownCoverFromGeneratedFile({
+      const result = await (applyMarkdownCoverFromGeneratedFile as any)({
         markdownFilePath: filePath,
         generatedFilePath: imageFilePath,
       });
@@ -530,7 +529,7 @@ export function createDeskRoute(engine, hub) {
     if (fileError) return c.json({ error: fileError }, 400);
 
     const access = validateMarkdownCoverSystemAccess();
-    if (access.error) return c.json({ error: access.error }, access.status);
+    if (access.error) return c.json({ error: access.error }, access.status as any);
 
     const presetId = typeof body?.presetId === "string" ? body.presetId : "";
     let imageFilePath;
@@ -541,7 +540,7 @@ export function createDeskRoute(engine, hub) {
     }
 
     try {
-      const result = await applyMarkdownCoverFromGeneratedFile({
+      const result = await (applyMarkdownCoverFromGeneratedFile as any)({
         markdownFilePath: filePath,
         generatedFilePath: imageFilePath,
       });
@@ -564,7 +563,7 @@ export function createDeskRoute(engine, hub) {
         error: access.error,
         reason: access.reason,
         settingsTarget: access.settingsTarget,
-      }, access.status);
+      }, access.status as any);
     }
     const { agent, agentId } = access;
 

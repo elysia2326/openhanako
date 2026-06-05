@@ -1,4 +1,3 @@
-// @ts-nocheck
 import fs from "fs";
 import os from "os";
 import path from "path";
@@ -179,7 +178,7 @@ function parsePidAppId(appId) {
   return match ? Number(match[1]) : null;
 }
 
-function normalizeTarget(target = {}) {
+function normalizeTarget(target: Record<string, any> = {}) {
   const processId = target.processId ?? target.pid ?? parsePidAppId(target.appId);
   return {
     appId: target.appId || (processId ? `pid:${processId}` : null),
@@ -258,14 +257,14 @@ const WINDOWS_UIA_ALLOWED_ACTIONS = ["click_element", "type_text", "scroll", "st
 const ELEMENT_BOUND_ACTIONS = new Set(["click_element", "double_click", "type_text", "scroll"]);
 const FOREGROUND_ONLY_ACTIONS = new Set(["click_point", "double_click", "drag", "press_key"]);
 
-function isForegroundOnlyAction(action = {}) {
+function isForegroundOnlyAction(action: Record<string, any> = {}) {
   if (FOREGROUND_ONLY_ACTIONS.has(action.type)) return true;
   if (action.type === "type_text" && !action.elementId) return true;
   if (action.type === "scroll" && !action.elementId) return true;
   return false;
 }
 
-function rejectForegroundOnlyAction(providerId, action = {}) {
+function rejectForegroundOnlyAction(providerId, action: Record<string, any> = {}) {
   throw computerUseError(
     COMPUTER_USE_ERRORS.ACTION_REQUIRES_FOREGROUND,
     "Windows UIA provider is configured for background-only control; this action would require foreground input.",

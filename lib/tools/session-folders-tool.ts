@@ -1,4 +1,3 @@
-// @ts-nocheck
 import path from "path";
 import { SESSION_PERMISSION_MODES, normalizeSessionPermissionMode } from "../../core/session-permission-mode.ts";
 import { StringEnum, Type } from "../pi-sdk/index.ts";
@@ -117,7 +116,7 @@ function normalizeFolderParam(folder) {
   return path.resolve(folder.trim());
 }
 
-export function createSessionFoldersTool(deps = {}) {
+export function createSessionFoldersTool(deps: Record<string, any> = {}) {
   return {
     name: "session_folders",
     label: "Session Folders",
@@ -130,7 +129,7 @@ export function createSessionFoldersTool(deps = {}) {
         description: "Absolute or resolvable folder path for add/remove.",
       })),
     }),
-    execute: async (_toolCallId, params = {}, _signal, _onUpdate, ctx) => {
+    execute: async (_toolCallId, params: Record<string, any> = {}, _signal, _onUpdate, ctx) => {
       const engine = deps.getEngine?.();
       const sessionPath = getToolSessionPath(ctx) || deps.getSessionPath?.() || null;
       if (!engine) {
@@ -154,7 +153,7 @@ export function createSessionFoldersTool(deps = {}) {
         });
       }
 
-      let approval = await reviewFolderApproval(action, folder, sessionPath, deps, engine);
+      let approval: { allowed: boolean; status: string; confirmId?: string; reason?: string; decision?: any } = await reviewFolderApproval(action, folder, sessionPath, deps, engine);
       if (!approval.allowed && approval.status === "ask_user") {
         approval = await askForFolderApproval(action, folder, sessionPath, deps);
       }

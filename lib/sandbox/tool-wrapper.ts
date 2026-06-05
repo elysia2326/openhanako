@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * tool-wrapper.js — 工具沙盒包装
  *
@@ -13,6 +12,13 @@ import fs from "fs";
 import path from "path";
 import { t } from "../i18n.ts";
 import { normalizeWin32ShellPath } from "./win32-path.ts";
+
+interface SandboxOpts {
+  getSandboxEnabled?: () => boolean;
+  getExternalReadPaths?: () => string[];
+  checkManagedConfigWrite?: (absolutePath: string, operation: string) => { allowed: boolean; reason?: string } | undefined;
+  fallbackTool?: any;
+}
 
 /** 构造被拦截时返回给 LLM 的结果 */
 function blockedResult(reason) {
@@ -52,7 +58,7 @@ function externalReadGrantCovers(targetPath, grantPath) {
   }
 }
 
-function hasExternalReadGrant(absolutePath, opts = {}) {
+function hasExternalReadGrant(absolutePath, opts: SandboxOpts = {}) {
   if (!absolutePath || typeof opts.getExternalReadPaths !== "function") return false;
   let grants = [];
   try {
@@ -63,7 +69,7 @@ function hasExternalReadGrant(absolutePath, opts = {}) {
   return grants.some((grantPath) => grantPath && externalReadGrantCovers(absolutePath, grantPath));
 }
 
-function checkWithExternalReadGrant(guard, absolutePath, operation, opts = {}) {
+function checkWithExternalReadGrant(guard, absolutePath, operation, opts: SandboxOpts = {}) {
   const result = guard.check(absolutePath, operation);
   if (result.allowed) return result;
   if (operation === "read" && hasExternalReadGrant(absolutePath, opts)) {
@@ -76,7 +82,7 @@ function shouldSkipCommandPathGuard(operation) {
   return process.platform === "win32" && operation === "read";
 }
 
-function checkManagedConfigWrite(absolutePath, operation, opts = {}) {
+function checkManagedConfigWrite(absolutePath, operation, opts: SandboxOpts = {}) {
   if (!absolutePath || typeof opts.checkManagedConfigWrite !== "function") {
     return { allowed: true };
   }
@@ -98,14 +104,14 @@ function checkManagedConfigWrite(absolutePath, operation, opts = {}) {
  * macOS/Linux: 体验层（OS 沙盒兜底）
  * Windows: 安全层之一（restricted-token helper 之前的契约检查）
  */
-const PREFLIGHT_UNIX = [
+const PREFLIGHT_UNIX: [RegExp, () => any][] = [
   [/\bsudo\s/, () => t("sandbox.noSudo")],
   [/\bsu\s+\w/, () => t("sandbox.noSu")],
   [/\bchmod\s/, () => t("sandbox.noChmod")],
   [/\bchown\s/, () => t("sandbox.noChown")],
 ];
 
-const PREFLIGHT_WIN32 = [
+const PREFLIGHT_WIN32: [RegExp, () => any][] = [
   [/\bdel\s+\/s/i, () => t("sandbox.noDelRecursive")],
   [/\brmdir\s+\/s/i, () => t("sandbox.noRmdirRecursive")],
   [/\breg\s+(delete|add)\b/i, () => t("sandbox.noRegEdit")],
@@ -354,7 +360,7 @@ function extractPathChecks(command, cwd) {
  * @param {() => boolean} [opts.getSandboxEnabled]  动态沙盒开关（每次调用时求值）
  * @param {() => string[]} [opts.getExternalReadPaths]  session 显式授权的外部只读路径
  */
-export function wrapPathTool(tool, guard, operation, cwd, opts = {}) {
+export function wrapPathTool(tool, guard, operation, cwd, opts: SandboxOpts = {}) {
   return {
     ...tool,
     execute: async (toolCallId, params, ...rest) => {
@@ -398,7 +404,7 @@ export function wrapPathTool(tool, guard, operation, cwd, opts = {}) {
  * @param {() => string[]} [opts.getExternalReadPaths]  session 显式授权的外部只读路径
  * @param {object} [opts.fallbackTool]  沙盒关闭时使用的原始 bash 工具（无 OS 沙盒 exec）
  */
-export function wrapBashTool(tool, guard, cwd, opts = {}) {
+export function wrapBashTool(tool, guard, cwd, opts: SandboxOpts = {}) {
   return {
     ...tool,
     execute: async (toolCallId, params, ...rest) => {

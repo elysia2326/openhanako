@@ -1,4 +1,3 @@
-// @ts-nocheck
 import crypto from "crypto";
 import fs from "fs";
 import path from "path";
@@ -13,6 +12,9 @@ import {
 } from "../shared/session-projects.ts";
 
 export class SessionProjectCatalogStore {
+  declare _userDir: string;
+  declare _path: string;
+
   constructor({ userDir }) {
     if (!userDir) throw new Error("SessionProjectCatalogStore requires userDir");
     this._userDir = userDir;
@@ -35,7 +37,7 @@ export class SessionProjectCatalogStore {
     return folder;
   }
 
-  updateFolder(id, patch = {}) {
+  updateFolder(id, patch: Record<string, any> = {}) {
     const catalog = this.getCatalog();
     const folderId = normalizeSessionProjectId(id);
     const index = catalog.folders.findIndex(folder => folder.id === folderId);
@@ -95,7 +97,7 @@ export class SessionProjectCatalogStore {
     return project;
   }
 
-  updateProject(id, patch = {}) {
+  updateProject(id, patch: Record<string, any> = {}) {
     const catalog = this.getCatalog();
     const projectId = normalizeSessionProjectId(id);
     const index = catalog.projects.findIndex(project => project.id === projectId);
@@ -213,7 +215,7 @@ function compareCatalogItems(a, b) {
     || String(a.id || "").localeCompare(String(b.id || ""));
 }
 
-function reorderScopedItems(items, order) {
+function reorderScopedItems(items: any[], order: Map<string, any>) {
   const byId = new Map(items.map(item => [item.id, item]));
   const next = [];
   const seen = new Set();

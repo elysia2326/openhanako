@@ -1,4 +1,3 @@
-// @ts-nocheck
 import { loadServerIdentity } from "./server-identity.ts";
 import { createRuntimeExecutionBoundary } from "./execution-boundary.ts";
 
@@ -40,12 +39,13 @@ export function createServerRuntimeContext({ hanakoHome, appVersion = "?" }) {
     officialServiceKind: null,
     capabilities: [...LOCAL_CAPABILITIES],
     appVersion,
+    executionBoundary: null as any,
   };
   runtimeContext.executionBoundary = createRuntimeExecutionBoundary(runtimeContext);
   return deepFreeze(runtimeContext);
 }
 
-export function toServerIdentityResponse(runtimeContext, { appVersion } = {}) {
+export function toServerIdentityResponse(runtimeContext, { appVersion }: { appVersion?: string } = {}) {
   return {
     connectionKind: runtimeContext.connectionKind,
     serverId: runtimeContext.serverId,

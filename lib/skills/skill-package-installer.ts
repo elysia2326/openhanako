@@ -1,4 +1,3 @@
-// @ts-nocheck
 import crypto from "crypto";
 import fs from "fs";
 import path from "path";
@@ -10,7 +9,10 @@ import { createSkillSourceIdentity } from "./skill-file-identity.ts";
 const SAFE_SKILL_NAME = /^[a-zA-Z0-9][a-zA-Z0-9_-]{0,63}$/;
 
 export class SkillInstallError extends Error {
-  constructor(message, { code = "SKILL_INSTALL_FAILED", status = 400 } = {}) {
+  declare code: string;
+  declare status: number;
+
+  constructor(message: any, { code = "SKILL_INSTALL_FAILED", status = 400 } = {}) {
     super(message);
     this.name = "SkillInstallError";
     this.code = code;
@@ -18,14 +20,14 @@ export class SkillInstallError extends Error {
   }
 }
 
-export function sanitizeSkillName(raw) {
+export function sanitizeSkillName(raw: any) {
   if (!raw) return null;
   const trimmed = raw.trim();
   if (!SAFE_SKILL_NAME.test(trimmed)) return null;
   return trimmed;
 }
 
-function makeTempDir(parentDir, prefix) {
+function makeTempDir(parentDir: any, prefix: any) {
   fs.mkdirSync(parentDir, { recursive: true });
   const suffix = `${Date.now()}-${crypto.randomBytes(4).toString("hex")}`;
   const dir = path.join(parentDir, `.${prefix}-${suffix}`);
@@ -33,19 +35,19 @@ function makeTempDir(parentDir, prefix) {
   return dir;
 }
 
-function cleanupDir(dir) {
+function cleanupDir(dir: any) {
   if (!dir) return;
   try { fs.rmSync(dir, { recursive: true, force: true }); } catch { /* best effort temp cleanup */ }
 }
 
-function visibleSubdirectories(dir) {
+function visibleSubdirectories(dir: any) {
   return fs.readdirSync(dir, { withFileTypes: true })
     .filter(entry => entry.isDirectory() && !entry.name.startsWith("."))
     .map(entry => entry.name)
     .sort((a, b) => a.localeCompare(b));
 }
 
-function pathCandidates(rootDir, subpath = "") {
+function pathCandidates(rootDir: any, subpath = "") {
   const normalizedSubpath = String(subpath || "").replace(/\\/g, "/").replace(/^\/+|\/+$/g, "");
   const candidates = [];
   if (normalizedSubpath) {
@@ -62,7 +64,7 @@ function pathCandidates(rootDir, subpath = "") {
   return candidates;
 }
 
-export function findSkillPackageRoot(rootDir, { subpath = "" } = {}) {
+export function findSkillPackageRoot(rootDir: any, { subpath = "" } = {}) {
   for (const candidate of pathCandidates(rootDir, subpath)) {
     if (fs.existsSync(path.join(candidate, "SKILL.md"))) {
       return candidate;
@@ -71,18 +73,18 @@ export function findSkillPackageRoot(rootDir, { subpath = "" } = {}) {
   return null;
 }
 
-export function readSkillName(skillMdPath) {
+export function readSkillName(skillMdPath: any) {
   const content = fs.readFileSync(skillMdPath, "utf-8");
   const meta = parseSkillMetadata(content, "");
   return typeof meta.name === "string" && meta.name.trim() ? meta.name.trim() : null;
 }
 
-function escapeYamlScalar(value) {
+function escapeYamlScalar(value: any) {
   const text = String(value);
   return SAFE_SKILL_NAME.test(text) ? text : JSON.stringify(text);
 }
 
-function upsertFrontmatterLine(frontmatter, key, value) {
+function upsertFrontmatterLine(frontmatter: any, key: any, value: any) {
   const line = `${key}: ${value}`;
   const re = new RegExp(`(^|\\r?\\n)${key.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}\\s*:\\s*.*(?=\\r?\\n|$)`, "m");
   if (re.test(frontmatter)) {
@@ -92,7 +94,7 @@ function upsertFrontmatterLine(frontmatter, key, value) {
   return `${trimmed}${trimmed ? "\n" : ""}${line}`;
 }
 
-export function rewriteSkillInstallMetadata(content, skillName, { defaultEnabled } = {}) {
+export function rewriteSkillInstallMetadata(content: any, skillName: any, { defaultEnabled }: any = {}) {
   const body = typeof content === "string" ? content : "";
   const match = body.match(/^---\s*\r?\n([\s\S]*?)\r?\n---(\r?\n|$)([\s\S]*)$/);
   const lines = [`name: ${escapeYamlScalar(skillName)}`];
@@ -112,7 +114,7 @@ export function rewriteSkillInstallMetadata(content, skillName, { defaultEnabled
   return `---\n${frontmatter}\n---${match[2] || "\n"}${match[3] || ""}`;
 }
 
-function assertNoSymlinkEntries(dir) {
+function assertNoSymlinkEntries(dir: any) {
   for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
     const fullPath = path.join(dir, entry.name);
     const stat = fs.lstatSync(fullPath);
@@ -127,7 +129,7 @@ function assertNoSymlinkEntries(dir) {
   }
 }
 
-function assertInstallTargetInsideRoot(targetDir, installDir) {
+function assertInstallTargetInsideRoot(targetDir: any, installDir: any) {
   const root = path.resolve(installDir);
   const target = path.resolve(targetDir);
   if (target !== root && target.startsWith(root + path.sep)) return;
@@ -142,7 +144,7 @@ export function installSkillPackageFromDirectory({
   owner = "user",
   subpath = "",
   defaultEnabled,
-} = {}) {
+}: any = {}) {
   if (!sourceDir || !installDir) {
     throw new SkillInstallError("sourceDir and installDir are required", {
       code: "SKILL_INSTALL_MISSING_PATH",
@@ -195,7 +197,7 @@ export function installSkillPackageFromDirectory({
       skillName: safeName,
       filePath: skillFilePath,
       baseDir: dstDir,
-    }),
+    } as any),
   };
 }
 
@@ -204,7 +206,7 @@ export async function installSkillPackageFromPath({
   installDir,
   owner = "user",
   defaultEnabled,
-} = {}) {
+}: any = {}) {
   if (!sourcePath || !path.isAbsolute(sourcePath)) {
     throw new SkillInstallError("skill source path must be absolute", {
       code: "SKILL_SOURCE_MUST_BE_ABSOLUTE",
@@ -253,7 +255,7 @@ export async function installSkillPackageFromContent({
   installDir,
   owner = "user",
   defaultEnabled,
-} = {}) {
+}: any = {}) {
   const safeName = sanitizeSkillName(skillName);
   if (!safeName) {
     throw new SkillInstallError(`invalid skill name: ${skillName || ""}`, {
@@ -286,7 +288,7 @@ export async function prepareGithubSkillPackage({
   subpath = "",
   installDir,
   fetchImpl = globalThis.fetch,
-} = {}) {
+}: any = {}) {
   if (!owner || !repo || !installDir) {
     throw new SkillInstallError("owner, repo and installDir are required", {
       code: "SKILL_GITHUB_MISSING_INPUT",

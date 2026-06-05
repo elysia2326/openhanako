@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * SessionCoordinator — Session 生命周期管理
  *
@@ -95,7 +94,7 @@ const log = createModuleLogger("session");
 /** 巡检/定时任务默认工具白名单（"*" = 与 chat 一致，全部放行） */
 export const PATROL_TOOLS_DEFAULT = "*";
 
-function isPathInsideDir(parentDir, childPath) {
+function isPathInsideDir(parentDir: any, childPath: any) {
   if (!parentDir || !childPath) return false;
   const rel = path.relative(path.resolve(parentDir), path.resolve(childPath));
   return rel === "" || (!!rel && !rel.startsWith("..") && !path.isAbsolute(rel));
@@ -105,7 +104,7 @@ function cacheContractDebugEnabled() {
   return process.env.HANA_CACHE_CONTRACT_DEBUG === "1";
 }
 
-function assertVideoInputSupported(model, videos) {
+function assertVideoInputSupported(model: any, videos: any) {
   if (!videos?.length) return;
   if (!modelSupportsVideoInput(model)) {
     throw new Error("current model does not support video input");
@@ -115,7 +114,7 @@ function assertVideoInputSupported(model, videos) {
   }
 }
 
-function assertAudioInputSupported(model, audios) {
+function assertAudioInputSupported(model: any, audios: any) {
   if (!audios?.length) return;
   if (!modelSupportsAudioInput(model)) {
     throw new Error("current model does not support audio input");
@@ -125,7 +124,7 @@ function assertAudioInputSupported(model, audios) {
   }
 }
 
-function buildPromptMediaOptions(opts) {
+function buildPromptMediaOptions(opts: any) {
   const media = [
     ...(opts?.images || []),
     ...(opts?.videos || []),
@@ -140,7 +139,7 @@ function buildPromptMediaOptions(opts) {
   };
 }
 
-function extractPlainTextFromContent(content, { stripThink = false } = {}) {
+function extractPlainTextFromContent(content: any, { stripThink = false } = {}) {
   let text = "";
   if (typeof content === "string") {
     text = content;
@@ -154,7 +153,7 @@ function extractPlainTextFromContent(content, { stripThink = false } = {}) {
   return text.replace(/<think(?:ing)?>([\s\S]*?)<\/think(?:ing)?>\n*/g, "");
 }
 
-function timestampFromHistoryMessage(message, fallback = Date.now()) {
+function timestampFromHistoryMessage(message: any, fallback = Date.now()) {
   if (typeof message?.timestamp === "number" && Number.isFinite(message.timestamp)) return message.timestamp;
   if (typeof message?.timestamp === "string") {
     const parsed = Date.parse(message.timestamp);
@@ -163,7 +162,7 @@ function timestampFromHistoryMessage(message, fallback = Date.now()) {
   return fallback;
 }
 
-function activeToolDefinitionsFromSnapshot(allToolObjects, snapshotToolNames) {
+function activeToolDefinitionsFromSnapshot(allToolObjects: any, snapshotToolNames: any) {
   const allowed = snapshotToolNames === null ? null : new Set(snapshotToolNames || []);
   return (allToolObjects || [])
     .filter((tool) => tool?.name && (allowed === null || allowed.has(tool.name)))
@@ -174,7 +173,7 @@ function activeToolDefinitionsFromSnapshot(allToolObjects, snapshotToolNames) {
     }));
 }
 
-function normalizeDeletedAgentTranscriptMessage(message) {
+function normalizeDeletedAgentTranscriptMessage(message: any) {
   if (!message || typeof message !== "object") return null;
   if (message.role !== "user" && message.role !== "assistant") return null;
   const text = extractPlainTextFromContent(message.content, { stripThink: message.role === "assistant" }).trim();
@@ -186,26 +185,26 @@ function normalizeDeletedAgentTranscriptMessage(message) {
   };
 }
 
-function readSessionBranchMessages(sessionPath) {
+function readSessionBranchMessages(sessionPath: any) {
   const manager = SessionManager.open(sessionPath, path.dirname(sessionPath));
   const branch = manager.getBranch();
   return branch
-    .filter(entry => entry?.type === "message" && entry.message)
+    .filter(entry => entry?.type === "message" && (entry as any).message)
     .map(entry => ({
-      ...entry.message,
-      timestamp: entry.message.timestamp ?? entry.timestamp ?? null,
+      ...(entry as any).message,
+      timestamp: (entry as any).message.timestamp ?? entry.timestamp ?? null,
     }));
 }
 
-function textOrNull(value) {
+function textOrNull(value: any) {
   return typeof value === "string" && value.trim() ? value.trim() : null;
 }
 
-function modelIdFromModel(model) {
+function modelIdFromModel(model: any) {
   return textOrNull(model?.id ?? model?.modelId);
 }
 
-function resolveAssistantUsageModel(modelMeta, fallbackModel, resolveModel) {
+function resolveAssistantUsageModel(modelMeta: any, fallbackModel: any, resolveModel: any) {
   if (!modelMeta?.provider || !modelMeta?.modelId) return fallbackModel || null;
   if (
     fallbackModel?.provider === modelMeta.provider
@@ -221,7 +220,7 @@ function resolveAssistantUsageModel(modelMeta, fallbackModel, resolveModel) {
   }
 }
 
-function modelMetaForAssistantUsage(message, fallbackModel, resolvedModel) {
+function modelMetaForAssistantUsage(message: any, fallbackModel: any, resolvedModel: any) {
   return {
     provider: textOrNull(message?.provider) ?? textOrNull(fallbackModel?.provider),
     modelId: textOrNull(message?.model) ?? modelIdFromModel(fallbackModel),
@@ -229,12 +228,12 @@ function modelMetaForAssistantUsage(message, fallbackModel, resolvedModel) {
   };
 }
 
-function costRatesForAssistantUsage({ modelMeta, resolvedModel, fallbackModel }) {
+function costRatesForAssistantUsage({ modelMeta, resolvedModel, fallbackModel }: any) {
   if (!modelMeta?.provider || !modelMeta?.modelId) return fallbackModel?.cost ?? null;
   return resolvedModel?.cost ?? null;
 }
 
-function recordAssistantUsage({ ledger, event, sessionPath, agentId, model, source, attribution, resolveModel }) {
+function recordAssistantUsage({ ledger, event, sessionPath, agentId, model, source, attribution, resolveModel }: any) {
   if (!ledger || event?.type !== "message_end" || event.message?.role !== "assistant") return null;
   const initialModelMeta = {
     provider: textOrNull(event.message?.provider) ?? textOrNull(model?.provider),
@@ -271,7 +270,7 @@ function recordAssistantUsage({ ledger, event, sessionPath, agentId, model, sour
   return null;
 }
 
-function collectAssistantTextFromMessage(message) {
+function collectAssistantTextFromMessage(message: any) {
   if (!message) return "";
   if (typeof message.text === "string") return message.text;
   if (typeof message.content === "string") return message.content;
@@ -287,7 +286,7 @@ function collectAssistantTextFromMessage(message) {
     .join("");
 }
 
-function addUniqueSessionFile(target, file) {
+function addUniqueSessionFile(target: any[], file: any) {
   if (!file || typeof file !== "object") return;
   const key = file.id || file.fileId || file.filePath || file.path || file.realPath || JSON.stringify(file);
   if (target.some((existing) => (
@@ -298,7 +297,7 @@ function addUniqueSessionFile(target, file) {
   target.push(file);
 }
 
-function collectSessionFilesFromToolResult(result) {
+function collectSessionFilesFromToolResult(result: any) {
   const files = [];
   const details = result?.details;
   addUniqueSessionFile(files, details?.sessionFile);
@@ -308,14 +307,14 @@ function collectSessionFilesFromToolResult(result) {
   return files;
 }
 
-function toolErrorSummary(event) {
+function toolErrorSummary(event: any) {
   const toolName = event?.toolName || event?.name || "tool";
   const raw = event?.error || event?.result?.error || event?.result?.message || event?.message;
   const message = typeof raw === "string" ? raw : raw?.message || "";
   return message ? `${toolName}: ${message}` : `${toolName}: failed`;
 }
 
-function isolatedCompletionError(stopReason, errorMessage) {
+function isolatedCompletionError(stopReason: any, errorMessage: any) {
   if (!stopReason || stopReason === "stop") return null;
   const message = typeof errorMessage === "string" ? errorMessage : errorMessage?.message;
   if (stopReason === "error") {
@@ -337,7 +336,7 @@ const DEFAULT_RUNTIME_PRESSURE_THRESHOLDS = Object.freeze({
   highExternalBytes: 512 * MiB,
 });
 
-function normalizeMemoryPressureOptions(raw) {
+function normalizeMemoryPressureOptions(raw: any) {
   if (raw === false || raw?.enabled === false) {
     return {
       enabled: false,
@@ -357,7 +356,7 @@ function normalizeMemoryPressureOptions(raw) {
   };
 }
 
-function estimateSessionRuntimeRetainedBytes(session) {
+function estimateSessionRuntimeRetainedBytes(session: any) {
   const seen = new WeakSet();
   const stateMessages = session?.agent?.state?.messages;
   const messages = Array.isArray(session?.messages)
@@ -368,7 +367,7 @@ function estimateSessionRuntimeRetainedBytes(session) {
   return estimateRetainedValueBytes(messages, seen, { count: 0 });
 }
 
-function estimateRetainedValueBytes(value, seen, budget, depth = 0) {
+function estimateRetainedValueBytes(value: any, seen: WeakSet<any>, budget: any, depth = 0) {
   if (value == null || depth > 10 || budget.count > 20_000) return 0;
   budget.count += 1;
 
@@ -401,7 +400,7 @@ function estimateRetainedValueBytes(value, seen, budget, depth = 0) {
   return total;
 }
 
-function makeBackgroundTaskPrompt(locale) {
+function makeBackgroundTaskPrompt(locale: any) {
   const isZh = String(locale || "").startsWith("zh");
   return isZh
     ? `## 后台任务
@@ -428,7 +427,7 @@ function buildAppendSystemPromptSnapshot({
   hasDeferredResultStore,
   locale,
   workspaceScope,
-}) {
+}: any) {
   const parts = [
     ...(Array.isArray(baseAppend) ? baseAppend : []),
     ...(Array.isArray(providerPromptPatches) ? providerPromptPatches : []),
@@ -445,15 +444,15 @@ function buildAppendSystemPromptSnapshot({
   return normalizeStringArray(parts);
 }
 
-function readDeepSeekRoleplayExperimentFlag(prefs) {
+function readDeepSeekRoleplayExperimentFlag(prefs: any) {
   return getResolvedExperimentValue(prefs, DEEPSEEK_ROLEPLAY_REASONING_PATCH_EXPERIMENT_ID) === true;
 }
 
-function normalizeOptionalText(value) {
+function normalizeOptionalText(value: any) {
   return typeof value === "string" ? value.trim() : "";
 }
 
-function normalizeDeepSeekRoleplayReasoningContext(value) {
+function normalizeDeepSeekRoleplayReasoningContext(value: any) {
   if (!value || typeof value !== "object" || Array.isArray(value)) return null;
   const locale = normalizeOptionalText(value.locale);
   const agentName = normalizeOptionalText(value.agentName);
@@ -466,7 +465,7 @@ function normalizeDeepSeekRoleplayReasoningContext(value) {
   };
 }
 
-function readAgentRosterDescription(agent) {
+function readAgentRosterDescription(agent: any) {
   if (agent?.agentDir) {
     try {
       const raw = fs.readFileSync(path.join(agent.agentDir, "description.md"), "utf-8");
@@ -480,7 +479,7 @@ function readAgentRosterDescription(agent) {
   return "";
 }
 
-function buildDeepSeekRoleplayReasoningContext(agent) {
+function buildDeepSeekRoleplayReasoningContext(agent: any) {
   return normalizeDeepSeekRoleplayReasoningContext({
     locale: agent?.config?.locale || getLocale(),
     agentName: agent?.agentName || agent?.name || agent?.config?.agent?.name || agent?.id,
@@ -488,7 +487,7 @@ function buildDeepSeekRoleplayReasoningContext(agent) {
   });
 }
 
-function normalizeSessionExperimentFlags(value) {
+function normalizeSessionExperimentFlags(value: any) {
   const context = normalizeDeepSeekRoleplayReasoningContext(value?.deepseekRoleplayReasoningContext);
   return {
     deepseekRoleplayReasoningPatch: value?.deepseekRoleplayReasoningPatch === true,
@@ -496,12 +495,30 @@ function normalizeSessionExperimentFlags(value) {
   };
 }
 
-function sessionExperimentFlagsForMeta(value) {
+function sessionExperimentFlagsForMeta(value: any) {
   const flags = normalizeSessionExperimentFlags(value);
   return flags.deepseekRoleplayReasoningPatch === true ? flags : null;
 }
 
 export class SessionCoordinator {
+  declare _d: any;
+  declare _pendingModel: any;
+  declare _session: any;
+  declare _currentSessionPath: string;
+  declare _sessionStarted: boolean;
+  declare _sessions: Map<string, any>;
+  declare _hibernatedSessionMeta: Map<string, any>;
+  declare _runtimePressureTimers: Map<string, any>;
+  declare _memoryPressure: any;
+  declare _headlessOps: Set<string>;
+  declare _titlesCache: Map<string, any>;
+  declare _metaCache: Map<string, any>;
+  declare _sessionListProjectionCache: SessionListProjectionCache;
+  declare _pendingPermissionMode: any;
+  declare _runtimePermissionModeDefault: any;
+  declare _metaWriteQueue: Promise<any>;
+  declare _prePromptAbortControllers: Map<string, AbortController>;
+
   /**
    * @param {object} deps
    * @param {string} deps.agentsDir
@@ -522,7 +539,7 @@ export class SessionCoordinator {
    * @param {() => object} deps.listAgents - 列出所有 agent
    * @param {(cwd: string) => Promise<void>} [deps.onBeforeSessionCreate]
    */
-  constructor(deps) {
+  constructor(deps: any) {
     this._d = deps;
     this._pendingModel = null;
     this._session = null;
@@ -548,7 +565,7 @@ export class SessionCoordinator {
   get sessionStarted() { return this._sessionStarted; }
   get sessions() { return this._sessions; }
 
-  setPendingModel(model) { this._pendingModel = model; }
+  setPendingModel(model: any) { this._pendingModel = model; }
   get pendingModel() { return this._pendingModel; }
 
   _getDefaultThinkingLevelForModel(model = null) {
@@ -565,7 +582,7 @@ export class SessionCoordinator {
     return this._getDefaultThinkingLevelForModel();
   }
 
-  async setDefaultThinkingLevel(level) {
+  async setDefaultThinkingLevel(level: any) {
     const models = this._d.getModels();
     const fallback = normalizeSessionThinkingLevel(this._d.getPrefs().getThinkingLevel());
     const targetModel = this._pendingModel || models?.currentModel || null;
@@ -593,7 +610,7 @@ export class SessionCoordinator {
     return this._session?.sessionManager?.getSessionFile?.() ?? this._currentSessionPath ?? null;
   }
 
-  buildSessionCacheSnapshot(sessionPath, { reason = "unknown", messages = null } = {}) {
+  buildSessionCacheSnapshot(sessionPath: any, { reason = "unknown", messages = null }: any = {}) {
     const entry = this._sessions.get(sessionPath);
     if (!entry?.session) {
       throw new Error(`Session cache snapshot unavailable: unknown session ${sessionPath || "(empty)"}`);
@@ -613,7 +630,7 @@ export class SessionCoordinator {
     });
   }
 
-  getSessionStreamFn(sessionPath) {
+  getSessionStreamFn(sessionPath: any) {
     const entry = this._sessions.get(sessionPath);
     return entry?.session?.agent?.streamFn || null;
   }
@@ -644,7 +661,7 @@ export class SessionCoordinator {
 
   // ── Session 创建 / 切换 ──
 
-  async _shouldIncludeLegacyArtifactToolForRestore(agent, sessionPath) {
+  async _shouldIncludeLegacyArtifactToolForRestore(agent: any, sessionPath: any) {
     if (!sessionPath) return true;
     try {
       const metaPath = path.join(agent.sessionDir, "session-meta.json");
@@ -660,7 +677,7 @@ export class SessionCoordinator {
     }
   }
 
-  async createSession(sessionMgr, cwd, memoryEnabled = true, model = null, {
+  async createSession(sessionMgr: any, cwd: any, memoryEnabled = true, model: any = null, {
     restore = false,
     agent: explicitAgent = null,
     agentId: explicitAgentId = null,
@@ -669,7 +686,7 @@ export class SessionCoordinator {
     authorizedFolders = [],
     visibleInSessionList = false,
     thinkingLevel = null,
-  } = {}) {
+  }: any = {}) {
     const t0 = Date.now();
     const agent = explicitAgent
       || (explicitAgentId ? this._d.getAgentById?.(explicitAgentId) : null)
@@ -936,7 +953,7 @@ export class SessionCoordinator {
     };
     const resourceLoader = Object.create(baseResourceLoader, resourceLoaderProps);
 
-    const toolSnapshotOptions = { forceMemoryEnabled: frozenMemoryEnabled, model: effectiveModel };
+    const toolSnapshotOptions: any = { forceMemoryEnabled: frozenMemoryEnabled, model: effectiveModel };
     if (agentHasExperienceSwitch) {
       toolSnapshotOptions.forceExperienceEnabled = frozenExperienceEnabled;
     }
@@ -957,7 +974,7 @@ export class SessionCoordinator {
         agentDir: agent.agentDir,
       },
     );
-    const sessionOpts = {
+    const sessionOpts: any = {
       cwd: effectiveCwd,
       sessionManager: sessionMgr,
       settingsManager: this._createSettings(effectiveModel),
@@ -1027,7 +1044,7 @@ export class SessionCoordinator {
         },
       });
       this._d.emitEvent(
-        event.agentId ? event : { ...event, agentId: creatingAgentId },
+        (event as any).agentId ? event : { ...event, agentId: creatingAgentId },
         sessionPath,
       );
     });
@@ -1161,7 +1178,7 @@ export class SessionCoordinator {
     // writeSessionMeta is serialized and never rejects; awaiting gives
     // createSession a clean post-return state.
     if (!restore && sessionPath) {
-      const metaPatch = {
+      const metaPatch: any = {
         memoryEnabled: frozenMemoryEnabled,
         experienceEnabled: frozenExperienceEnabled,
         workspaceFolders: workspaceScope.workspaceFolders,
@@ -1182,7 +1199,7 @@ export class SessionCoordinator {
       if (snapshotToolNames !== null) metaPatch.toolNames = snapshotToolNames;
       await this.writeSessionMeta(sessionPath, metaPatch);
     } else if (restore && sessionPath) {
-      const metaPatch = {};
+      const metaPatch: any = {};
       if (!restoredPromptSnapshot) metaPatch.promptSnapshot = promptSnapshotToWrite;
       if (shouldPersistRestoredToolNames && snapshotToolNames !== null) {
         metaPatch.toolNames = snapshotToolNames;
@@ -1226,7 +1243,7 @@ export class SessionCoordinator {
     visibleInSessionList = true,
     permissionMode = null,
     thinkingLevel = null,
-  } = {}) {
+  }: any = {}) {
     const prevFocus = this._session;
     const prevCurrentSessionPath = this._currentSessionPath;
     const prevSessionStarted = this._sessionStarted;
@@ -1254,7 +1271,7 @@ export class SessionCoordinator {
     }
   }
 
-  async continueDeletedAgentSession(sourceSessionPath) {
+  async continueDeletedAgentSession(sourceSessionPath: any) {
     this._assertActiveDesktopSessionPath(sourceSessionPath, "continueDeletedAgentSession");
     const sourceAgentId = this._d.agentIdFromSessionPath(sourceSessionPath);
     if (!sourceAgentId) {
@@ -1300,12 +1317,12 @@ export class SessionCoordinator {
       createdSessionPath = result.sessionPath;
       const manager = session.sessionManager;
       for (const message of transcriptMessages) {
-        manager.appendMessage(message);
+        manager.appendMessage(message as any);
       }
       if (session.model?.provider && session.model?.id) {
         manager.appendModelChange(session.model.provider, session.model.id);
       }
-      manager._rewriteFile?.();
+      (manager as any)._rewriteFile?.();
 
       await this.writeSessionMeta(createdSessionPath, {
         continuedFrom: {
@@ -1319,7 +1336,7 @@ export class SessionCoordinator {
         sourceSessionPath,
         sourceAgentId,
       });
-      manager._rewriteFile?.();
+      (manager as any)._rewriteFile?.();
       return {
         session,
         sessionPath: createdSessionPath,
@@ -1338,7 +1355,7 @@ export class SessionCoordinator {
     }
   }
 
-  async _freshCompactDeletedAgentContinuation(session, transcriptMessages, { sourceSessionPath, sourceAgentId }) {
+  async _freshCompactDeletedAgentContinuation(session: any, transcriptMessages: any[], { sourceSessionPath, sourceAgentId }: any) {
     if (!session?.sessionManager) throw new Error("deleted-agent continuation compaction requires a session manager");
     const model = session.model;
     if (!model) throw new Error("deleted-agent continuation compaction requires a model");
@@ -1391,7 +1408,7 @@ export class SessionCoordinator {
             sessionPath: session.sessionManager?.getSessionFile?.() || null,
           },
         },
-      });
+      } as any);
       const saved = await appendCompactionResultToSession(session, result, { fromExtension: false });
       session?._emit?.({
         type: "compaction_end",
@@ -1472,7 +1489,7 @@ export class SessionCoordinator {
     };
   }
 
-  async setSessionAuthorizedFolders(sessionPath, folders) {
+  async setSessionAuthorizedFolders(sessionPath: any, folders: any) {
     this._assertActiveDesktopSessionPath(sessionPath, "setSessionAuthorizedFolders");
     if (this._isDeletedAgentSessionPath(sessionPath)) {
       throw new Error("setSessionAuthorizedFolders: session belongs to a deleted agent");
@@ -1508,12 +1525,12 @@ export class SessionCoordinator {
     return this.getSessionFolderScope(sessionPath);
   }
 
-  async addSessionAuthorizedFolder(sessionPath, folder) {
+  async addSessionAuthorizedFolder(sessionPath: any, folder: any) {
     const current = this.getSessionAuthorizedFolders(sessionPath);
     return this.setSessionAuthorizedFolders(sessionPath, [...current, folder]);
   }
 
-  async removeSessionAuthorizedFolder(sessionPath, folder) {
+  async removeSessionAuthorizedFolder(sessionPath: any, folder: any) {
     const target = normalizeSessionFolderScope({ authorizedFolders: [folder] }).authorizedFolders[0];
     const current = this.getSessionAuthorizedFolders(sessionPath);
     const next = target
@@ -1522,12 +1539,12 @@ export class SessionCoordinator {
     return this.setSessionAuthorizedFolders(sessionPath, next);
   }
 
-  _sessionFolderEntry(sessionPath) {
+  _sessionFolderEntry(sessionPath: any) {
     if (!sessionPath) return null;
     return this._sessions.get(sessionPath) || this._hibernatedSessionMeta.get(sessionPath) || null;
   }
 
-  _sessionCwdFor(sessionPath, entry = null) {
+  _sessionCwdFor(sessionPath: any, entry: any = null) {
     if (entry?.cwd) return entry.cwd;
     const liveCwd = entry?.session?.sessionManager?.getCwd?.();
     if (liveCwd) return liveCwd;
@@ -1542,7 +1559,7 @@ export class SessionCoordinator {
     }
   }
 
-  _readSessionMetaEntrySync(sessionPath) {
+  _readSessionMetaEntrySync(sessionPath: any) {
     if (!sessionPath) return null;
     try {
       const metaPath = this._sessionMetaPathFor(sessionPath);
@@ -1554,7 +1571,7 @@ export class SessionCoordinator {
     }
   }
 
-  _updateSessionFolderRuntimeMeta(sessionPath, patch) {
+  _updateSessionFolderRuntimeMeta(sessionPath: any, patch: any) {
     const liveEntry = this._sessions.get(sessionPath);
     if (liveEntry) {
       if (patch.cwd) liveEntry.cwd = patch.cwd;
@@ -1569,7 +1586,7 @@ export class SessionCoordinator {
     }
   }
 
-  async switchSession(sessionPath) {
+  async switchSession(sessionPath: any) {
     // 只接受"对话焦点"路径，拒绝 subagent-sessions/、activity/、.ephemeral/ 等旁路
     // 目录下的 session 文件。一旦这类路径混入焦点指针，listSessions 的占位逻辑会把
     // 它伪造成"新对话"幻影条目（不能归档、重启即消失）。
@@ -1660,7 +1677,7 @@ export class SessionCoordinator {
   }
 
   /** @private 检查 session 健康度并在 unhealthy 时 log + emit 事件，不抛错 */
-  _emitSessionHealthWarning(sessionPath) {
+  _emitSessionHealthWarning(sessionPath: any) {
     try {
       const health = evaluateSessionHealth(sessionPath);
       if (health.healthy) return;
@@ -1688,7 +1705,7 @@ export class SessionCoordinator {
    * 必须在 open 之前调用：修复发生在文件层，open 之后 SessionManager 从已清理文件加载。
    * 容错不阻塞 restore（异常吃掉；运行时 provider-compat 兜底仍会防 400）。
    */
-  _repairOrphanToolHistory(sessionPath) {
+  _repairOrphanToolHistory(sessionPath: any) {
     try {
       const { repaired, removed } = repairOrphanToolResultEntriesInFile(sessionPath);
       if (repaired) {
@@ -1702,7 +1719,7 @@ export class SessionCoordinator {
     }
   }
 
-  _repairOversizedSessionHistory(sessionPath) {
+  _repairOversizedSessionHistory(sessionPath: any) {
     try {
       const result = repairOversizedSessionEntriesInFile(sessionPath);
       if (result.repaired) {
@@ -1716,7 +1733,7 @@ export class SessionCoordinator {
     }
   }
 
-  _projectOversizedSessionHistory(session, sessionPath) {
+  _projectOversizedSessionHistory(session: any, sessionPath: any) {
     try {
       const manager = session?.sessionManager;
       if (!Array.isArray(manager?.fileEntries)) return;
@@ -1734,7 +1751,7 @@ export class SessionCoordinator {
     }
   }
 
-  _repairInlineMediaHistory(sessionPath) {
+  _repairInlineMediaHistory(sessionPath: any) {
     try {
       const result = repairSessionInlineMediaEntriesInFile(sessionPath);
       if (result.repaired) {
@@ -1748,7 +1765,7 @@ export class SessionCoordinator {
     }
   }
 
-  async prompt(text, opts) {
+  async prompt(text: any, opts: any) {
     if (!this._session) {
       const currentPath = this.currentSessionPath;
       if (!currentPath) throw new Error(t("error.noActiveSessionPrompt"));
@@ -1769,7 +1786,8 @@ export class SessionCoordinator {
       getVisionBridge: () => engine?.getVisionBridge?.(),
       visionPolicyTarget: engine,
       warn: (msg) => (engine?.log || console).warn?.(`[session] ${msg}`),
-    }));
+      signal: null,
+    } as any));
     ({ text, opts } = await prepareModelImageInputsForPrompt({ text, opts }));
     assertVideoInputSupported(this._session.model, opts?.videos);
     assertAudioInputSupported(this._session.model, opts?.audios);
@@ -1808,7 +1826,7 @@ export class SessionCoordinator {
     return true;
   }
 
-  steer(text) {
+  steer(text: any) {
     if (!this._session?.isStreaming) return false;
     const sp = this._session.sessionManager?.getSessionFile?.();
     if (sp) {
@@ -1821,7 +1839,7 @@ export class SessionCoordinator {
 
   // ── Path 感知 API（Phase 2） ──
 
-  async promptSession(sessionPath, text, opts) {
+  async promptSession(sessionPath: any, text: any, opts: any) {
     this._assertActiveDesktopSessionPath(sessionPath, "promptSession");
     let entry = this._sessions.get(sessionPath);
     if (!entry) {
@@ -1875,7 +1893,7 @@ export class SessionCoordinator {
     agent?._memoryTicker?.notifyTurn(sessionPath);
   }
 
-  steerSession(sessionPath, text) {
+  steerSession(sessionPath: any, text: any) {
     const entry = this._sessions.get(sessionPath);
     if (!entry?.session.isStreaming) return false;
     entry.lastTouchedAt = Date.now();
@@ -1883,7 +1901,7 @@ export class SessionCoordinator {
     return true;
   }
 
-  async deliverCustomMessage(sessionPath, message, options = {}) {
+  async deliverCustomMessage(sessionPath: any, message: any, options: any = {}) {
     if (!sessionPath) throw new Error("deliverCustomMessage: sessionPath is required");
     this._assertActiveDesktopSessionPath(sessionPath, "deliverCustomMessage");
     let entry = this._sessions.get(sessionPath);
@@ -1909,7 +1927,7 @@ export class SessionCoordinator {
     return { ok: true, mode: triggerTurn ? "triggerTurn" : "notifyOnly" };
   }
 
-  recordCustomEntry(sessionPath, customType, data) {
+  recordCustomEntry(sessionPath: any, customType: any, data: any) {
     if (!sessionPath) throw new Error("recordCustomEntry: sessionPath is required");
     if (!customType) throw new Error("recordCustomEntry: customType is required");
     this._assertActiveDesktopSessionPath(sessionPath, "recordCustomEntry");
@@ -1925,7 +1943,7 @@ export class SessionCoordinator {
     return { ok: true, mode: "file" };
   }
 
-  async abortSession(sessionPath) {
+  async abortSession(sessionPath: any) {
     const pending = this._prePromptAbortControllers.get(sessionPath);
     if (pending) {
       pending.abort();
@@ -1947,7 +1965,7 @@ export class SessionCoordinator {
    * @param {object} newModel - Pi SDK Model 对象
    * @returns {Promise<{ adaptations: string[] }>}
    */
-  async switchSessionModel(sessionPath, newModel) {
+  async switchSessionModel(sessionPath: any, newModel: any) {
     this._assertActiveDesktopSessionPath(sessionPath, "switchSessionModel");
     let entry = this._sessions.get(sessionPath);
     if (!entry) {
@@ -2043,7 +2061,7 @@ export class SessionCoordinator {
    * 用主模型同前缀摘要来压缩对话历史（为 model switch 准备窗口）。
    * @private
    */
-  async _compactWithModel(session, effectiveWindow, model) {
+  async _compactWithModel(session: any, effectiveWindow: any, model: any) {
     const sessionPath = session?.sessionManager?.getSessionFile?.() || this.currentSessionPath;
     return await runCachePreservingCompactionForSession(session, {
       model,
@@ -2075,7 +2093,7 @@ export class SessionCoordinator {
    * 硬截断对话历史（无 API 调用，用固定文本作为摘要）。
    * @private
    */
-  async _hardTruncate(session, effectiveWindow) {
+  async _hardTruncate(session: any, effectiveWindow: any) {
     const sm = session.sessionManager;
     const pathEntries = sm.getBranch();
     const reason = "model_switch";
@@ -2132,7 +2150,7 @@ export class SessionCoordinator {
     );
   }
 
-  _setDefaultPermissionMode(mode, { persist = true } = {}) {
+  _setDefaultPermissionMode(mode: any, { persist = true }: any = {}) {
     let normalized = normalizeSessionPermissionMode(mode);
     this._runtimePermissionModeDefault = normalized;
     if (!persist) return normalized;
@@ -2162,7 +2180,7 @@ export class SessionCoordinator {
     return normalizeSessionThinkingLevel(entry?.thinkingLevel || fallback);
   }
 
-  async setSessionThinkingLevel(sessionPath, level) {
+  async setSessionThinkingLevel(sessionPath: any, level: any) {
     if (!sessionPath) {
       return { ok: false, error: "session thinking level requires sessionPath" };
     }
@@ -2191,11 +2209,11 @@ export class SessionCoordinator {
     return legacyAccessModeFromPermissionMode(this.getPermissionMode(sessionPath));
   }
 
-  setPendingAccessMode(mode) {
+  setPendingAccessMode(mode: any) {
     return this.setPendingPermissionMode(mode);
   }
 
-  setPendingPermissionMode(mode) {
+  setPendingPermissionMode(mode: any) {
     const nextMode = normalizeSessionPermissionMode(mode);
     this._setDefaultPermissionMode(nextMode);
     this._pendingPermissionMode = nextMode;
@@ -2203,7 +2221,7 @@ export class SessionCoordinator {
     return { ok: true, mode: nextMode, enabled: isReadOnlyPermissionMode(nextMode) };
   }
 
-  _applyPermissionModeToEntry(sessionPath, entry, nextMode) {
+  _applyPermissionModeToEntry(sessionPath: any, entry: any, nextMode: any) {
     entry.permissionMode = nextMode;
     entry.accessMode = legacyAccessModeFromPermissionMode(nextMode);
     entry.planMode = isReadOnlyPermissionMode(nextMode);
@@ -2216,7 +2234,7 @@ export class SessionCoordinator {
     return { ok: true, mode: nextMode, enabled: entry.planMode };
   }
 
-  setCurrentSessionPermissionMode(mode) {
+  setCurrentSessionPermissionMode(mode: any) {
     const nextMode = normalizeSessionPermissionMode(mode);
     const sp = this.currentSessionPath;
     if (!sp) {
@@ -2239,7 +2257,7 @@ export class SessionCoordinator {
     return this._applyPermissionModeToEntry(sp, entry, nextMode);
   }
 
-  setSessionPermissionMode(sessionPath, mode, { persistDefault = false } = {}) {
+  setSessionPermissionMode(sessionPath: any, mode: any, { persistDefault = false }: any = {}) {
     const nextMode = normalizeSessionPermissionMode(mode);
     if (!sessionPath) {
       return {
@@ -2271,7 +2289,7 @@ export class SessionCoordinator {
     return result;
   }
 
-  setPermissionMode(mode) {
+  setPermissionMode(mode: any) {
     const nextMode = normalizeSessionPermissionMode(mode);
     const sp = this.currentSessionPath;
     this._setDefaultPermissionMode(nextMode);
@@ -2288,16 +2306,16 @@ export class SessionCoordinator {
     return this.setPendingPermissionMode(nextMode);
   }
 
-  setAccessMode(mode) {
+  setAccessMode(mode: any) {
     return this.setPermissionMode(mode);
   }
 
   /** Backward-compatible route for the old Plan Mode API. */
-  setPlanMode(enabled) {
+  setPlanMode(enabled: any) {
     return this.setPermissionMode(enabled ? SESSION_PERMISSION_MODES.READ_ONLY : SESSION_PERMISSION_MODES.OPERATE);
   }
 
-  _emitPermissionModeChanged(mode, sessionPath) {
+  _emitPermissionModeChanged(mode: any, sessionPath: any) {
     const normalized = normalizeSessionPermissionMode(mode);
     const readOnly = isReadOnlyPermissionMode(normalized);
     const accessMode = legacyAccessModeFromPermissionMode(normalized);
@@ -2312,7 +2330,7 @@ export class SessionCoordinator {
     this._d.emitDevLog(`Permission Mode: ${label}`, "info");
   }
 
-  _emitSessionMetadataUpdated(sessionPath, metadata) {
+  _emitSessionMetadataUpdated(sessionPath: any, metadata: any) {
     if (!sessionPath || !metadata || typeof metadata !== "object") return;
     this._d.emitEvent({
       type: "session_metadata_updated",
@@ -2362,7 +2380,7 @@ export class SessionCoordinator {
    * @returns {boolean}
    * @private
    */
-  _forceReleaseStreamingSession(entry, sessionPath, reason) {
+  _forceReleaseStreamingSession(entry: any, sessionPath: any, reason: any) {
     if (!entry?.session?.isStreaming) return false;
 
     const session = entry.session;
@@ -2433,7 +2451,7 @@ export class SessionCoordinator {
    * @param {string} reason - teardown 原因 (lru / close / close_all / isolated)
    * @private
    */
-  async _teardownSessionEntry(entry, sessionPath, reason) {
+  async _teardownSessionEntry(entry: any, sessionPath: any, reason: any) {
     if (!entry) return;
     const spShort = sessionPath ? path.basename(sessionPath) : "(anon)";
     await teardownSessionResources({
@@ -2444,7 +2462,7 @@ export class SessionCoordinator {
     });
   }
 
-  _canHibernateSessionRuntime(entry, sessionPath) {
+  _canHibernateSessionRuntime(entry: any, sessionPath: any) {
     if (!entry?.session || !sessionPath) return false;
     if (entry.session.isStreaming || entry.session.isCompacting || entry._switching) return false;
     if (this._prePromptAbortControllers.has(sessionPath)) return false;
@@ -2453,7 +2471,7 @@ export class SessionCoordinator {
     return true;
   }
 
-  async hibernateSessionRuntime(sessionPath, reason = "memory_pressure") {
+  async hibernateSessionRuntime(sessionPath: any, reason = "memory_pressure") {
     const entry = this._sessions.get(sessionPath);
     if (!entry) return false;
     if (!this._canHibernateSessionRuntime(entry, sessionPath)) return false;
@@ -2487,11 +2505,11 @@ export class SessionCoordinator {
     return true;
   }
 
-  checkRuntimeMemoryPressure(sessionPath, reason = "manual") {
+  checkRuntimeMemoryPressure(sessionPath: any, reason = "manual") {
     return this._checkRuntimeMemoryPressure(sessionPath, reason);
   }
 
-  async _checkRuntimeMemoryPressure(sessionPath, reason) {
+  async _checkRuntimeMemoryPressure(sessionPath: any, reason: any) {
     const entry = this._sessions.get(sessionPath);
     if (!entry) return { hibernated: false, reason: "not_loaded" };
     if (!this._memoryPressure.enabled) return { hibernated: false, reason: "disabled" };
@@ -2534,7 +2552,7 @@ export class SessionCoordinator {
     }
   }
 
-  _scheduleRuntimePressureCheck(sessionPath, reason = "post_turn") {
+  _scheduleRuntimePressureCheck(sessionPath: any, reason = "post_turn") {
     if (!this._memoryPressure.enabled || !sessionPath) return;
     const entry = this._sessions.get(sessionPath);
     if (!entry) return;
@@ -2553,7 +2571,7 @@ export class SessionCoordinator {
     this._runtimePressureTimers.set(sessionPath, timer);
   }
 
-  _clearRuntimePressureTimer(sessionPath) {
+  _clearRuntimePressureTimer(sessionPath: any) {
     const timer = this._runtimePressureTimers.get(sessionPath);
     if (!timer) return;
     clearTimeout(timer);
@@ -2562,7 +2580,7 @@ export class SessionCoordinator {
 
   // ── Session 关闭 ──
 
-  async discardSessionRuntime(sessionPath, reason = "discard") {
+  async discardSessionRuntime(sessionPath: any, reason = "discard") {
     if (!sessionPath) return false;
     this._clearRuntimePressureTimer(sessionPath);
     const hadHibernated = this._hibernatedSessionMeta.delete(sessionPath);
@@ -2598,7 +2616,7 @@ export class SessionCoordinator {
     return !!entry || hadHibernated;
   }
 
-  async discardSessionsForAgent(agentId, reason = "agent deleted") {
+  async discardSessionsForAgent(agentId: any, reason = "agent deleted") {
     if (!agentId) return 0;
     const paths = new Set();
     for (const [sessionPath, entry] of this._sessions) {
@@ -2616,7 +2634,7 @@ export class SessionCoordinator {
     return discarded;
   }
 
-  async closeSession(sessionPath) {
+  async closeSession(sessionPath: any) {
     return this.discardSessionRuntime(sessionPath, "close");
   }
 
@@ -2674,29 +2692,29 @@ export class SessionCoordinator {
 
   // ── Session 查询 ──
 
-  getSessionByPath(sessionPath) {
+  getSessionByPath(sessionPath: any) {
     return this._sessions.get(sessionPath)?.session ?? null;
   }
 
-  getSessionContextUsage(sessionPath) {
+  getSessionContextUsage(sessionPath: any) {
     if (!sessionPath) return null;
     const live = this._sessions.get(sessionPath)?.session?.getContextUsage?.();
     if (live) return live;
     return this._hibernatedSessionMeta.get(sessionPath)?.contextUsage || null;
   }
 
-  _assertActiveDesktopSessionPath(sessionPath, operation) {
+  _assertActiveDesktopSessionPath(sessionPath: any, operation: any) {
     if (!isActiveSessionPath(sessionPath, this._d.agentsDir)) {
       throw new Error(`${operation}: path must be an active desktop session under agents/{id}/sessions/*.jsonl; got ${sessionPath}`);
     }
   }
 
-  _isDeletedAgentSessionPath(sessionPath) {
+  _isDeletedAgentSessionPath(sessionPath: any) {
     const agentId = this._d.agentIdFromSessionPath?.(sessionPath);
     return !!agentId && this._d.isAgentDeleted?.(agentId) === true;
   }
 
-  isRunnableSessionPath(sessionPath) {
+  isRunnableSessionPath(sessionPath: any) {
     if (!isActiveSessionPath(sessionPath, this._d.agentsDir)) return false;
     if (this._isDeletedAgentSessionPath(sessionPath)) return false;
     if (this._sessions.has(sessionPath) || this._hibernatedSessionMeta.has(sessionPath)) return true;
@@ -2707,7 +2725,7 @@ export class SessionCoordinator {
     }
   }
 
-  async reloadSessionRuntime(sessionPath) {
+  async reloadSessionRuntime(sessionPath: any) {
     this._assertActiveDesktopSessionPath(sessionPath, "reloadSessionRuntime");
     if (this._isDeletedAgentSessionPath(sessionPath)) {
       throw new Error("reloadSessionRuntime: session belongs to a deleted agent");
@@ -2771,7 +2789,7 @@ export class SessionCoordinator {
    * @param {string} sessionPath
    * @returns {Promise<object>} AgentSession 实例
    */
-  async ensureSessionLoaded(sessionPath) {
+  async ensureSessionLoaded(sessionPath: any) {
     this._assertActiveDesktopSessionPath(sessionPath, "ensureSessionLoaded");
     if (this._isDeletedAgentSessionPath(sessionPath)) {
       throw new Error("ensureSessionLoaded: session belongs to a deleted agent");
@@ -2838,16 +2856,16 @@ export class SessionCoordinator {
     return entry.session;
   }
 
-  isSessionStreaming(sessionPath) {
+  isSessionStreaming(sessionPath: any) {
     return this._prePromptAbortControllers.has(sessionPath)
       || !!this.getSessionByPath(sessionPath)?.isStreaming;
   }
 
-  isSessionSwitching(sessionPath) {
+  isSessionSwitching(sessionPath: any) {
     return !!this._sessions.get(sessionPath)?._switching;
   }
 
-  async abortSessionByPath(sessionPath) {
+  async abortSessionByPath(sessionPath: any) {
     return this.abortSession(sessionPath);
   }
 
@@ -2946,7 +2964,7 @@ export class SessionCoordinator {
     return allSessions;
   }
 
-  async saveSessionTitle(sessionPath, title) {
+  async saveSessionTitle(sessionPath: any, title: any) {
     const agentId = this._d.agentIdFromSessionPath(sessionPath);
     const sessionDir = agentId
       ? path.join(this._d.agentsDir, agentId, "sessions")
@@ -2959,7 +2977,7 @@ export class SessionCoordinator {
     this._titlesCache.set(sessionDir, { titles: { ...titles }, ts: Date.now() });
   }
 
-  async setSessionPinned(sessionPath, pinned) {
+  async setSessionPinned(sessionPath: any, pinned: any) {
     const pinnedAt = pinned ? new Date().toISOString() : null;
     await this.writeSessionMeta(sessionPath, { pinnedAt });
     await this._verifySessionPinnedState(sessionPath, pinnedAt);
@@ -2967,7 +2985,7 @@ export class SessionCoordinator {
     return pinnedAt;
   }
 
-  async _verifySessionPinnedState(sessionPath, expectedPinnedAt) {
+  async _verifySessionPinnedState(sessionPath: any, expectedPinnedAt: any) {
     const metaPath = this._sessionMetaPathFor(sessionPath);
     const sessKey = path.basename(sessionPath);
     let meta = {};
@@ -2988,7 +3006,7 @@ export class SessionCoordinator {
    * 供归档永久删除 / cleanup 使用，避免 titles.json 孤儿残留。
    * 文件不存在或 key 不在时为 no-op。
    */
-  async clearSessionTitle(sessionPath) {
+  async clearSessionTitle(sessionPath: any) {
     const agentId = this._d.agentIdFromSessionPath(sessionPath);
     const sessionDir = agentId
       ? path.join(this._d.agentsDir, agentId, "sessions")
@@ -3042,11 +3060,11 @@ export class SessionCoordinator {
       return rows.filter(Boolean);
     }));
     const all = perAgent.flat();
-    all.sort((a, b) => new Date(b.archivedAt) - new Date(a.archivedAt));
+    all.sort((a, b) => new Date(b.archivedAt).getTime() - new Date(a.archivedAt).getTime());
     return all;
   }
 
-  async getTitlesForPaths(paths) {
+  async getTitlesForPaths(paths: any[]) {
     const titles = {};
     for (const p of paths) titles[p] = null;
 
@@ -3071,7 +3089,7 @@ export class SessionCoordinator {
     return titles;
   }
 
-  async _loadSessionTitlesFor(sessionDir) {
+  async _loadSessionTitlesFor(sessionDir: any) {
     const cached = this._titlesCache.get(sessionDir);
     if (cached && Date.now() - cached.ts < SessionCoordinator._TITLES_TTL) {
       return { ...cached.titles };
@@ -3088,7 +3106,7 @@ export class SessionCoordinator {
   }
 
   /** 异步读取 session-meta.json，带 TTL 缓存 */
-  async _readMetaCached(metaPath) {
+  async _readMetaCached(metaPath: any) {
     const cached = this._metaCache.get(metaPath);
     if (cached && Date.now() - cached.ts < SessionCoordinator._TITLES_TTL) {
       return cached.data;
@@ -3103,7 +3121,7 @@ export class SessionCoordinator {
     }
   }
 
-  async _readSessionPromptSnapshot(agent, sessionPath) {
+  async _readSessionPromptSnapshot(agent: any, sessionPath: any) {
     try {
       const metaPath = path.join(agent.sessionDir, "session-meta.json");
       const meta = await this._readMetaCached(metaPath);
@@ -3113,7 +3131,7 @@ export class SessionCoordinator {
     }
   }
 
-  _resolvePromptModelFromSessionManager(sessionMgr, models) {
+  _resolvePromptModelFromSessionManager(sessionMgr: any, models: any) {
     try {
       const ref = sessionMgr?.buildSessionContext?.()?.model;
       if (!ref?.provider || !ref?.modelId) return null;
@@ -3124,7 +3142,7 @@ export class SessionCoordinator {
     }
   }
 
-  _getFinalSystemPrompt(session) {
+  _getFinalSystemPrompt(session: any) {
     if (typeof session?._baseSystemPrompt === "string") {
       return session._baseSystemPrompt;
     }
@@ -3134,7 +3152,7 @@ export class SessionCoordinator {
     return null;
   }
 
-  _buildCachePrefixContract(entry, { model = null, context = null } = {}) {
+  _buildCachePrefixContract(entry: any, { model = null, context = null }: any = {}) {
     const session = entry?.session;
     const state = session?.agent?.state;
     const hasContextPrompt = context && Object.prototype.hasOwnProperty.call(context, "systemPrompt");
@@ -3145,7 +3163,7 @@ export class SessionCoordinator {
     });
   }
 
-  _renewCachePrefixContract(sessionPath, entry, reason, options = {}) {
+  _renewCachePrefixContract(sessionPath: any, entry: any, reason: any, options: any = {}) {
     if (!entry?.session) return null;
     const contract = this._buildCachePrefixContract(entry, options);
     entry.cachePrefixContract = contract;
@@ -3163,7 +3181,7 @@ export class SessionCoordinator {
     return contract;
   }
 
-  _assertCachePrefixContract(sessionPath, entry, { model = null, context = null } = {}) {
+  _assertCachePrefixContract(sessionPath: any, entry: any, { model = null, context = null }: any = {}) {
     if (!entry?.session) return null;
     const expected = entry.cachePrefixContract
       || this._renewCachePrefixContract(sessionPath, entry, "late_init", { model, context });
@@ -3204,7 +3222,7 @@ export class SessionCoordinator {
     return actual;
   }
 
-  _installCachePrefixGuard(sessionPath, entry) {
+  _installCachePrefixGuard(sessionPath: any, entry: any) {
     const agent = entry?.session?.agent;
     if (!agent || typeof agent.streamFn !== "function" || entry.cachePrefixGuardInstalled) return;
     const originalStreamFn = agent.streamFn;
@@ -3216,7 +3234,7 @@ export class SessionCoordinator {
     };
   }
 
-  _applyFinalPromptSnapshot(session, finalSystemPrompt) {
+  _applyFinalPromptSnapshot(session: any, finalSystemPrompt: any) {
     if (typeof finalSystemPrompt !== "string") return;
     try {
       session._baseSystemPrompt = finalSystemPrompt;
@@ -3230,7 +3248,7 @@ export class SessionCoordinator {
   }
 
   /** session-meta 写入后清除对应缓存 */
-  invalidateMetaCache(metaPath) {
+  invalidateMetaCache(metaPath: any) {
     this._metaCache.delete(metaPath);
   }
 
@@ -3247,7 +3265,7 @@ export class SessionCoordinator {
    *   before it) has been attempted. I/O failures are logged and swallowed
    *   internally — the returned promise never rejects.
    */
-  writeSessionMeta(sessionPath, partial) {
+  writeSessionMeta(sessionPath: any, partial: any) {
     const next = () => this._doWriteSessionMeta(sessionPath, partial);
     // Chain on both success and failure branches so a failed write does not
     // poison the queue — the next write still runs.
@@ -3255,7 +3273,7 @@ export class SessionCoordinator {
     return this._metaWriteQueue;
   }
 
-  async _doWriteSessionMeta(sessionPath, partial) {
+  async _doWriteSessionMeta(sessionPath: any, partial: any) {
     const metaPath = this._sessionMetaPathFor(sessionPath);
     const sessKey = path.basename(sessionPath);
 
@@ -3289,7 +3307,7 @@ export class SessionCoordinator {
     }
   }
 
-  _sessionMetaPathFor(sessionPath) {
+  _sessionMetaPathFor(sessionPath: any) {
     const agentId = this._d.agentIdFromSessionPath(sessionPath);
     const sessionDir = agentId
       ? path.join(this._d.agentsDir, agentId, "sessions")
@@ -3297,17 +3315,17 @@ export class SessionCoordinator {
     return path.join(sessionDir, "session-meta.json");
   }
 
-  _isPromotableActivitySession(agent, sessionPath) {
+  _isPromotableActivitySession(agent: any, sessionPath: any) {
     return !!agent?.agentDir && isPathInsideDir(path.join(agent.agentDir, "activity"), sessionPath);
   }
 
-  async _writePromotableActivitySessionMeta(agent, activitySessionPath, partial) {
+  async _writePromotableActivitySessionMeta(agent: any, activitySessionPath: any, partial: any) {
     if (!agent?.sessionDir || !activitySessionPath) return;
     const promotedSessionPath = path.join(agent.sessionDir, path.basename(activitySessionPath));
     await this.writeSessionMeta(promotedSessionPath, partial);
   }
 
-  async _ensurePromotedActivitySessionToolMeta(agent, sessionPath) {
+  async _ensurePromotedActivitySessionToolMeta(agent: any, sessionPath: any) {
     if (!agent?.sessionDir || !sessionPath) return;
     const sessionFileName = path.basename(sessionPath);
     const metaPath = path.join(agent.sessionDir, "session-meta.json");
@@ -3420,7 +3438,7 @@ export class SessionCoordinator {
     };
   }
 
-  async promoteActivitySession(activitySessionFile, agentId) {
+  async promoteActivitySession(activitySessionFile: any, agentId: any) {
     const agent = agentId ? this._d.getAgentById(agentId) : this._d.getAgent();
     if (!agent) return null;
     const oldPath = path.join(agent.agentDir, "activity", activitySessionFile);
@@ -3457,7 +3475,7 @@ export class SessionCoordinator {
    *   emitEvents (true 时将 session 事件转发到 EventBus),
    *   onSessionReady (sessionPath => void) 回调，session 创建后、prompt 执行前触发
    */
-  async executeIsolated(prompt, opts = {}) {
+  async executeIsolated(prompt: any, opts: any = {}) {
     let targetAgent = opts.agentId ? this._d.getAgentById(opts.agentId) : this._d.getAgent();
     if (!targetAgent) throw new Error(t("error.agentNotInitialized", { id: opts.agentId }));
 
@@ -3614,7 +3632,7 @@ export class SessionCoordinator {
         // per-session 开关只管该 session 自己的对话窗口，不影响这里。
         isolatedPrompt = targetAgent.systemPrompt;
       }
-      const execResourceLoaderProps = {
+      const execResourceLoaderProps: any = {
         getSystemPrompt: { value: () => isolatedPrompt },
         getAppendSystemPrompt: {
           value: () => {
@@ -3748,7 +3766,7 @@ export class SessionCoordinator {
         }
         if (event.type === "message_end" && event.message?.role === "assistant") {
           finalStopReason = event.message.stopReason ?? null;
-          finalErrorMessage = event.message.errorMessage || event.message.error || null;
+          finalErrorMessage = event.message.errorMessage || (event.message as any).error || null;
           finalAssistantText = collectAssistantTextFromMessage(event.message) || finalAssistantText;
         }
         if (event.type === "tool_execution_end") {
@@ -3841,7 +3859,7 @@ export class SessionCoordinator {
   }
 
   /** 创建 session 专用 settings（控制 compaction + max_completion_tokens） */
-  _createSettings(model) {
+  _createSettings(model: any) {
     return createDefaultSettings();
   }
 }

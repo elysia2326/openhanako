@@ -1,30 +1,29 @@
-// @ts-nocheck
 import { Type } from "../pi-sdk/index.ts";
 import { getToolSessionPath } from "./tool-session.ts";
 
 const READ_ACTIONS = new Set(["read", "list"]);
 
-function jsonResult(payload) {
+function jsonResult(payload: any) {
   return {
     content: [{ type: "text", text: JSON.stringify(payload, null, 2) }],
     details: payload,
   };
 }
 
-function textResult(text, details = {}) {
+function textResult(text: any, details: any = {}) {
   return {
     content: [{ type: "text", text }],
     details,
   };
 }
 
-function normalizeAction(action) {
+function normalizeAction(action: any) {
   const text = typeof action === "string" ? action.trim().toLowerCase() : "";
   if (["start", "write", "read", "close", "list"].includes(text)) return text;
   return "";
 }
 
-function optionalNumber(value, fallback) {
+function optionalNumber(value: any, fallback: any) {
   const num = Number(value);
   return Number.isFinite(num) ? num : fallback;
 }
@@ -33,7 +32,7 @@ export function createTerminalTool({
   getTerminalSessionManager,
   getAgentId,
   getCwd,
-} = {}) {
+}: any = {}) {
   return {
     name: "terminal",
     label: "Terminal",
@@ -49,7 +48,7 @@ export function createTerminalTool({
       cols: Type.Optional(Type.Number({ description: "PTY columns for action=start." })),
       rows: Type.Optional(Type.Number({ description: "PTY rows for action=start." })),
     }),
-    execute: async (_toolCallId, params = {}, _signal, _onUpdate, ctx) => {
+    execute: async (_toolCallId: any, params: any = {}, _signal: any, _onUpdate: any, ctx: any) => {
       const action = normalizeAction(params.action);
       if (!action) {
         return textResult("terminal action must be one of: start, write, read, close, list", {

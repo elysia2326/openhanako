@@ -1,4 +1,3 @@
-// @ts-nocheck
 import fs from "fs";
 import path from "path";
 import {
@@ -7,6 +6,9 @@ import {
 } from "../lib/resources/resource-envelope.ts";
 
 export class ResourceError extends Error {
+  declare status: number;
+  declare code: string;
+
   constructor(message, { status = 500, code = "resource_error" } = {}) {
     super(message);
     this.name = "ResourceError";
@@ -16,7 +18,13 @@ export class ResourceError extends Error {
 }
 
 export class ResourceService {
-  constructor({ agentsDir, sessionFiles, runtimeContext, now = () => Date.now() } = {}) {
+  declare _agentsDir: any;
+  declare _sessionFiles: any;
+  declare _runtimeContext: any;
+  declare _now: () => number;
+  declare _sessionPathByFileId: Map<string, any>;
+
+  constructor({ agentsDir, sessionFiles, runtimeContext, now = () => Date.now() }: { agentsDir?: any; sessionFiles?: any; runtimeContext?: any; now?: () => number } = {}) {
     if (!agentsDir) throw new Error("agentsDir is required for ResourceService");
     if (!sessionFiles) throw new Error("sessionFiles is required for ResourceService");
     if (!runtimeContext?.studioId) throw new Error("runtimeContext.studioId is required for ResourceService");
@@ -189,13 +197,13 @@ export class ResourceService {
   }
 }
 
-function collectSessionFileSidecars(rootDir) {
+function collectSessionFileSidecars(rootDir: any) {
   const out = [];
   collectSidecarsRecursive(rootDir, out);
   return out;
 }
 
-function collectSidecarsRecursive(dir, out) {
+function collectSidecarsRecursive(dir: any, out: any[]) {
   let entries;
   try {
     entries = fs.readdirSync(dir, { withFileTypes: true });

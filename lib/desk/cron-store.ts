@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * cron-store.js — 定时任务存储
  *
@@ -78,6 +77,11 @@ function validateAutomationExecutorForWrite(executor) {
 }
 
 export class CronStore {
+  declare _idPrefix: any;
+  declare _jobs: any;
+  declare _jobsPath: any;
+  declare _nextNum: any;
+  declare _runsDir: any;
   /** 退避表（毫秒）：0/1m/5m/15m/60m */
   static BACKOFF = [0, 60_000, 300_000, 900_000, 3_600_000];
 
@@ -85,7 +89,7 @@ export class CronStore {
    * @param {string} jobsPath - cron-jobs.json 路径
    * @param {string} runsDir  - cron-runs/ 目录路径
    */
-  constructor(jobsPath, runsDir, options = {}) {
+  constructor(jobsPath, runsDir, options: any = {}) {
     this._jobsPath = jobsPath;
     this._runsDir = runsDir;
     this._idPrefix = options.idPrefix || "job";

@@ -1,4 +1,3 @@
-// @ts-nocheck
 import { completeSimple } from "../pi-sdk/index.ts";
 import {
   assertSessionSnapshotRequest,
@@ -22,7 +21,7 @@ function isErrorResponse(response) {
   return response?.stopReason === "error" || response?.stopReason === "aborted";
 }
 
-function normalizeSideTaskOptions(options = {}) {
+function normalizeSideTaskOptions(options: Record<string, any> = {}) {
   const next = { ...(options || {}) };
   if (Object.prototype.hasOwnProperty.call(next, "reasoning")) {
     next.reasoning = normalizeRequestThinkingLevel(next.reasoning, "off");
@@ -44,7 +43,7 @@ export async function runSessionSnapshotSideTask({
   templateVersion = "v1",
   usageLedger = null,
   usageContext = null,
-} = {}) {
+}: Record<string, any> = {}) {
   if (!snapshot || snapshot.strategy !== CACHE_STRATEGIES.SESSION_SNAPSHOT) {
     throw new Error("Session snapshot side task requires a session snapshot");
   }
@@ -66,7 +65,7 @@ export async function runSessionSnapshotSideTask({
     tools: context.tools,
     messages: context.messages,
     prefixMessageCount: snapshot.messageCount,
-  });
+  } as any);
   const assertion = assertSessionSnapshotRequest(snapshot, requestContract);
   if (!assertion.ok) {
     const fields = assertion.diffs.map((diff) => diff.field).join(", ");
@@ -80,7 +79,7 @@ export async function runSessionSnapshotSideTask({
     cachePrefixHash: requestContract.cachePrefixHash,
     parentCachePrefixHash: snapshot.cachePrefixHash,
     strict: true,
-  });
+  } as any);
   const usageRequest = usageLedger?.start?.({
     model: { provider: model?.provider ?? null, modelId: model?.id ?? null, api: model?.api ?? null },
     usageContext,

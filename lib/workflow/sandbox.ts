@@ -1,4 +1,3 @@
-// @ts-nocheck
 import vm from "node:vm";
 import { extractMeta } from "./meta.ts";
 
@@ -17,7 +16,7 @@ const DEFAULT_DEADLINE_MS = 5 * 60 * 1000;
  * @param {{ signal?: AbortSignal, deadlineMs?: number }} [opts]
  * @returns {Promise<{ meta: object, result: any }>}
  */
-export async function runWorkflowScript(script, hostApi, opts = {}) {
+export async function runWorkflowScript(script, hostApi, opts: { signal?: AbortSignal, deadlineMs?: number } = {}) {
   const { meta, body } = extractMeta(script);
   const { signal, deadlineMs = DEFAULT_DEADLINE_MS } = opts;
   if (signal?.aborted) throw new Error(`workflow "${meta.name}" 被中止`);

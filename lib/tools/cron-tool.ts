@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * cron-tool.js — Agent 使用的定时任务工具
  *
@@ -21,7 +20,7 @@ import { getToolSessionCwd, getToolSessionPath } from "./tool-session.ts";
  * @param {import('../desk/cron-store.ts').CronStore} cronStore
  * @returns {import('../pi-sdk/index.ts').ToolDefinition}
  */
-export function createCronTool(cronStore, {
+export function createCronTool(cronStore: any, {
   autoApprove = false,
   getAutoApprove,
   confirmStore,
@@ -31,6 +30,16 @@ export function createCronTool(cronStore, {
   getSessionCwd,
   getSessionWorkspaceFolders,
   getHomeCwd,
+}: {
+  autoApprove?: boolean;
+  getAutoApprove?: () => boolean;
+  confirmStore?: any;
+  emitEvent?: (event: any, sessionPath: any) => void;
+  getSessionPath?: () => string;
+  getAgentId?: () => string;
+  getSessionCwd?: (sessionPath: any) => string;
+  getSessionWorkspaceFolders?: (sessionPath: any) => any[];
+  getHomeCwd?: (agentId: any) => string;
 } = {}) {
   return {
     name: "cron",

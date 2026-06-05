@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * memory-search.js — search_memory 工具（v2 标签检索）
  *
@@ -52,7 +51,7 @@ export function createMemorySearchTool(factStore, opts = {}) {
           };
         }
 
-        const dateRange = {};
+        const dateRange: { from?: string; to?: string } = {};
         if (params.date_from) dateRange.from = params.date_from;
         if (params.date_to) dateRange.to = params.date_to + "T23:59";
 

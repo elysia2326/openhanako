@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * browser-manager.js — 浏览器生命周期管理
  *
@@ -69,6 +68,11 @@ function assertBrowserImageBase64(base64, action) {
 }
 
 export class BrowserManager {
+  declare _headless: any;
+  declare _lruOrder: any;
+  declare _pending: any;
+  declare _sessions: any;
+  declare _transport: any;
   constructor() {
     this._sessions = new Map(); // sessionPath → { running, url, headless }
     this._lruOrder = [];        // sessionPath[], 最近使用的在末尾
@@ -153,7 +157,7 @@ export class BrowserManager {
   _browserUnavailableError(sessionPath) {
     const reason = this.sessionUnavailableReason(sessionPath);
     const msg = t("error.browserSessionUnavailable", { reason: reason ? `: ${reason}` : "" });
-    const error = new Error(msg);
+    const error: any = new Error(msg);
     error.code = "BROWSER_SESSION_UNAVAILABLE";
     error.browserFatal = true;
     error.sessionPath = sessionPath;
@@ -191,7 +195,7 @@ export class BrowserManager {
     delete entry.unavailableAt;
   }
 
-  async _sendSessionCmd(cmd, params = {}, timeoutMs) {
+  async _sendSessionCmd(cmd, params: any = {}, timeoutMs?): Promise<any> {
     const sessionPath = params.sessionPath || null;
     this._assertSessionUsable(sessionPath);
     try {
@@ -287,8 +291,8 @@ export class BrowserManager {
     const states = this.getBrowserSessionStates();
     return Object.fromEntries(
       Object.entries(states)
-        .filter(([, state]) => typeof state.url === "string" && state.url.length > 0)
-        .map(([sessionPath, state]) => [sessionPath, state.url]),
+        .filter(([, state]: [string, any]) => typeof state.url === "string" && state.url.length > 0)
+        .map(([sessionPath, state]: [string, any]) => [sessionPath, state.url]),
     );
   }
 
@@ -298,7 +302,7 @@ export class BrowserManager {
    */
   getBrowserSessionStates() {
     const coldState = this._loadColdState();
-    const result = {};
+    const result: any = {};
 
     for (const [sessionPath, url] of Object.entries(coldState)) {
       result[sessionPath] = {
@@ -358,7 +362,7 @@ export class BrowserManager {
    * @param {number} timeoutMs - 超时（默认 30s）
    * @returns {Promise<any>}
    */
-  _sendCmd(cmd, params = {}, timeoutMs = 30000) {
+  _sendCmd(cmd, params: any = {}, timeoutMs = 30000): Promise<any> {
     if (!this._transport.connected) {
       throw new Error(t("error.browserDesktopOnly"));
     }
@@ -561,7 +565,7 @@ export class BrowserManager {
    * @param {{provider:string, query:string, maxResults?:number, locale?:string}} params
    */
   async searchWeb({ provider, query, maxResults = 5, locale }) {
-    const payload = {
+    const payload: any = {
       provider,
       query,
       maxResults,
@@ -689,7 +693,7 @@ export class BrowserManager {
    * @param {string} sessionPath
    * @returns {Promise<string>} 新的 snapshot
    */
-  async wait(opts = {}, sessionPath) {
+  async wait( opts: any = {}, sessionPath) {
     const result = await this._sendSessionCmd("wait", { ...opts, sessionPath });
     const entry = this._sessions.get(sessionPath);
     if (entry) entry.url = result.currentUrl || entry.url;

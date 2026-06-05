@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * stop-task-tool.js — 终止后台任务
  *

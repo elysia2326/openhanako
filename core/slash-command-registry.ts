@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * @typedef {'anyone'|'owner'|'admin'} Permission
  * @typedef {'session'|'agent'|'global'} Scope
@@ -31,6 +30,9 @@ function normalize(raw) {
 }
 
 export class SlashCommandRegistry {
+  declare _byName: Map<string, any>;
+  declare _bySource: Map<string, Set<string>>;
+
   // 纪律 #3：内核保留名，plugin/skill 来源禁止注册同名（防内核命令被覆盖）
   static CORE_RESERVED_NAMES = new Set(["stop", "new", "reset", "compact", "fresh_compact", "help", "status", "rc", "exitrc"]);
 
@@ -42,7 +44,7 @@ export class SlashCommandRegistry {
   /**
    * @returns {{name:string,sourceKey:string}|null} null 表示被闸门拒绝
    */
-  registerCommand(def, meta = {}) {
+  registerCommand(def, meta: Record<string, any> = {}) {
     const base = normalize(def.name);
     if (!base) throw new Error("Command name required");
     // 闸门判定只看 meta.source（loader 层传入的权威标记），def.source 不参与判定

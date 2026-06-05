@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * facts-db.js — facts.db 健康检查
  *

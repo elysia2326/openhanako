@@ -1,4 +1,3 @@
-// @ts-nocheck
 import { debugLog } from "../debug-log.ts";
 
 function numberOrNull(value) {
@@ -88,7 +87,7 @@ function hitRatio(inputTokens, cacheReadTokens, support) {
  * - Anthropic: { input_tokens, output_tokens, cache_read_input_tokens, cache_creation_input_tokens }
  * - OpenAI-compatible: { prompt_tokens, completion_tokens, total_tokens, prompt_tokens_details.cached_tokens }
  */
-export function normalizeLlmUsage(usage, options = {}) {
+export function normalizeLlmUsage(usage, options: Record<string, any> = {}) {
   if (!usage || typeof usage !== "object") return null;
 
   const inputTokens = firstNumber(usage.input, usage.inputTokens, usage.input_tokens, usage.prompt_tokens);
@@ -145,7 +144,7 @@ export function normalizeLlmUsage(usage, options = {}) {
 
 export function flattenNormalizedUsage(normalized) {
   if (!normalized) return null;
-  const flat = {
+  const flat: Record<string, any> = {
     inputTokens: normalized.input?.totalTokens ?? 0,
     outputTokens: normalized.output?.totalTokens ?? 0,
     cacheReadTokens: normalized.cache?.readTokens ?? 0,
@@ -166,7 +165,7 @@ export function buildUsageDebugRecord({
   modelId = null,
   usage,
   costRates = null,
-} = {}) {
+}: Record<string, any> = {}) {
   const normalized = normalizeLlmUsage(usage, { costRates });
   if (!normalized) return null;
 
@@ -187,7 +186,7 @@ export function logLlmUsage({
   modelId = null,
   usage,
   costRates = null,
-} = {}) {
+}: Record<string, any> = {}) {
   const record = buildUsageDebugRecord({ source, api, provider, modelId, usage, costRates });
   if (!record || !logger || typeof logger.log !== "function") return record;
 

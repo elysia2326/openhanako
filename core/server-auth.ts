@@ -1,4 +1,3 @@
-// @ts-nocheck
 import { authenticateDeviceCredential } from "./device-registry.ts";
 import { normalizePrincipal } from "./security-principal.ts";
 import { authenticateWebSession } from "./web-session-store.ts";
@@ -21,7 +20,7 @@ export function createServerAuthService({
     cookieHeader = null,
     allowQueryToken = false,
     connectionKind = "local",
-    now,
+    now = undefined as any,
   } = {}) {
     return authenticateRequestDetailed({
       authorization,
@@ -39,7 +38,7 @@ export function createServerAuthService({
     cookieHeader = null,
     allowQueryToken = false,
     connectionKind = "local",
-    now,
+    now = undefined as any,
   } = {}) {
     const parsed = parseCredential({ authorization, queryToken, allowQueryToken, connectionKind });
     if (!parsed) {

@@ -1,4 +1,3 @@
-// @ts-nocheck
 import path from "path";
 
 export const SKILL_SOURCE_IDENTITY_VERSION = 1;
@@ -6,7 +5,7 @@ export const SKILL_SNAPSHOT_SOURCE_SIDECAR = ".hana-skill-source.json";
 
 const EDITABLE_SOURCE_OWNERS = new Set(["user", "workspace"]);
 
-export function inferSkillSourceOwner(skill = {}) {
+export function inferSkillSourceOwner( skill: any = {}) {
   if (skill.sourceIdentity?.owner) return skill.sourceIdentity.owner;
   if (skill._pluginSkill || skill._externalLabel?.startsWith?.("plugin:")) return "plugin";
   if (skill._workspaceSkill || skill._managedBy === "workspace") return "workspace";
@@ -28,7 +27,7 @@ export function createSkillSourceIdentity({
   filePath,
   baseDir,
   editable = isEditableSkillSourceOwner(owner),
-} = {}) {
+}: any = {}) {
   const resolvedFilePath = filePath ? path.resolve(filePath) : null;
   const resolvedBaseDir = baseDir
     ? path.resolve(baseDir)
@@ -45,7 +44,7 @@ export function createSkillSourceIdentity({
   };
 }
 
-export function sourceIdentityForSkill(skill = {}, overrides = {}) {
+export function sourceIdentityForSkill( skill: any = {}, overrides: any = {}) {
   if (skill.sourceIdentity && !overrides.filePath && !overrides.baseDir && !overrides.owner) {
     return { ...skill.sourceIdentity };
   }
@@ -64,7 +63,7 @@ export function sourceIdentityForSkill(skill = {}, overrides = {}) {
   });
 }
 
-export function createSkillSnapshotIdentity({ filePath, baseDir } = {}) {
+export function createSkillSnapshotIdentity({ filePath, baseDir }: any = {}) {
   const resolvedFilePath = filePath ? path.resolve(filePath) : null;
   const resolvedBaseDir = baseDir
     ? path.resolve(baseDir)
@@ -77,7 +76,7 @@ export function createSkillSnapshotIdentity({ filePath, baseDir } = {}) {
   };
 }
 
-export function createSkillPointerIdentity({ filePath, baseDir } = {}) {
+export function createSkillPointerIdentity({ filePath, baseDir }: any = {}) {
   const resolvedFilePath = filePath ? path.resolve(filePath) : null;
   const resolvedBaseDir = baseDir
     ? path.resolve(baseDir)
@@ -90,7 +89,7 @@ export function createSkillPointerIdentity({ filePath, baseDir } = {}) {
   };
 }
 
-export function createSkillSnapshotSourceSidecar({ skillName, source, snapshot } = {}) {
+export function createSkillSnapshotSourceSidecar({ skillName, source, snapshot }: any = {}) {
   return {
     version: SKILL_SOURCE_IDENTITY_VERSION,
     kind: "skill_snapshot_source",

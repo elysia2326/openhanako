@@ -1,4 +1,3 @@
-// @ts-nocheck
 import {
   baseNameForShellPath,
   envValue,
@@ -111,6 +110,12 @@ export function resolveShellProfile({
   env = process.env,
   resolveWin32ShellRuntime,
   getWin32ShellEnvForRuntime,
+}: {
+  platform?: NodeJS.Platform;
+  profile?: string;
+  env?: NodeJS.ProcessEnv;
+  resolveWin32ShellRuntime?: (...args: any[]) => any;
+  getWin32ShellEnvForRuntime?: (...args: any[]) => any;
 } = {}) {
   const profileName = normalizeProfileName(profile);
 

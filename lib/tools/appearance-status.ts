@@ -1,4 +1,3 @@
-// @ts-nocheck
 import crypto from "crypto";
 import fsp from "fs/promises";
 import path from "path";
@@ -227,6 +226,13 @@ export async function getAppearanceStatus({
   currentModel,
   sessionPath,
   signal,
+}: {
+  agent?: any;
+  userDir?: any;
+  visionBridge?: any;
+  currentModel?: any;
+  sessionPath?: any;
+  signal?: any;
 } = {}) {
   const loaded = await loadSubjects(agent, userDir);
   const resources = loaded

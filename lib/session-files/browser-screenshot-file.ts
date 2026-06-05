@@ -1,4 +1,3 @@
-// @ts-nocheck
 import fs from "fs";
 import path from "path";
 import { createHash } from "crypto";
@@ -13,13 +12,13 @@ export function browserScreenshotExt(mimeType) {
   return "png";
 }
 
-export function browserScreenshotFilename({ base64, mimeType } = {}) {
+export function browserScreenshotFilename({ base64, mimeType }: { base64?: any; mimeType?: any } = {}) {
   if (!base64) throw new Error("browser screenshot base64 is required");
   const hash = createHash("sha256").update(String(base64)).digest("hex").slice(0, 16);
   return `browser-screenshot-${hash}.${browserScreenshotExt(mimeType)}`;
 }
 
-export function browserScreenshotPath(hanakoHome, sessionPath, { base64, mimeType } = {}) {
+export function browserScreenshotPath(hanakoHome, sessionPath, { base64, mimeType }: { base64?: any; mimeType?: any } = {}) {
   return path.join(
     sessionFilesCacheDir(hanakoHome, sessionPath),
     browserScreenshotFilename({ base64, mimeType }),
@@ -32,7 +31,7 @@ export async function persistBrowserScreenshotFile({
   base64,
   mimeType = "image/png",
   registerSessionFile,
-} = {}) {
+}: { hanakoHome?: any; sessionPath?: any; base64?: any; mimeType?: string; registerSessionFile?: any } = {}) {
   if (typeof registerSessionFile !== "function") {
     throw new Error("browser screenshot requires registerSessionFile");
   }
@@ -56,7 +55,7 @@ export function persistBrowserScreenshotFileSync({
   base64,
   mimeType = "image/png",
   registerSessionFile,
-} = {}) {
+}: { hanakoHome?: any; sessionPath?: any; base64?: any; mimeType?: string; registerSessionFile?: any } = {}) {
   if (typeof registerSessionFile !== "function") {
     throw new Error("browser screenshot requires registerSessionFile");
   }

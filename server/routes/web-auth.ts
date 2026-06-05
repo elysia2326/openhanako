@@ -1,4 +1,3 @@
-// @ts-nocheck
 import { Hono } from "hono";
 import { safeJson } from "../hono-helpers.ts";
 import { verifyLocalAccountPassword } from "../../core/local-user-account.ts";
@@ -17,6 +16,13 @@ export function createWebAuthRoute({
   getRuntimeContext,
   secureCookies = false,
   now = () => new Date().toISOString(),
+}: {
+  hanakoHome?: any;
+  authService?: any;
+  getConnectionKind?: any;
+  getRuntimeContext?: any;
+  secureCookies?: boolean;
+  now?: () => string;
 } = {}) {
   if (!hanakoHome) throw new Error("hanakoHome required");
   if (!authService) throw new Error("authService required");

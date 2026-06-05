@@ -1,5 +1,4 @@
-// @ts-nocheck
-export function normalizeDeferredResolveResult({ result, files, sessionFiles } = {}) {
+export function normalizeDeferredResolveResult({ result, files, sessionFiles }: { result?: any; files?: any; sessionFiles?: any } = {}) {
   if (result !== undefined) {
     if (result && typeof result === "object" && !Array.isArray(result)) {
       return {

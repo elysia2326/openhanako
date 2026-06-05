@@ -1,11 +1,14 @@
-// @ts-nocheck
 import { ResourceError } from "./resource-service.ts";
 
 const PATH_FIELD_NAMES = new Set(["filePath", "realPath"]);
 const CONTENT_COMPATIBILITY_CAPABILITIES = ["resources.content", "resources.read"];
 
 export class ResourceAccessService {
-  constructor({ resourceService, authorizeCapability, audit } = {}) {
+  declare _resourceService: any;
+  declare _authorizeCapability: any;
+  declare _audit: any;
+
+  constructor({ resourceService, authorizeCapability, audit }: any = {}) {
     if (!resourceService) throw new Error("resourceService required");
     this._resourceService = resourceService;
     this._authorizeCapability = authorizeCapability || defaultAuthorizeCapability;

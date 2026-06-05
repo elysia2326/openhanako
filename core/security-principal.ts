@@ -1,4 +1,3 @@
-// @ts-nocheck
 const PRINCIPAL_KINDS = new Set([
   "local_user",
   "account_user",
@@ -35,9 +34,9 @@ const TRUST_STATES = new Set([
   "unknown",
 ]);
 
-export function normalizePrincipal(input = {}) {
+export function normalizePrincipal(input: Record<string, any> = {}) {
   const kind = enumValue(input.kind, PRINCIPAL_KINDS, "unknown");
-  const principal = {
+  const principal: Record<string, any> = {
     schemaVersion: 1,
     principalId: stringOrNull(input.principalId) || derivePrincipalId({ ...input, kind }),
     kind,

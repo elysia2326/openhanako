@@ -1,4 +1,4 @@
-// @ts-nocheck
+
 import { createStructuredOutputTool } from "./structured-output.ts";
 import { WorkflowJournal } from "./journal.ts";
 
@@ -28,7 +28,7 @@ export function createHostApi(deps) {
   let nodeSeq = 0;
   let currentPhase = null;
 
-  async function agent(prompt, opts = {}) {
+  async function agent(prompt, opts: { label?: string; model?: string; agentType?: string; toolFilter?: any; schema?: any } = {}) {
     // nodeId 在调用入口分配：用纯计数器，不依赖沙箱里被禁用的 Date.now/Math.random。
     const seq = ++nodeSeq;
     const nodeId = `node-${seq}`;

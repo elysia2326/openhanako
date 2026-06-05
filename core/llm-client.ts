@@ -1,4 +1,3 @@
-// @ts-nocheck
 import { AppError } from '../shared/errors.ts';
 import { errorBus } from '../shared/error-bus.ts';
 import { normalizeProviderPayload } from './provider-compat.ts';
@@ -41,7 +40,7 @@ function normalizeTextFromContent(content) {
 }
 
 function createUserAbortError() {
-  const abortErr = new Error("This operation was aborted");
+  const abortErr: Error & { type?: string } = new Error("This operation was aborted");
   abortErr.name = "AbortError";
   abortErr.type = "aborted";
   return abortErr;
@@ -221,7 +220,7 @@ async function readCodexResponsesStream(body) {
   };
 }
 
-function throwAbortOrTimeout(err, signal, modelId) {
+function throwAbortOrTimeout(err, signal, modelId): never {
   if (err.name === "AbortError" || err.name === "TimeoutError") {
     if (signal?.aborted) throw createUserAbortError();
     throw new AppError('LLM_TIMEOUT', { context: { model: modelId }, cause: err });
@@ -536,7 +535,7 @@ export async function callText({
   }
 
   const usage = normalizeLlmUsage(data?.usage, { costRates: modelObj?.cost });
-  logLlmUsage({
+  (logLlmUsage as (...args: any[]) => any)({
     source: "utility",
     api,
     provider,

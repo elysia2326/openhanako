@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * 供应商管理 REST 路由
  */
@@ -22,11 +21,11 @@ import { denySecretMutationWithoutScope, denyWithoutScope } from "../http/capabi
 
 // ── Models-cache helpers ──
 
-function getCachePath(engine) {
+function getCachePath(engine: any) {
   return path.join(engine.hanakoHome, "models-cache.json");
 }
 
-function readModelsCache(engine) {
+function readModelsCache(engine: any) {
   try {
     return JSON.parse(fs.readFileSync(getCachePath(engine), "utf-8"));
   } catch {
@@ -35,18 +34,18 @@ function readModelsCache(engine) {
 }
 
 /** Atomic write: tmp + rename to avoid partial reads */
-function writeModelsCache(engine, cache) {
+function writeModelsCache(engine: any, cache: any) {
   const target = getCachePath(engine);
   const tmp = target + ".tmp." + process.pid;
   fs.writeFileSync(tmp, JSON.stringify(cache, null, 2) + os.EOL);
   fs.renameSync(tmp, target);
 }
 
-export function createProvidersRoute(engine) {
+export function createProvidersRoute(engine: any) {
   const route = new Hono();
 
   // ── Cache helper: persist discovered models per-provider ──
-  function saveToCache(providerName, models) {
+  function saveToCache(providerName: any, models: any) {
     if (!providerName || !models?.length) return;
     try {
       const cache = readModelsCache(engine);
@@ -64,8 +63,8 @@ export function createProvidersRoute(engine) {
   route.get("/providers/summary", async (c) => {
     const rawProviders = engine.providerRegistry.getAllProvidersRaw();
     // 补全凭证和模型列表（getAllProvidersRaw 返回的是 added-models.yaml 原始数据）
-    const providers = {};
-    for (const [name, p] of Object.entries(rawProviders)) {
+    const providers: Record<string, any> = {};
+    for (const [name, p] of Object.entries(rawProviders) as [string, any][]) {
       const entry = engine.providerRegistry.get(name);
       providers[name] = {
         base_url: p.base_url || entry?.baseUrl || "",
@@ -93,10 +92,10 @@ export function createProvidersRoute(engine) {
     // OAuth 自定义模型
     const oauthCustom = engine.preferences.getOAuthCustomModels();
 
-    const result = {};
+    const result: Record<string, any> = {};
 
     // OAuth 登录信息查找（oauthLoginMap 用 authJsonKey 索引）
-    function getOAuthLoginInfo(name) {
+    function getOAuthLoginInfo(name: any) {
       if (oauthLoginMap.has(name)) return oauthLoginMap.get(name);
       const authKey = provRegistry.getAuthJsonKey(name);
       if (authKey !== name && oauthLoginMap.has(authKey)) return oauthLoginMap.get(authKey);
@@ -208,7 +207,7 @@ export function createProvidersRoute(engine) {
 
   // ── Fetch / Test ──
 
-  function normalizeRegistryModels(models) {
+  function normalizeRegistryModels(models: any[]) {
     return models.map((model) => ({
       id: model.id,
       name: model.name || model.id,
@@ -217,7 +216,7 @@ export function createProvidersRoute(engine) {
     }));
   }
 
-  function normalizeRemoteModels(data, api) {
+  function normalizeRemoteModels(data: any, api: any) {
     if (api === "anthropic-messages") {
       return (data.data || []).map(m => ({
         id: m.id,
@@ -247,14 +246,14 @@ export function createProvidersRoute(engine) {
     }));
   }
 
-  function filterProviderModels(name, models, baseUrl = "") {
+  function filterProviderModels(name: any, models: any, baseUrl = ""): { models: any[]; ignoredModels?: any[] } {
     const { models: filtered, ignoredModels } = filterDiscoveredProviderModels(name, models, { baseUrl });
-    const payload = { models: filtered };
+    const payload: { models: any[]; ignoredModels?: any[] } = { models: filtered };
     if (ignoredModels.length > 0) payload.ignoredModels = ignoredModels;
     return payload;
   }
 
-  function knownCatalogModel(provider, id) {
+  function knownCatalogModel(provider: any, id: any) {
     const known = lookupKnown(provider, id);
     return {
       id,
@@ -264,7 +263,7 @@ export function createProvidersRoute(engine) {
     };
   }
 
-  function supplementRemoteModels(name, remoteModels) {
+  function supplementRemoteModels(name: any, remoteModels: any[]) {
     if (name !== "zhipu") return remoteModels;
     const seen = new Set();
     const merged = [];
@@ -282,13 +281,13 @@ export function createProvidersRoute(engine) {
   }
 
   async function refreshProviderModels() {
-    clearConfigCache();
+    (clearConfigCache as any)();
     await engine.onProviderChanged();
     emitAppEvent(engine, "models-changed", { agentId: engine.currentAgentId || null });
   }
 
   /** Registry → defaults 两级 fallback，fetch-models 和 Anthropic 路径共用 */
-  function registryOrDefaultsFallback(name) {
+  function registryOrDefaultsFallback(name: any) {
     if (!name) {
       return { error: "name is required for model discovery fallback", models: [] };
     }
@@ -340,7 +339,7 @@ export function createProvidersRoute(engine) {
     const scopeDenied = denyWithoutScope(c, "providers.manage");
     if (scopeDenied) return scopeDenied;
     const secretDenied = denySecretMutationWithoutScope(c, [
-      ...collectSecretPatchPaths(body, ["api_key"]),
+      ...collectSecretPatchPaths(body, ["api_key"] as any),
       ...collectProviderHeaderSecretPatchPaths(body.headers, "headers"),
     ]);
     if (secretDenied) return secretDenied;
@@ -363,7 +362,7 @@ export function createProvidersRoute(engine) {
     });
     const effectiveApi = explicitApi || saved.api || "";
     const effectiveHeaders = Object.prototype.hasOwnProperty.call(body, "headers")
-      ? resolveProviderHeadersPatch({ patch: body.headers, existing: saved.headers || {} })
+      ? (resolveProviderHeadersPatch as any)({ patch: body.headers, existing: saved.headers || {} })
       : saved.headers || {};
 
     if (effectiveApi === "openai-codex-responses") {
@@ -381,7 +380,7 @@ export function createProvidersRoute(engine) {
         if (effectiveKey && !effectiveApi) {
           return c.json({ error: "api is required when api_key is present", models: [] });
         }
-        const headers = buildProviderRequestHeaders({
+        const headers = (buildProviderRequestHeaders as any)({
           api: effectiveApi,
           apiKey: effectiveKey,
           headers: effectiveHeaders,
@@ -450,7 +449,7 @@ export function createProvidersRoute(engine) {
     const scopeDenied = denyWithoutScope(c, "providers.manage");
     if (scopeDenied) return scopeDenied;
     const secretDenied = denySecretMutationWithoutScope(c, [
-      ...collectSecretPatchPaths(body, ["api_key"]),
+      ...collectSecretPatchPaths(body, ["api_key"] as any),
       ...collectProviderHeaderSecretPatchPaths(body.headers, "headers"),
     ]);
     if (secretDenied) return secretDenied;
@@ -471,7 +470,7 @@ export function createProvidersRoute(engine) {
       api,
     });
     const headers = Object.prototype.hasOwnProperty.call(body, "headers")
-      ? resolveProviderHeadersPatch({ patch: body.headers, existing: saved.headers || {} })
+      ? (resolveProviderHeadersPatch as any)({ patch: body.headers, existing: saved.headers || {} })
       : saved.headers || {};
 
     if (!base_url) {
@@ -482,7 +481,7 @@ export function createProvidersRoute(engine) {
     }
 
     try {
-      const result = await probeProvider({ baseUrl: base_url, api, apiKey: api_key, headers });
+      const result = await (probeProvider as any)({ baseUrl: base_url, api, apiKey: api_key, headers });
       return c.json(result);
     } catch (err) {
       return c.json({ ok: false, error: err.message });

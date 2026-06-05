@@ -1,4 +1,3 @@
-// @ts-nocheck
 import { parseSessionKey } from "./session-key.ts";
 
 export function getConfiguredBridgeOwner(agent, platform) {
@@ -43,7 +42,7 @@ function resolveQQDeliveryTarget(index, ownerId) {
     const { platform, chatType, chatId: sessionChatId } = parseSessionKey(sessionKey);
     if (platform !== "qq" || chatType !== "dm") continue;
 
-    const entry = typeof raw === "string" ? {} : raw || {};
+    const entry: Record<string, any> = typeof raw === "string" ? {} : (raw as Record<string, any>) || {};
     const principal = qqPrincipalFromEntry(entry, sessionChatId);
     if (!principal) continue;
     if (principal.principalId !== ownerId && !principal.aliases.includes(ownerId)) continue;
@@ -62,7 +61,7 @@ function resolveFeishuDeliveryTarget(index, ownerId) {
     const { platform, chatType, chatId: sessionUserId } = parseSessionKey(sessionKey);
     if (platform !== "feishu" || chatType !== "dm") continue;
 
-    const entry = typeof raw === "string" ? {} : raw || {};
+    const entry: Record<string, any> = typeof raw === "string" ? {} : (raw as Record<string, any>) || {};
     if (entry.userId !== ownerId && sessionUserId !== ownerId) continue;
     if (!entry.chatId) continue;
     return { userId: ownerId, chatId: entry.chatId, sessionKey };
@@ -76,7 +75,7 @@ function inferUniqueWechatOwnerFromIndex(index) {
     const { platform, chatType, chatId } = parseSessionKey(sessionKey);
     if (platform !== "wechat" || chatType !== "dm") continue;
 
-    const entry = typeof raw === "string" ? {} : raw || {};
+    const entry: Record<string, any> = typeof raw === "string" ? {} : (raw as Record<string, any>) || {};
     const userId = entry.userId || chatId;
     if (userId) ids.add(userId);
   }

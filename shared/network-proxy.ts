@@ -1,4 +1,3 @@
-// @ts-nocheck
 // shared/network-proxy.js
 
 export const NETWORK_PROXY_MODES = ["system", "manual", "direct"];
@@ -70,7 +69,7 @@ function normalizeNoProxy(value) {
     .join(", ");
 }
 
-export function normalizeNetworkProxyConfig(value, options = {}) {
+export function normalizeNetworkProxyConfig(value, options: { strict?: boolean } = {}) {
   const strict = options.strict === true;
   const input = value && typeof value === "object" ? value : {};
   const mode = normalizeMode(input.mode, strict);
@@ -113,7 +112,7 @@ export function noProxyEntries(noProxy) {
     .filter(Boolean);
 }
 
-export function withForcedLocalProxyBypass(noProxy, options = {}) {
+export function withForcedLocalProxyBypass(noProxy, options: { electron?: boolean } = {}) {
   const entries = noProxyEntries(noProxy);
   const seen = new Set(entries.map(entry => entry.toLowerCase()));
   for (const entry of FORCED_LOCAL_PROXY_BYPASS) {

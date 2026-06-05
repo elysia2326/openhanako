@@ -1,4 +1,3 @@
-// @ts-nocheck
 import fs from "fs";
 import path from "path";
 import YAML from "js-yaml";
@@ -143,7 +142,7 @@ function filterInvalidProviderModels(providerId, models, baseUrl) {
  * - 凭证来源优先级为 added-models.yaml 显式值 > models.json 投影值 > auth.json 旧值；
  * - 尽量从 provider 插件或旧 models.json 回填 base_url/api/models，帮助旧配置自愈。
  */
-export function migrateLegacyApiKeyAuthToProviders({ hanakoHome, providerRegistry, log = () => {} }) {
+export function migrateLegacyApiKeyAuthToProviders({ hanakoHome, providerRegistry, log = () => {} }: { hanakoHome: string; providerRegistry: any; log?: (msg: string) => void }) {
   if (!hanakoHome) return { migrated: 0, providers: [] };
 
   const authPath = path.join(hanakoHome, "auth.json");

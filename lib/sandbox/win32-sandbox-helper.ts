@@ -1,10 +1,10 @@
-// @ts-nocheck
+
 import { existsSync as defaultExistsSync } from "fs";
 import path from "path";
 
 export const WIN32_SANDBOX_HELPER_NAME = "hana-win-sandbox.exe";
 
-export function resourceSiblingDir(name, { env = process.env, resourcesPath = process.resourcesPath } = {}) {
+export function resourceSiblingDir(name, { env = process.env, resourcesPath = (process as any).resourcesPath } = {}) {
   const candidates = [];
   if (resourcesPath) candidates.push(path.join(resourcesPath, name));
   if (env.HANA_ROOT) candidates.push(path.resolve(env.HANA_ROOT, "..", name));
@@ -13,7 +13,7 @@ export function resourceSiblingDir(name, { env = process.env, resourcesPath = pr
 
 export function resolveWin32SandboxHelper({
   env = process.env,
-  resourcesPath = process.resourcesPath,
+  resourcesPath = (process as any).resourcesPath,
   cwd = process.cwd(),
   arch = process.arch,
   existsSync = defaultExistsSync,
@@ -33,6 +33,11 @@ export function buildWin32SandboxHelperArgs({
   grants = {},
   executable,
   args = [],
+}: {
+  cwd?: string;
+  grants?: Record<string, any>;
+  executable?: string;
+  args?: string[];
 } = {}) {
   if (!cwd) throw new Error("win32 sandbox helper requires cwd");
   if (!executable) throw new Error("win32 sandbox helper requires executable");

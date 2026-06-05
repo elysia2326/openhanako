@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * web-fetch.js — web_fetch 自定义工具
  *

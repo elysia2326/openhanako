@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * 桌面 session 的统一提交入口。
  * 本地输入与 bridge /rc 接管都应通过这一层提交消息到桌面 session。
@@ -31,7 +30,21 @@ import { serializeSessionFile } from "../lib/session-files/session-file-response
 
 const pendingDesktopSessionSubmissions = new Set();
 
-export async function submitDesktopSessionMessage(engine, opts = {}) {
+export async function submitDesktopSessionMessage(engine: any, opts: {
+  sessionPath?: string;
+  text?: string;
+  images?: Array<{ type: string; data: string; mimeType: string }>;
+  imageAttachmentPaths?: string[];
+  videos?: Array<{ type: string; data: string; mimeType: string }>;
+  videoAttachmentPaths?: string[];
+  audios?: Array<{ type: string; data: string; mimeType: string }>;
+  audioAttachmentPaths?: string[];
+  inboundFiles?: Array<{ type: string; filename?: string; mimeType?: string; buffer: any }>;
+  onDelta?: (delta: string, accumulated: string) => void;
+  displayMessage?: any;
+  sessionFileRefs?: Array<{ fileId?: string; sessionPath?: string; label?: string; kind?: string }>;
+  uiContext?: any;
+} = {}) {
   const {
     sessionPath,
     text,
@@ -257,7 +270,7 @@ function registerDisplayAttachments({ hanakoHome, sessionPath, attachments, regi
       mime: next.mimeType,
       ext: extOfName(next.name || next.path),
       isDirectory: !!next.isDir,
-    });
+    } as any);
     if (!next.isDir && next.path && kind === "image") {
       imageAttachmentPaths.push(next.path);
     } else if (!next.isDir && next.path && kind === "video") {
@@ -326,7 +339,7 @@ function addAttachedAudioMarkers(text, audioAttachmentPaths) {
   return promptText ? `${markerText}\n${promptText}` : markerText;
 }
 
-function uniquePaths(paths) {
+function uniquePaths(paths: string[]): string[] {
   return Array.from(new Set((paths || []).filter(Boolean)));
 }
 

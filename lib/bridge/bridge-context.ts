@@ -1,4 +1,3 @@
-// @ts-nocheck
 import { parseSessionKey } from "./session-key.ts";
 
 export const BRIDGE_NOTIFY_PLATFORMS = ["wechat", "feishu", "telegram", "qq"];
@@ -43,7 +42,7 @@ export function normalizeBridgePlatforms(value) {
   return { bridgePlatforms, invalidBridgePlatforms };
 }
 
-export function buildBridgeContext(input = {}, locale = "zh") {
+export function buildBridgeContext(input: Record<string, any> = {}, locale = "zh") {
   const parsed = parseSessionKey(input.sessionKey || "");
   const platform = input.platform || parsed.platform;
   if (!BRIDGE_NOTIFY_PLATFORMS.includes(platform)) {

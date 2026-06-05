@@ -1,11 +1,10 @@
-// @ts-nocheck
 import { AppError } from './errors.ts';
 
-function randomBetween(min, max) {
+function randomBetween(min: number, max: number) {
   return min + Math.random() * (max - min);
 }
 
-function sleep(ms, signal) {
+function sleep(ms: number, signal: any) {
   return new Promise((resolve, reject) => {
     if (signal?.aborted) { reject(signal.reason); return; }
     const timer = setTimeout(resolve, ms);
@@ -17,7 +16,7 @@ function sleep(ms, signal) {
  * Retry with decorrelated jitter (AWS recommended).
  * delay = min(maxDelay, random(baseDelay, previousDelay * 3))
  */
-export async function withRetry(fn, opts = {}) {
+export async function withRetry(fn: () => Promise<any>, opts: any = {}) {
   const { maxAttempts = 3, baseDelayMs = 1000, maxDelayMs = 30000, signal, shouldRetry } = opts;
   let prevDelay = baseDelayMs;
 

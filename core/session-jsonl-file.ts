@@ -1,4 +1,3 @@
-// @ts-nocheck
 import fs from "fs";
 
 export const DEFAULT_SESSION_JSONL_MAX_LINE_BYTES = 1024 * 1024;
@@ -26,7 +25,7 @@ const TOOL_ARG_KEYS = new Set(["arguments", "args", "input"]);
  * @param {number} [opts.maxLineBytes]
  * @returns {Array|null}
  */
-export function parseSessionEntries(raw, opts = {}) {
+export function parseSessionEntries(raw, opts: { maxLineBytes?: number } = {}) {
   const maxLineBytes = Math.max(1024, opts.maxLineBytes || DEFAULT_SESSION_JSONL_MAX_LINE_BYTES);
   const entries = [];
   const lines = String(raw || "").split("\n");
@@ -74,7 +73,7 @@ export function projectOversizedSessionEntry(entry, { originalByteLength = null 
   return projected;
 }
 
-export function repairOversizedSessionEntries(entries, opts = {}) {
+export function repairOversizedSessionEntries(entries, opts: { maxLineBytes?: number } = {}) {
   if (!Array.isArray(entries) || entries.length === 0) {
     return { entries, projected: 0 };
   }
@@ -113,7 +112,7 @@ function projectSessionValue(value, seen, context) {
     return items;
   }
 
-  const out = {};
+  const out: Record<string, any> = {};
   let count = 0;
   for (const [key, item] of Object.entries(value)) {
     if (count >= DEFAULT_SESSION_JSONL_MAX_OBJECT_KEYS) {
@@ -169,7 +168,7 @@ export function readSessionEntriesFile(sessionPath) {
  * @param {number} [opts.maxLineBytes]
  * @returns {{repaired: boolean, projected: number, skipped: number, backupPath: string|null}}
  */
-export function repairOversizedSessionEntriesInFile(sessionPath, opts = {}) {
+export function repairOversizedSessionEntriesInFile(sessionPath, opts: { maxLineBytes?: number } = {}) {
   const maxLineBytes = Math.max(1024, opts.maxLineBytes || DEFAULT_SESSION_JSONL_MAX_LINE_BYTES);
   let raw;
   try {

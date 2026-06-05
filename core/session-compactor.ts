@@ -1,4 +1,3 @@
-// @ts-nocheck
 import {
   completeSimple,
   convertAgentMessagesToLlm,
@@ -120,7 +119,7 @@ function getCachePreservingTurnPrefixMaxTokens(preparation) {
   return Math.max(256, Math.floor((preparation?.settings?.reserveTokens ?? 4096) * 0.5));
 }
 
-function buildPiSummaryPrompt({ preparation, customInstructions } = {}) {
+function buildPiSummaryPrompt({ preparation, customInstructions }: { preparation?: any; customInstructions?: any } = {}) {
   let basePrompt = preparation?.previousSummary
     ? PI_UPDATE_SUMMARIZATION_PROMPT
     : PI_SUMMARIZATION_PROMPT;
@@ -131,7 +130,7 @@ function buildPiSummaryPrompt({ preparation, customInstructions } = {}) {
   return `<previous-summary>\n${preparation.previousSummary}\n</previous-summary>\n\n${basePrompt}`;
 }
 
-export function buildCachePreservingCompactionInstruction({ preparation, customInstructions } = {}) {
+export function buildCachePreservingCompactionInstruction({ preparation, customInstructions }: { preparation?: any; customInstructions?: any } = {}) {
   return {
     role: "user",
     content: [textBlock(buildPiSummaryPrompt({ preparation, customInstructions }))],
@@ -157,7 +156,7 @@ export function stripInlineMediaFromCompactionPreparation(preparation) {
     ? stripAllInlineMediaForHistory(preparation.turnPrefixMessages)
     : null;
 
-  const next = {};
+  const next: Record<string, any> = {};
   let changed = false;
   if (messagesToSummarize && messagesToSummarize.messages !== preparation.messagesToSummarize) {
     next.messagesToSummarize = messagesToSummarize.messages;
@@ -171,7 +170,7 @@ export function stripInlineMediaFromCompactionPreparation(preparation) {
   return changed ? { ...preparation, ...next } : preparation;
 }
 
-function buildCachePreservingCompactionRequests({ preparation, customInstructions } = {}) {
+function buildCachePreservingCompactionRequests({ preparation, customInstructions }: { preparation?: any; customInstructions?: any } = {}) {
   preparation = stripInlineMediaFromCompactionPreparation(preparation);
   const messagesToSummarize = Array.isArray(preparation?.messagesToSummarize)
     ? preparation.messagesToSummarize
@@ -264,7 +263,7 @@ export function estimateCachePreservingCompactionRequest({
   preparation,
   systemPrompt = "",
   customInstructions,
-} = {}) {
+}: { preparation?: any; systemPrompt?: string; customInstructions?: any } = {}) {
   preparation = stripInlineMediaFromCompactionPreparation(preparation);
   const systemPromptTokens = estimateTextTokens(systemPrompt);
   const requests = buildCachePreservingCompactionRequests({ preparation, customInstructions })
@@ -305,7 +304,7 @@ export function shouldHardTruncateCachePreservingCompaction({
   systemPrompt,
   customInstructions,
   hardTruncateThreshold = DEFAULT_HARD_TRUNCATE_THRESHOLD,
-} = {}) {
+}: { preparation?: any; model?: any; systemPrompt?: any; customInstructions?: any; hardTruncateThreshold?: number } = {}) {
   const contextWindow = model?.contextWindow ?? 0;
   const budget = estimateCachePreservingCompactionRequest({
     preparation,
@@ -382,6 +381,23 @@ export async function createCachePreservingCompactionResult({
   convertToLlm = convertAgentMessagesToLlm,
   usageLedger,
   usageContext,
+}: {
+  preparation: any;
+  model: any;
+  systemPrompt: any;
+  messages?: any;
+  tools?: any[];
+  sessionSnapshot?: any;
+  cacheKeyParams?: Record<string, any>;
+  cacheMetadataOverride?: any;
+  customInstructions: any;
+  signal: any;
+  thinkingLevel: any;
+  streamFn: any;
+  streamOptions?: Record<string, any>;
+  convertToLlm?: any;
+  usageLedger: any;
+  usageContext: any;
 }) {
   if (!preparation) throw new Error("Cache-preserving compaction requires preparation");
   if (!model) throw new Error("Cache-preserving compaction requires a model");
@@ -471,7 +487,7 @@ export async function createCachePreservingCompactionResult({
       templateVersion: "v1",
       usageLedger,
       usageContext,
-    });
+    } as any);
 
     const text = sideTask.text;
     if (!text) {
@@ -511,7 +527,7 @@ function replaceSessionMessages(session) {
   }
 }
 
-export async function runCachePreservingCompactionForSession(session, {
+export async function runCachePreservingCompactionForSession(session: any, {
   settings,
   model = session?.model,
   customInstructions,
@@ -521,7 +537,7 @@ export async function runCachePreservingCompactionForSession(session, {
   lifecycleReason = "manual",
   usageLedger,
   usageContext,
-} = {}) {
+}: { settings?: any; model?: any; customInstructions?: any; signal?: any; hardTruncateThreshold?: number; emitLifecycle?: boolean; lifecycleReason?: string; usageLedger?: any; usageContext?: any } = {}) {
   if (!session?.sessionManager) throw new Error("runCachePreservingCompactionForSession: missing session manager");
   if (!session?.agent) throw new Error("runCachePreservingCompactionForSession: missing agent");
   if (!model) throw new Error("runCachePreservingCompactionForSession: missing model");

@@ -1,4 +1,3 @@
-// @ts-nocheck
 export const COMPUTER_USE_DEFAULT_SETTINGS = Object.freeze({
   enabled: false,
   provider_by_platform: {
@@ -37,7 +36,7 @@ function normalizeApproval(item) {
   };
 }
 
-export function normalizeComputerUseSettings(input = {}) {
+export function normalizeComputerUseSettings(input: any = {}) {
   const approvals = Array.isArray(input.app_approvals)
     ? input.app_approvals.map(normalizeApproval).filter(Boolean)
     : [];
@@ -53,7 +52,7 @@ export function normalizeComputerUseSettings(input = {}) {
   };
 }
 
-export function isComputerUseAppApproved(settings, { providerId, appId } = {}) {
+export function isComputerUseAppApproved(settings, { providerId, appId }: any = {}) {
   if (!providerId || !appId) return false;
   const normalized = normalizeComputerUseSettings(settings);
   return normalized.app_approvals.some((approval) =>
@@ -81,7 +80,7 @@ export function approveComputerUseApp(settings, approval, { now = () => new Date
   });
 }
 
-export function revokeComputerUseApp(settings, { providerId, appId } = {}) {
+export function revokeComputerUseApp(settings, { providerId, appId }: any = {}) {
   const normalized = normalizeComputerUseSettings(settings);
   return normalizeComputerUseSettings({
     ...normalized,

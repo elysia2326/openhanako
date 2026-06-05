@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * DeferredResultStore — 异步后台任务结果通知存储（带磁盘持久化）
  *
@@ -15,6 +14,14 @@ import { atomicWriteSync } from "../shared/safe-fs.ts";
 const CLEANUP_MAX_AGE = 7 * 24 * 60 * 60 * 1000; // 7 天
 
 export class DeferredResultStore {
+  declare _bus: any;
+  declare _cleanupTimer: any;
+  declare _dirty: any;
+  declare _failCbs: any;
+  declare _persistPath: any;
+  declare _resultCbs: any;
+  declare _saveTimer: any;
+  declare _tasks: any;
   /**
    * @param {object} [bus] - EventBus 实例
    * @param {string} [persistPath] - 持久化文件路径。不传则纯内存（兼容测试）。
@@ -49,7 +56,7 @@ export class DeferredResultStore {
 
   // ── 核心操作 ──
 
-  defer(taskId, sessionPath, meta = {}) {
+  defer(taskId, sessionPath, meta: any = {}) {
     if (this._tasks.has(taskId)) return;
     this._tasks.set(taskId, {
       status: "pending",
@@ -93,7 +100,7 @@ export class DeferredResultStore {
     }, task.sessionPath);
   }
 
-  retry(taskId, sessionPath, meta = {}) {
+  retry(taskId, sessionPath, meta: any = {}) {
     const existing = this._tasks.get(taskId);
     const next = {
       status: "pending",
@@ -291,7 +298,7 @@ export class DeferredResultStore {
     if (!this._dirty) return;
     this._dirty = false;
     try {
-      const obj = {};
+      const obj: any = {};
       for (const [k, v] of this._tasks) obj[k] = v;
       fs.mkdirSync(path.dirname(this._persistPath), { recursive: true });
       atomicWriteSync(this._persistPath, JSON.stringify(obj, null, 2) + "\n");
@@ -304,7 +311,7 @@ export class DeferredResultStore {
       if (!fs.existsSync(this._persistPath)) return;
       const raw = JSON.parse(fs.readFileSync(this._persistPath, "utf-8"));
       for (const [k, v] of Object.entries(raw)) {
-        this._tasks.set(k, { delivered: false, ...v });
+        this._tasks.set(k, { delivered: false, ...(v as any) });
       }
     } catch { /* best effort */ }
   }

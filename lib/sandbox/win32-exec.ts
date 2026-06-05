@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * win32-exec.js — Windows 平台的命令执行函数
  *
@@ -106,8 +105,8 @@ function pushUniqueRuntimePath(list, item) {
   list.push(item);
 }
 
-function getBundledGitRoots(env = process.env, deps = {}) {
-  const resourcesPath = deps.resourcesPath !== undefined ? deps.resourcesPath : process.resourcesPath;
+function getBundledGitRoots(env = process.env, deps: Record<string, any> = {}) {
+  const resourcesPath = deps.resourcesPath !== undefined ? deps.resourcesPath : (process as any).resourcesPath;
   const resolveResourceSibling = deps.resourceSiblingDir || ((name, options) => resourceSiblingDir(name, options));
   const roots = [
     resourcesPath ? joinRuntimePath(resourcesPath, "git") : null,
@@ -155,7 +154,7 @@ function probeShell(shell, args, env = process.env) {
  * 4. PATH 上的 bash.exe / sh.exe
  * 5. MSYS2 / Cygwin
  */
-function getBundledShellCandidates(env = process.env, deps = {}) {
+function getBundledShellCandidates(env = process.env, deps: Record<string, any> = {}) {
   const exists = deps.exists || existsSync;
   const found = [];
   const gitRoots = getBundledGitRoots(env, deps);
@@ -183,7 +182,7 @@ function getBundledShellCandidates(env = process.env, deps = {}) {
   return found;
 }
 
-function getBundledGitCandidates(env = process.env, deps = {}) {
+function getBundledGitCandidates(env = process.env, deps: Record<string, any> = {}) {
   const exists = deps.exists || existsSync;
   const found = [];
   for (const gitRoot of getBundledGitRoots(env, deps)) {
@@ -369,14 +368,14 @@ function getAllShellCandidates({ preferBundled = false, bundledOnly = false, env
  * 从候选列表中找到第一个 probe 成功的 shell 并缓存
  * @param {string} [startAfter] - 跳过此路径及之前的所有候选（用于降级重试）
  */
-function shellCacheMatchesOptions(shellInfo, options = {}) {
+function shellCacheMatchesOptions(shellInfo: any, options: Record<string, any> = {}) {
   if (!shellInfo) return false;
   if (options.bundledOnly && !shellInfo.bundledRoot) return false;
   if (options.preferBundled && !shellInfo.bundledRoot) return false;
   return true;
 }
 
-function findAndCacheShell(startAfter, options = {}) {
+function findAndCacheShell(startAfter: any, options: Record<string, any> = {}) {
   // 有缓存且不是降级重试 → 直接返回
   if (_cachedShell && !startAfter && shellCacheMatchesOptions(_cachedShell, options)) return _cachedShell;
 
@@ -461,7 +460,7 @@ function enrichError(retryErr, primaryShell, originalErr) {
     `  3. If using antivirus software, check if it blocks bash.exe`,
   ].join("\n");
 
-  const enriched = new Error(msg);
+  const enriched: any = new Error(msg);
   enriched.code = originalErr.code;
   return enriched;
 }
@@ -669,7 +668,7 @@ function findNodeRuntimeOnPath(commandName, args, env) {
   return null;
 }
 
-function findNodeRuntime({ command, cwd, env = process.env } = {}) {
+function findNodeRuntime({ command, cwd, env = process.env }: { command?: any; cwd?: any; env?: any } = {}) {
   const args = splitShellLikeArgs(command);
   const token = args[0] || "";
   const commandName = basenameRuntimePath(token).toLowerCase();
@@ -723,7 +722,7 @@ function findPythonRuntimeOnPath(commandName, args, env) {
   return null;
 }
 
-function findPythonRuntime({ command, cwd, env = process.env } = {}) {
+function findPythonRuntime({ command, cwd, env = process.env }: { command?: any; cwd?: any; env?: any } = {}) {
   const args = splitShellLikeArgs(command);
   const token = args[0] || "";
   const commandName = basenameRuntimePath(token).toLowerCase();
@@ -839,7 +838,7 @@ function envValue(env, key) {
   return found ? String(env[found] || "") : "";
 }
 
-function redactWin32DiagnosticText(value, { sandbox, env } = {}) {
+function redactWin32DiagnosticText(value: any, { sandbox, env }: { sandbox?: any; env?: any } = {}) {
   let text = String(value || "");
   const replacements = [
     [sandbox?.hanakoHome, "<HANA_HOME>"],
@@ -956,14 +955,14 @@ async function runWithWin32Diagnostics({
   mode,
   executable,
   args,
-  runtimeInfo,
-  helperPath,
+  runtimeInfo = undefined,
+  helperPath = undefined,
   sandbox,
   cwd,
   env,
   onData,
   run,
-}) {
+}: Record<string, any>) {
   const startedAt = Date.now();
   let outputBytes = 0;
   const diagnosticOnData = (data) => {
@@ -1056,7 +1055,7 @@ async function spawnViaSandboxHelper({ sandbox, executable, args, cwd, env, onDa
     grants,
     executable,
     args,
-  });
+  } as any);
   const cleanupQueue = sandbox.legacyCleanupQueue;
   const cleanupRoots = cleanupRootsForSandboxGrants(grants);
   const lease = cleanupQueue?.beginRootUse?.(cleanupRoots);

@@ -1,4 +1,3 @@
-// @ts-nocheck
 import crypto from "crypto";
 import fs from "fs";
 import fsp from "fs/promises";
@@ -42,6 +41,7 @@ const IMAGE_EXT_TO_MIME = {
 const MEMORY_PREVIEW_LENGTH = 20;
 
 class CharacterCardError extends Error {
+  declare status: number;
   constructor(message, status = 400) {
     super(message);
     this.name = "CharacterCardError";
@@ -588,7 +588,7 @@ export function createCharacterCardService(engine) {
     throw new CharacterCardError(`cannot allocate unique skill name for ${baseName}`);
   }
 
-  async function createImportPlanFromPath(sourcePath, opts = {}) {
+  async function createImportPlanFromPath(sourcePath, opts: Record<string, any> = {}) {
     if (!sourcePath || !path.isAbsolute(sourcePath)) {
       throw new CharacterCardError("source path must be absolute");
     }
@@ -835,14 +835,14 @@ export function createCharacterCardService(engine) {
         publicIshiki: plan.prompts.publicIshiki || "",
       },
       assets: Object.fromEntries(
-        Object.entries(plan.assets).map(([key, asset]) => [key, asset.rel]),
+        Object.entries(plan.assets).map(([key, asset]: [string, any]) => [key, asset.rel]),
       ),
-    };
+    } as Record<string, any>;
     if (plan.skills.length > 0) {
       card.skills = { bundles: skillBundlesForCard(plan.skills) };
     }
     if (exportMemory) {
-      const memory = {};
+      const memory: Record<string, any> = {};
       if (plan.memoryFacts.length > 0) memory.facts = plan.memoryFacts;
       if (hasCompiledMemory(plan.memoryCompiled)) {
         memory.compiled = compactCompiledMemory(plan.memoryCompiled);
@@ -889,7 +889,7 @@ export function createCharacterCardService(engine) {
     return { plan, source };
   }
 
-  async function exportAgentPackage(agentId, options = {}) {
+  async function exportAgentPackage(agentId, options: Record<string, any> = {}) {
     if (!agentId) throw new CharacterCardError("agentId is required");
     const targetDir = options.targetDir || resolveDefaultExportTargetDir(engine);
     if (!fs.existsSync(targetDir) || !fs.statSync(targetDir).isDirectory()) {
@@ -940,7 +940,7 @@ export function createCharacterCardService(engine) {
     }
   }
 
-  async function commitImportPlan(token, options = {}) {
+  async function commitImportPlan(token, options: Record<string, any> = {}) {
     const plan = loadPlan(token);
     const installedSkills = await installPackagedSkills(plan);
     const agentId = resolveUniqueAgentId(plan.agent.id, plan.token);
@@ -988,7 +988,7 @@ export function createCharacterCardService(engine) {
       source: "character-card-import",
       agentId,
       sourcePackage: plan.packageName,
-    })).filter(Boolean);
+    } as any)).filter(Boolean);
   }
 
   function resolvePlanAsset(token, assetKey) {

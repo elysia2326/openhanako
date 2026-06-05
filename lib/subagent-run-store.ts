@@ -1,4 +1,3 @@
-// @ts-nocheck
 import fs from "node:fs";
 import path from "node:path";
 import { atomicWriteSync } from "../shared/safe-fs.ts";
@@ -23,7 +22,7 @@ function pickString(value) {
   return typeof value === "string" && value.trim() ? value : null;
 }
 
-function normalizeRun(taskId, record = {}, existing = null) {
+function normalizeRun(taskId, record: any = {}, existing = null) {
   const timestamp = nowIso();
   const next = {
     ...(existing || {}),
@@ -51,13 +50,17 @@ function normalizeRun(taskId, record = {}, existing = null) {
 }
 
 export class SubagentRunStore {
+
+  declare _persistPath: any;
+
+  declare _runs: any;
   constructor(persistPath) {
     this._persistPath = persistPath || null;
     this._runs = new Map();
     if (this._persistPath) this._load();
   }
 
-  register(taskId, record = {}) {
+  register(taskId, record: any = {}) {
     if (!taskId) return null;
     const existing = this._runs.get(taskId) || null;
     const next = normalizeRun(taskId, {
@@ -69,7 +72,7 @@ export class SubagentRunStore {
     return clone(next);
   }
 
-  attachSession(taskId, childSessionPath, record = {}) {
+  attachSession(taskId, childSessionPath, record: any = {}) {
     if (!taskId) return null;
     const existing = this._runs.get(taskId) || null;
     const next = normalizeRun(taskId, {
@@ -107,7 +110,7 @@ export class SubagentRunStore {
     });
   }
 
-  upsert(taskId, record = {}) {
+  upsert(taskId, record: any = {}) {
     if (!taskId) return null;
     const existing = this._runs.get(taskId) || null;
     const next = normalizeRun(taskId, record, existing);

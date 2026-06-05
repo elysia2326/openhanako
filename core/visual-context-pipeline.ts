@@ -1,4 +1,3 @@
-// @ts-nocheck
 import crypto from "crypto";
 import fs from "fs/promises";
 import path from "path";
@@ -193,6 +192,14 @@ export async function adaptVisualContextMessages({
   isVisionAuxiliaryEnabled,
   resolveSessionFile,
   warn,
+}: {
+  messages?: any;
+  sessionPath?: any;
+  targetModel?: any;
+  visionBridge?: any;
+  isVisionAuxiliaryEnabled?: any;
+  resolveSessionFile?: any;
+  warn?: any;
 } = {}) {
   if (!Array.isArray(messages)) return { messages, injected: 0 };
   if (!isExplicitTextOnlyModel(targetModel)) return { messages, injected: 0 };

@@ -1,4 +1,4 @@
-// @ts-nocheck
+
 /**
  * 全局偏好设置路由（跨 agent 共享）
  *
@@ -48,11 +48,11 @@ import { collectSecretPatchPaths, isMaskedSecretValue, maskSecretValue, resolveS
 import { denySecretMutationWithoutScope, denyWithoutScope } from "../http/capability-guard.ts";
 import { recordSecurityAuditEvent } from "../http/security-audit.ts";
 
-function selectedComputerProviderIdFromSettings(settings, platform = process.platform) {
+function selectedComputerProviderIdFromSettings(settings: any, platform = process.platform) {
   return selectedComputerProviderId(settings, { platform });
 }
 
-function disabledComputerUseStatus(settings, { platform = process.platform } = {}) {
+function disabledComputerUseStatus(settings: any, { platform = process.platform } = {}) {
   return {
     enabled: false,
     platform,
@@ -63,14 +63,14 @@ function disabledComputerUseStatus(settings, { platform = process.platform } = {
   };
 }
 
-function maskSearchApiKeys(apiKeys) {
+function maskSearchApiKeys(apiKeys: any) {
   const normalized = normalizeSearchApiKeys(apiKeys);
   return Object.fromEntries(
     Object.entries(normalized).map(([provider, key]) => [provider, maskSecretValue(key)]),
   );
 }
 
-function resolveSearchApiKeysPatch(patch, existing) {
+function resolveSearchApiKeysPatch(patch: any, existing: any) {
   const saved = normalizeSearchApiKeys(existing);
   if (!patch || typeof patch !== "object" || Array.isArray(patch)) return saved;
   const out = { ...saved };
@@ -90,11 +90,11 @@ function resolveSearchApiKeysPatch(patch, existing) {
   return out;
 }
 
-function resolveSearchPreferencePatch(patch, existing) {
-  const resolved = resolveSecretPatch({
+function resolveSearchPreferencePatch(patch: any, existing: any) {
+  const resolved: Record<string, any> = resolveSecretPatch({
     patch,
     existing,
-    secretKeys: ["api_key"],
+    secretKeys: new Set(["api_key"]),
   });
   if (patch?.api_keys !== undefined) {
     resolved.api_keys = resolveSearchApiKeysPatch(patch.api_keys, existing?.api_keys || {});
@@ -102,7 +102,7 @@ function resolveSearchPreferencePatch(patch, existing) {
   return resolved;
 }
 
-export function createPreferencesRoute(engine, { platform = process.platform } = {}) {
+export function createPreferencesRoute(engine: any, { platform = process.platform } = {}) {
   const route = new Hono();
 
   // 读取全局模型 + 搜索配置
@@ -140,7 +140,7 @@ export function createPreferencesRoute(engine, { platform = process.platform } =
       }
       const settingsDenied = denyWithoutScope(c, "settings.write");
       if (settingsDenied) return settingsDenied;
-      const secretFields = collectSecretPatchPaths(body, ["api_key", "api_keys"]);
+      const secretFields = collectSecretPatchPaths(body, new Set(["api_key", "api_keys"]));
       const secretDenied = denySecretMutationWithoutScope(c, secretFields);
       if (secretDenied) return secretDenied;
 
@@ -181,7 +181,7 @@ export function createPreferencesRoute(engine, { platform = process.platform } =
         engine.setUtilityApi(resolveSecretPatch({
           patch: body.utility_api,
           existing: engine.getUtilityApi?.() || {},
-          secretKeys: ["api_key"],
+          secretKeys: new Set(["api_key"]),
         }));
         sections.push("utility_api");
       }
@@ -199,7 +199,7 @@ export function createPreferencesRoute(engine, { platform = process.platform } =
         target: "preferences.models",
         secretFields,
         metadata: { sections },
-      });
+      } as any);
       return c.json({ ok: true });
     } catch (err) {
       debugLog()?.error("api", `PUT /api/preferences/models failed: ${err.message}`);
@@ -470,7 +470,7 @@ export function createPreferencesRoute(engine, { platform = process.platform } =
   return route;
 }
 
-function emitAppearanceEvents(engine, before, appearance) {
+function emitAppearanceEvents(engine: any, before: any, appearance: any) {
   if (appearance.theme && appearance.theme !== before.theme) {
     emitAppEvent(engine, "theme-changed", { theme: appearance.theme });
   }

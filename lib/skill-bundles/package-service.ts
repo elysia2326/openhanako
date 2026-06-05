@@ -1,4 +1,3 @@
-// @ts-nocheck
 import fs from "fs";
 import fsp from "fs/promises";
 import path from "path";
@@ -10,6 +9,7 @@ import { loadSkillBundleStore } from "./store.ts";
 const SCHEMA_VERSION = 1;
 
 export class SkillBundlePackageError extends Error {
+  declare status: number;
   constructor(message, status = 400) {
     super(message);
     this.name = "SkillBundlePackageError";
@@ -166,7 +166,7 @@ function buildManifest(bundle, exportedSkills, fileName) {
   };
 }
 
-export async function exportSkillBundlePackage(engine, bundleId, options = {}) {
+export async function exportSkillBundlePackage(engine, bundleId, options: { targetDir?: string } = {}) {
   const bundle = loadBundle(engine, bundleId);
   const targetDir = options.targetDir || resolveDefaultExportTargetDir(engine);
   if (!path.isAbsolute(targetDir)) {

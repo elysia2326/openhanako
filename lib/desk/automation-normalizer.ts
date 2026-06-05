@@ -1,23 +1,22 @@
-// @ts-nocheck
 export const AUTOMATION_SCHEMA_VERSION = 2;
 
-function clone(value) {
+function clone(value: any) {
   if (value === undefined) return undefined;
   return JSON.parse(JSON.stringify(value));
 }
 
-function hasOwn(object, key) {
+function hasOwn(object: any, key: string) {
   return Object.prototype.hasOwnProperty.call(object, key);
 }
 
-function normalizeSchemaVersion(value) {
+function normalizeSchemaVersion(value: any) {
   if (Number.isInteger(value) && value > AUTOMATION_SCHEMA_VERSION) {
     return value;
   }
   return AUTOMATION_SCHEMA_VERSION;
 }
 
-function normalizeActorAgentId(job) {
+function normalizeActorAgentId(job: any) {
   if (typeof job?.actorAgentId === "string" && job.actorAgentId.trim()) {
     return job.actorAgentId.trim();
   }
@@ -27,7 +26,7 @@ function normalizeActorAgentId(job) {
   return null;
 }
 
-function deriveTriggerFromLegacyCronJob(job = {}) {
+function deriveTriggerFromLegacyCronJob(job: any = {}) {
   if (job.type === "at") return { kind: "at", schedule: job.schedule };
   if (job.type === "every") {
     const intervalMs = typeof job.schedule === "number" ? job.schedule : parseInt(job.schedule, 10);
@@ -37,7 +36,7 @@ function deriveTriggerFromLegacyCronJob(job = {}) {
   return null;
 }
 
-export function triggerFromLegacyCronJob(job = {}) {
+export function triggerFromLegacyCronJob(job: any = {}) {
   const existing = job.trigger && typeof job.trigger === "object" && !Array.isArray(job.trigger)
     ? clone(job.trigger)
     : null;
@@ -50,7 +49,7 @@ export function triggerFromLegacyCronJob(job = {}) {
   return { kind: "unknown", schedule: job.schedule };
 }
 
-export function executorFromLegacyCronJob(job = {}) {
+export function executorFromLegacyCronJob(job: any = {}) {
   const existing = job.executor && typeof job.executor === "object" && !Array.isArray(job.executor)
     ? clone(job.executor)
     : null;
@@ -88,7 +87,7 @@ export function executorFromLegacyCronJob(job = {}) {
   };
 }
 
-export function createdByFromLegacyCronJob(job = {}) {
+export function createdByFromLegacyCronJob(job: any = {}) {
   if (job.createdBy && typeof job.createdBy === "object" && !Array.isArray(job.createdBy)) {
     return clone(job.createdBy);
   }
@@ -96,7 +95,7 @@ export function createdByFromLegacyCronJob(job = {}) {
   return agentId ? { kind: "agent", agentId } : { kind: "unknown" };
 }
 
-export function normalizeAutomationJob(job = {}) {
+export function normalizeAutomationJob(job: any = {}) {
   return {
     ...job,
     schemaVersion: normalizeSchemaVersion(job.schemaVersion),
@@ -106,11 +105,11 @@ export function normalizeAutomationJob(job = {}) {
   };
 }
 
-export function normalizeAutomationJobs(jobs = []) {
-  return Array.isArray(jobs) ? jobs.map((job) => normalizeAutomationJob(job)) : [];
+export function normalizeAutomationJobs(jobs: any[] = []) {
+  return Array.isArray(jobs) ? jobs.map((job: any) => normalizeAutomationJob(job)) : [];
 }
 
-export function patchAutomationJobForMigration(job = {}) {
+export function patchAutomationJobForMigration(job: any = {}) {
   const normalized = normalizeAutomationJob(job);
   return {
     ...job,

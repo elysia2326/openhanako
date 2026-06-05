@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * block-extractors.js — Content Block 统一提取注册表
  *
@@ -110,7 +109,7 @@ export const BLOCK_EXTRACTORS = {
 
   subagent: (details) => {
     if (!details.taskId) return null;
-    const executor = materializeExecutorIdentity(details);
+    const executor = materializeExecutorIdentity(details, undefined);
     const requestedAgentId = details.requestedAgentId || details.agentId || null;
     const requestedAgentName = details.requestedAgentNameSnapshot || details.agentName || requestedAgentId || null;
     return [{
@@ -171,7 +170,7 @@ export const BLOCK_EXTRACTORS = {
   },
 };
 
-BLOCK_EXTRACTORS.present_files = BLOCK_EXTRACTORS.stage_files; // legacy alias, see note above
+(BLOCK_EXTRACTORS as any).present_files = BLOCK_EXTRACTORS.stage_files; // legacy alias, see note above
 
 function buildComputerAppApprovalBlock(confirmation) {
   const approval = confirmation?.approval;

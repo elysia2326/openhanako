@@ -1,9 +1,8 @@
-// @ts-nocheck
 import { Hono } from "hono";
 import { createServerRuntimeContext, toServerIdentityResponse } from "../../core/server-runtime-context.ts";
 import { readAuthPrincipal } from "../http/capability-guard.ts";
 
-export function createServerIdentityRoute({ hanakoHome, appVersion = "?", getRuntimeContext } = {}) {
+export function createServerIdentityRoute({ hanakoHome, appVersion = "?", getRuntimeContext }: { hanakoHome?: string; appVersion?: string; getRuntimeContext?: () => any } = {}) {
   const route = new Hono();
 
   route.get("/server/identity", (c) => {
@@ -15,7 +14,7 @@ export function createServerIdentityRoute({ hanakoHome, appVersion = "?", getRun
         contextForPrincipal(runtimeContext, readAuthPrincipal(c)),
         { appVersion },
       ));
-    } catch (err) {
+    } catch (err: any) {
       return c.json({
         error: "invalid server identity registry",
         detail: err.message,

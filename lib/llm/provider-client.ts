@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * lib/llm/provider-client.js — Provider 认证 header 和连通性探测 URL 构造
  *
@@ -36,7 +35,7 @@ export function appendProviderApiPath(baseUrl, apiPath) {
  * 构建 provider 认证 header
  * 被 /api/providers/test 和 /api/models/health 路由使用
  */
-export function buildProviderAuthHeaders(api, apiKey, opts = {}) {
+export function buildProviderAuthHeaders(api, apiKey, opts: { allowMissingApiKey?: boolean } = {}) {
   const allowMissingApiKey = opts.allowMissingApiKey === true;
   if (!api) {
     throw new Error(t("error.missingApiProtocol"));
@@ -73,7 +72,7 @@ export function buildProviderAuthHeaders(api, apiKey, opts = {}) {
   throw new Error(t("error.unsupportedApiProtocol", { api }));
 }
 
-export function buildProviderRequestHeaders({ api, apiKey, headers, allowMissingApiKey = false } = {}) {
+export function buildProviderRequestHeaders({ api, apiKey, headers, allowMissingApiKey = false }: { api?: string; apiKey?: string; headers?: Record<string, string>; allowMissingApiKey?: boolean } = {}) {
   const customHeaders = normalizeProviderHeaders(headers);
   let requestHeaders;
   if (api) {
@@ -89,7 +88,7 @@ export function buildProviderRequestHeaders({ api, apiKey, headers, allowMissing
   return withDefaultProviderHeaders({ ...requestHeaders, ...customHeaders });
 }
 
-export function normalizeProviderBaseUrlForApi({ provider, baseUrl, api } = {}) {
+export function normalizeProviderBaseUrlForApi({ provider, baseUrl, api }: { provider?: string; baseUrl?: string; api?: string } = {}) {
   const raw = String(baseUrl || "").trim();
   if (!raw) return raw;
   if (provider === "ollama" && api === "openai-completions") {

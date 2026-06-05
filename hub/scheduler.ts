@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * Scheduler — Heartbeat + Cron 调度（v2）
  *
@@ -50,6 +49,12 @@ function normalizeCronExecutionContext(value) {
 }
 
 export class Scheduler {
+  declare _cronScheduler: any;
+  declare _executingJobs: any;
+  declare _freshCompactMaintainer: any;
+  declare _freshCompactScheduler: any;
+  declare _heartbeats: any;
+  declare _hub: any;
   /**
    * @param {object} opts
    * @param {import('./index.ts').Hub} opts.hub
@@ -165,10 +170,10 @@ export class Scheduler {
       // 巡检/笺巡检不传 withMemory：executeIsolated 默认走 agent.systemPrompt，
       // 而该 cache 始终按 master 开关构建，与 per-session 开关解耦。
       // 用户关 master 时自动不带记忆；只关某个 session 的开关不影响这里。
-      onBeat: (prompt, runTools = {}) => this._executeActivityForAgent(agentId, prompt, "heartbeat", null, {
+      onBeat: (prompt, runTools: any = {}) => this._executeActivityForAgent(agentId, prompt, "heartbeat", null, {
         extraCustomTools: Array.isArray(runTools.customTools) ? runTools.customTools : [],
       }),
-      onJianBeat: (prompt, cwd, runTools = {}) => {
+      onJianBeat: (prompt, cwd, runTools: any = {}) => {
         const isZh = getLocale().startsWith("zh");
         this._executeActivityForAgent(agentId, prompt, "heartbeat", `${isZh ? "笺" : "jian"}:${path.basename(cwd)}`, {
           cwd,
@@ -183,7 +188,7 @@ export class Scheduler {
     if (hbEnabled) hb.start();
   }
 
-  async stopHeartbeat(agentId) {
+  async stopHeartbeat(agentId?) {
     if (agentId) {
       const hb = this._heartbeats.get(agentId);
       if (hb) { await hb.stop(); this._heartbeats.delete(agentId); }
@@ -222,7 +227,7 @@ export class Scheduler {
           null,
         );
       },
-    });
+    } as any);
     this._cronScheduler = sched;
     sched.start();
     log.log("Studio cron 已启动");
@@ -253,7 +258,7 @@ export class Scheduler {
     return { executorKind: "agent_session" };
   }
 
-  async _invokePluginAutomationAction({ pluginId, actionId, params }, runtimeContext = {}) {
+  async _invokePluginAutomationAction({ pluginId, actionId, params }, runtimeContext: any = {}) {
     const pluginManager = this._engine.pluginManager;
     if (!pluginManager) throw new Error("plugin manager unavailable");
     const entry = typeof pluginManager.getPlugin === "function"
@@ -309,7 +314,7 @@ export class Scheduler {
     if (this._executingJobs.has(job.id)) {
       log.log(`cron 跳过 ${job.id}：上一次仍在执行`);
       const err = new Error(`cron job ${job.id} 仍在执行，跳过`);
-      err.skipped = true;
+      (err as any).skipped = true;
       throw err;
     }
     const ac = new AbortController();
@@ -347,7 +352,7 @@ export class Scheduler {
 
   _cronExecutionOptions(job, executor = getAutomationExecutor(job)) {
     const ctx = normalizeCronExecutionContext(executor.executionContext || job.executionContext);
-    const opts = {};
+    const opts: any = {};
     if (ctx.cwd) opts.cwd = ctx.cwd;
     opts.workspaceFolders = ctx.workspaceFolders;
     if (ctx.sourceSessionPath) opts.parentSessionPath = ctx.sourceSessionPath;
@@ -357,7 +362,7 @@ export class Scheduler {
   /**
    * 执行活动（任意 agent，统一走 executeIsolated）
    */
-  async _executeActivityForAgent(agentId, prompt, type, label, opts = {}) {
+  async _executeActivityForAgent(agentId, prompt, type, label, opts: any = {}) {
     const engine = this._engine;
     await engine.ensureAgentRuntime?.(agentId, {
       priority: "background",

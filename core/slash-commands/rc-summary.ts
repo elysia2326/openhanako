@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * rc-summary.js — 为 /rc 接管生成桌面 session 简述（三级 fallback）
  *
@@ -115,13 +114,15 @@ async function _safeCall({ api, model, apiKey, baseUrl, messages, usageLedger, u
   try {
     const text = await callText({
       api, model, apiKey, baseUrl,
+      headers: undefined,
+      signal: undefined,
       messages,
       temperature: 0.3,
       maxTokens: SUMMARY_MAX_TOKENS,
       timeoutMs: SUMMARY_TIMEOUT_MS,
       usageLedger,
       usageContext,
-    });
+    }) as string;
     return text?.trim() || null;
   } catch (err) {
     log.warn(`${tierLabel} tier failed: ${err.message}`);

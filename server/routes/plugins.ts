@@ -1,4 +1,3 @@
-// @ts-nocheck
 import { Hono } from "hono";
 import fs from "fs";
 import path from "path";
@@ -44,7 +43,7 @@ const PLUGIN_IFRAME_HOST_QUERY_PARAMS = new Set([
  * @param {string} pluginId
  * @param {string} [agentId] - 当前 agent id，注入到子请求的 X-Hana-Agent-Id header
  */
-async function proxyToPlugin(c, pluginApp, pluginId, agentId) {
+async function proxyToPlugin(c: any, pluginApp: any, pluginId: string, agentId?: string) {
   const url = new URL(c.req.url);
   const prefix = `/plugins/${pluginId}`;
   const prefixIndex = url.pathname.indexOf(prefix);
@@ -71,7 +70,7 @@ async function proxyToPlugin(c, pluginApp, pluginId, agentId) {
  * Standalone route proxy (for tests).
  * @param {Map<string, import("hono").Hono>} routeRegistry
  */
-export function createPluginProxyRoute(routeRegistry) {
+export function createPluginProxyRoute(routeRegistry: any) {
   const route = new Hono();
   route.all("/plugins/:pluginId/*", async (c) => {
     const pluginId = c.req.param("pluginId");
@@ -82,19 +81,19 @@ export function createPluginProxyRoute(routeRegistry) {
   return route;
 }
 
-function safePathSegment(value, fallback) {
+function safePathSegment(value: any, fallback: string) {
   const text = String(value || "").trim().replace(/[^a-zA-Z0-9._-]+/g, "-").replace(/^-+|-+$/g, "");
   return text || fallback;
 }
 
-function createPluginRouteError(message, status = 400, code = "PLUGIN_ERROR") {
-  const err = new Error(message);
+function createPluginRouteError(message: string, status = 400, code = "PLUGIN_ERROR") {
+  const err = new Error(message) as Error & { status: number; code: string };
   err.status = status;
   err.code = code;
   return err;
 }
 
-export function parsePluginIframeSurfaceRoute(routeUrl) {
+export function parsePluginIframeSurfaceRoute(routeUrl: any) {
   const parsed = new URL(String(routeUrl || ""), "http://hana.local");
   const match = /^\/api\/plugins\/([^/]+)(\/.*)?$/.exec(parsed.pathname);
   if (!match) {
@@ -105,7 +104,7 @@ export function parsePluginIframeSurfaceRoute(routeUrl) {
   return { pluginId, surfacePath };
 }
 
-function canonicalPluginIframeSurfacePath(pathname, searchParams) {
+function canonicalPluginIframeSurfacePath(pathname: string, searchParams: URLSearchParams) {
   const params = [];
   for (const [key, value] of searchParams.entries()) {
     if (PLUGIN_IFRAME_HOST_QUERY_PARAMS.has(key)) continue;
@@ -123,11 +122,11 @@ function canonicalPluginIframeSurfacePath(pathname, searchParams) {
   return search ? `${safePath}?${search}` : safePath;
 }
 
-function pluginIframeSurfaceRouteFromRequest(c) {
+function pluginIframeSurfaceRouteFromRequest(c: any) {
   return parsePluginIframeSurfaceRoute(new URL(c.req.url).pathname + new URL(c.req.url).search);
 }
 
-function verifyPluginIframeTicketForRequest(c, engine, pluginId) {
+function verifyPluginIframeTicketForRequest(c: any, engine: any, pluginId: string) {
   const ticket = c.req.query(PLUGIN_IFRAME_TICKET_QUERY);
   if (!ticket) return null;
   const surface = pluginIframeSurfaceRouteFromRequest(c);
@@ -139,10 +138,10 @@ function verifyPluginIframeTicketForRequest(c, engine, pluginId) {
     ticket,
     pluginId,
     surfacePath: surface.surfacePath,
-  });
+  } as any);
 }
 
-export function verifyPluginIframeTicketForHostRequest(c, engine, { requireTicket = true } = {}) {
+export function verifyPluginIframeTicketForHostRequest(c: any, engine: any, { requireTicket = true } = {}) {
   const ticket = c.req.query(PLUGIN_IFRAME_TICKET_QUERY);
   if (!ticket) {
     if (!requireTicket) return null;
@@ -155,10 +154,10 @@ export function verifyPluginIframeTicketForHostRequest(c, engine, { requireTicke
     ticket,
     pluginId: surface.pluginId,
     surfacePath: surface.surfacePath,
-  });
+  } as any);
 }
 
-function assertPluginIframeSurfaceAllowed(surface) {
+function assertPluginIframeSurfaceAllowed(surface: any) {
   if (!surface?.pluginId || !surface?.surfacePath) {
     throw new PluginIframeTicketError("plugin iframe route invalid");
   }
@@ -196,7 +195,7 @@ const PLUGIN_HOST_ROUTE_SURFACE_PATHS = new Set([
   "/config-schema",
 ]);
 
-function assertInsideDir(childPath, parentDir) {
+function assertInsideDir(childPath: string, parentDir: string) {
   const child = path.resolve(childPath);
   const parent = path.resolve(parentDir);
   const parentWithSep = parent.endsWith(path.sep) ? parent : `${parent}${path.sep}`;
@@ -205,7 +204,7 @@ function assertInsideDir(childPath, parentDir) {
   }
 }
 
-function readPluginDescriptorForInstall(pm, pluginDir) {
+function readPluginDescriptorForInstall(pm: any, pluginDir: string) {
   const formatIssue = detectIncompatiblePluginFormat(pluginDir);
   if (formatIssue) {
     throw createPluginRouteError(formatIssue.message, 400, formatIssue.code);
@@ -228,7 +227,7 @@ function readPluginDescriptorForInstall(pm, pluginDir) {
   };
 }
 
-function findInstalledPlugin(pm, pluginId, candidateDir) {
+function findInstalledPlugin(pm: any, pluginId: string, candidateDir?: string) {
   const plugins = typeof pm.listPlugins === "function" ? pm.listPlugins({ source: "community" }) : [];
   return plugins.find((plugin) => (
     plugin.id === pluginId
@@ -236,7 +235,7 @@ function findInstalledPlugin(pm, pluginId, candidateDir) {
   )) || null;
 }
 
-function readInstalledVersion(pm, pluginId, targetDir) {
+function readInstalledVersion(pm: any, pluginId: string, targetDir: string) {
   const existing = findInstalledPlugin(pm, pluginId, targetDir);
   if (existing?.version) return existing.version;
   const manifestPath = path.join(targetDir, "manifest.json");
@@ -249,7 +248,7 @@ function readInstalledVersion(pm, pluginId, targetDir) {
   }
 }
 
-function getInstallTargetDir(pm, desc, stagedDir, userPluginsDir) {
+function getInstallTargetDir(pm: any, desc: any, stagedDir: string, userPluginsDir: string) {
   const idSegment = safePathSegment(desc.id, path.basename(stagedDir));
   const defaultTarget = path.join(userPluginsDir, idSegment);
   const existing = findInstalledPlugin(pm, desc.id, defaultTarget);
@@ -258,7 +257,7 @@ function getInstallTargetDir(pm, desc, stagedDir, userPluginsDir) {
   return targetDir;
 }
 
-async function stagePluginSource({ pm, sourcePath, userPluginsDir }) {
+async function stagePluginSource({ pm, sourcePath, userPluginsDir }: { pm: any; sourcePath: string; userPluginsDir: string }) {
   const stat = fs.statSync(sourcePath);
   const cleanupPaths = [];
   fs.mkdirSync(userPluginsDir, { recursive: true });
@@ -298,7 +297,7 @@ async function stagePluginSource({ pm, sourcePath, userPluginsDir }) {
   }
 }
 
-function assertExpectedPlugin(desc, { expectedPluginId, expectedVersion }) {
+function assertExpectedPlugin(desc: any, { expectedPluginId, expectedVersion }: { expectedPluginId?: string; expectedVersion?: string }) {
   if (expectedPluginId && desc.id !== expectedPluginId) {
     throw createPluginRouteError(
       `Marketplace package id mismatch: expected "${expectedPluginId}", got "${desc.id}"`,
@@ -315,7 +314,7 @@ function assertExpectedPlugin(desc, { expectedPluginId, expectedVersion }) {
   }
 }
 
-function assertInstallEntryHealthy(entry) {
+function assertInstallEntryHealthy(entry: any) {
   if (!entry) {
     throw createPluginRouteError("Plugin install failed", 500, "PLUGIN_INSTALL_FAILED");
   }
@@ -327,7 +326,7 @@ function assertInstallEntryHealthy(entry) {
   }
 }
 
-async function restoreAfterFailedInstall({ engine, pm, backup, targetDir, desc }) {
+async function restoreAfterFailedInstall({ engine, pm, backup, targetDir, desc }: { engine: any; pm: any; backup: any; targetDir: string; desc: any }) {
   if (backup && restorePluginInstallBackup(backup, targetDir)) {
     try {
       await pm.installPlugin(targetDir, { source: "community" });
@@ -356,6 +355,15 @@ async function installPluginFromPath({
   expectedVersion,
   allowDowngrade = false,
   installRecord = {},
+}: {
+  engine?: any;
+  pm?: any;
+  sourcePath?: any;
+  sessionPath?: any;
+  expectedPluginId?: string;
+  expectedVersion?: string;
+  allowDowngrade?: boolean;
+  installRecord?: Record<string, any>;
 } = {}) {
   fs.statSync(sourcePath);
   const sourceFile = registerSessionFileFromRequest(engine, {
@@ -364,7 +372,7 @@ async function installPluginFromPath({
     label: path.basename(sourcePath),
     origin: "plugin_install_source",
     storageKind: "install_source",
-  });
+  } as any);
   const userPluginsDir = pm.getUserPluginsDir();
   const { stagedDir, cleanupPaths } = await stagePluginSource({ pm, sourcePath, userPluginsDir });
   let desc = null;
@@ -389,7 +397,7 @@ async function installPluginFromPath({
       pluginId: desc.id,
       pluginDir: targetDir,
       version: installedVersion,
-    });
+    } as any);
     fs.rmSync(targetDir, { recursive: true, force: true });
     fs.renameSync(stagedDir, targetDir);
 
@@ -422,14 +430,14 @@ async function installPluginFromPath({
   }
 }
 
-function decodeHttpConfigValues(values) {
+function decodeHttpConfigValues(values: any) {
   if (!values || typeof values !== "object" || Array.isArray(values)) return {};
   return Object.fromEntries(
     Object.entries(values).map(([key, value]) => [key, value === null ? undefined : value]),
   );
 }
 
-function decodeHttpConfigBody(body) {
+function decodeHttpConfigBody(body: any) {
   if (!body || typeof body !== "object" || Array.isArray(body)) {
     return { values: {}, scope: "global", agentId: undefined, sessionPath: undefined };
   }
@@ -447,7 +455,7 @@ function decodeHttpConfigBody(body) {
   };
 }
 
-function validateImageGenDefaultImageModel(engine, values) {
+function validateImageGenDefaultImageModel(engine: any, values: any) {
   if (!values || typeof values !== "object" || Array.isArray(values)) return null;
   if (!Object.prototype.hasOwnProperty.call(values, "defaultImageModel")) return null;
   const value = values.defaultImageModel;
@@ -485,67 +493,67 @@ function validateImageGenDefaultImageModel(engine, values) {
   return null;
 }
 
-async function downloadMarketplaceRelease({ engine, plugin }) {
+async function downloadMarketplaceRelease({ engine, plugin }: { engine: any; plugin: any }) {
   const dist = plugin?.distribution;
   if (!dist || dist.kind !== "release") {
-    const err = new Error("Plugin has no release distribution");
+    const err = new Error("Plugin has no release distribution") as Error & { status: number };
     err.status = 400;
     throw err;
   }
   if (!dist.packageUrl || !dist.sha256) {
-    const err = new Error("Plugin release distribution is missing packageUrl or sha256");
+    const err = new Error("Plugin release distribution is missing packageUrl or sha256") as Error & { status: number };
     err.status = 400;
     throw err;
   }
 
   const expectedSha256 = String(dist.sha256).trim();
   if (!/^[a-f0-9]{64}$/.test(expectedSha256)) {
-    const err = new Error("Plugin release sha256 must be 64 lowercase hex characters");
+    const err = new Error("Plugin release sha256 must be 64 lowercase hex characters") as Error & { status: number };
     err.status = 400;
     throw err;
   }
 
   const packageUrl = new URL(dist.packageUrl);
   if (packageUrl.protocol !== "https:") {
-    const err = new Error("Plugin release packageUrl must use https");
+    const err = new Error("Plugin release packageUrl must use https") as Error & { status: number };
     err.status = 400;
     throw err;
   }
 
   const fetchImpl = engine.fetch || globalThis.fetch;
   if (typeof fetchImpl !== "function") {
-    const err = new Error("fetch is unavailable");
+    const err = new Error("fetch is unavailable") as Error & { status: number };
     err.status = 500;
     throw err;
   }
   if (!engine.hanakoHome) {
-    const err = new Error("HANA_HOME is unavailable for plugin release installation");
+    const err = new Error("HANA_HOME is unavailable for plugin release installation") as Error & { status: number };
     err.status = 500;
     throw err;
   }
 
   const res = await fetchImpl(packageUrl.toString());
   if (!res.ok) {
-    const err = new Error(`Plugin release download failed: ${res.status}`);
+    const err = new Error(`Plugin release download failed: ${res.status}`) as Error & { status: number };
     err.status = 502;
     throw err;
   }
   const contentLength = Number(res.headers?.get?.("content-length") || 0);
   if (contentLength > MAX_PLUGIN_RELEASE_PACKAGE_SIZE) {
-    const err = new Error("Plugin release package is too large");
+    const err = new Error("Plugin release package is too large") as Error & { status: number };
     err.status = 413;
     throw err;
   }
 
   const body = Buffer.from(await res.arrayBuffer());
   if (body.length > MAX_PLUGIN_RELEASE_PACKAGE_SIZE) {
-    const err = new Error("Plugin release package is too large");
+    const err = new Error("Plugin release package is too large") as Error & { status: number };
     err.status = 413;
     throw err;
   }
   const actualSha256 = crypto.createHash("sha256").update(body).digest("hex");
   if (actualSha256 !== expectedSha256) {
-    const err = new Error("Plugin release sha256 mismatch");
+    const err = new Error("Plugin release sha256 mismatch") as Error & { status: number };
     err.status = 502;
     throw err;
   }
@@ -559,7 +567,7 @@ async function downloadMarketplaceRelease({ engine, plugin }) {
   return packagePath;
 }
 
-function isMarketplacePluginInstallable(plugin, marketplace) {
+function isMarketplacePluginInstallable(plugin: any, marketplace: any) {
   if (plugin.distribution?.kind === "source") {
     return !!marketplace.resolveSourceDistribution(plugin);
   }
@@ -569,7 +577,7 @@ function isMarketplacePluginInstallable(plugin, marketplace) {
   return false;
 }
 
-function marketplacePluginForVersion(plugin, versionState) {
+function marketplacePluginForVersion(plugin: any, versionState: any) {
   return {
     ...plugin,
     version: versionState.selectedVersion || plugin.version,
@@ -578,12 +586,12 @@ function marketplacePluginForVersion(plugin, versionState) {
   };
 }
 
-function getEngineAppVersion(engine) {
+function getEngineAppVersion(engine: any) {
   if (typeof engine.getAppVersion === "function") return engine.getAppVersion();
   return engine.appVersion || "0.0.0";
 }
 
-function pluginDevServiceOrError(engine, c) {
+function pluginDevServiceOrError(engine: any, c: any) {
   const service = engine.pluginDevService;
   if (!service) {
     return {
@@ -596,14 +604,14 @@ function pluginDevServiceOrError(engine, c) {
   return { service };
 }
 
-function pluginDevErrorResponse(c, err) {
+function pluginDevErrorResponse(c: any, err: any) {
   return c.json({
     error: err?.message || String(err),
     ...(err?.code ? { code: err.code } : {}),
   }, err?.status || 500);
 }
 
-function sanitizeMarketplacePluginForClient(plugin) {
+function sanitizeMarketplacePluginForClient(plugin: any) {
   const {
     readme: _readme,
     readmePath: _readmePath,
@@ -642,7 +650,7 @@ function sanitizeMarketplacePluginForClient(plugin) {
  * Plugin management REST API + route proxy (combined).
  * @param {import('../../core/engine.ts').HanaEngine} engine
  */
-export function createPluginsRoute(engine) {
+export function createPluginsRoute(engine: any) {
   const route = new Hono();
 
   /**
@@ -651,9 +659,9 @@ export function createPluginsRoute(engine) {
    * @param {object} [opts]
    * @param {string} [opts.source] - 按 source 过滤（"community" | "builtin"）
    */
-  function visiblePlugins(pm, opts = {}) {
-    let plugins = pm.listPlugins().filter(p => !p.hidden);
-    if (opts.source) plugins = plugins.filter(p => p.source === opts.source);
+  function visiblePlugins(pm: any, opts: { source?: string } = {}) {
+    let plugins = pm.listPlugins().filter((p: any) => !p.hidden);
+    if (opts.source) plugins = plugins.filter((p: any) => p.source === opts.source);
     return plugins.map(p => ({
       id: p.id, name: p.name, version: p.version,
       pluginKey: p.pluginKey || `${p.source || "community"}:${p.id}`,
@@ -853,7 +861,7 @@ export function createPluginsRoute(engine) {
     return engine.pluginMarketplace || createDefaultPluginMarketplace({
       hanakoHome: engine.hanakoHome,
       fetchImpl: engine.fetch,
-    });
+    } as any);
   }
 
   route.get("/plugins/marketplace", async (c) => {
@@ -861,7 +869,7 @@ export function createPluginsRoute(engine) {
     const marketplace = getMarketplace();
     const data = await marketplace.load();
     const appVersion = getEngineAppVersion(engine);
-    const installed = new Map((pm?.listPlugins?.({ source: "community" }) || []).map((plugin) => [plugin.id, plugin]));
+    const installed = new Map<string, any>((pm?.listPlugins?.({ source: "community" }) || []).map((plugin: any) => [plugin.id, plugin]));
     return c.json({
       ...data,
       plugins: data.plugins.map((plugin) => {
@@ -1131,13 +1139,13 @@ export function createPluginsRoute(engine) {
       if (!pm.getRouteApp(pluginId)) {
         return c.json({ error: `Plugin "${pluginId}" not found` }, 404);
       }
-      const principal = c.get("authPrincipal");
+      const principal = (c as any).get("authPrincipal");
       const issued = issuePluginIframeTicket({
         hanakoHome: engine.hanakoHome,
         pluginId,
         surfacePath,
         principalId: principal?.principalId || "principal_unknown",
-      });
+      } as any);
       return c.json({
         ticket: issued.ticket,
         ticketId: issued.ticketId,
@@ -1186,7 +1194,7 @@ export function createPluginsRoute(engine) {
       verifyPluginIframeTicketForRequest(c, engine, pluginId);
     } catch (err) {
       if (err instanceof PluginIframeTicketError) {
-        return c.json({ error: err.code, detail: err.message }, err.status);
+        return c.json({ error: (err as any).code, detail: err.message }, (err as any).status);
       }
       throw err;
     }

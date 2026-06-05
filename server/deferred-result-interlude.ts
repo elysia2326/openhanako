@@ -1,4 +1,4 @@
-// @ts-nocheck
+
 import { t } from "../lib/i18n.ts";
 
 const MAX_DETAIL_CHARS = 6000;
@@ -166,7 +166,7 @@ function sourceKindFromType(type) {
   return "tool";
 }
 
-function resolveSource(meta = {}, type = "background-task") {
+function resolveSource(meta: Record<string, any> = {}, type = "background-task") {
   if (type === "subagent") {
     const agentName = meta.executorAgentNameSnapshot || meta.agentName || meta.requestedAgentNameSnapshot || meta.requestedAgentName;
     const parts = uniqueParts([agentName, meta.label]);

@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * Hub — 消息调度中枢
  *
@@ -35,6 +34,16 @@ import { createModuleLogger } from "../lib/debug-log.ts";
 const log = createModuleLogger("hub");
 
 export class Hub {
+  declare _agentPhoneAbortHandlers: any;
+  declare _agentPhoneActivities: any;
+  declare _bridgeManager: any;
+  declare _channelRouter: any;
+  declare _dmRouter: any;
+  declare _engine: any;
+  declare _eventBus: any;
+  declare _guestHandler: any;
+  declare _scheduler: any;
+  declare _sessionHandlerCleanups: any;
   /**
    * @param {object} opts
    * @param {import('../core/engine.ts').HanaEngine} opts.engine
@@ -91,7 +100,7 @@ export class Hub {
 
   get agentPhoneActivities() { return this._agentPhoneActivities; }
 
-  registerAgentPhoneAbortHandler(handler, meta = {}) {
+  registerAgentPhoneAbortHandler(handler, meta: any = {}) {
     if (typeof handler !== "function") return () => {};
     const entry = { handler, meta };
     this._agentPhoneAbortHandlers.add(entry);
@@ -144,7 +153,7 @@ export class Hub {
    * @param {string}  [opts.persist]     持久化目录（activity session）
    * @returns {Promise<*>}
    */
-  async send(text, opts = {}) {
+  async send(text, opts: any = {}) {
     const {
       sessionKey,
       role = "owner",
@@ -372,7 +381,7 @@ export class Hub {
     }));
 
     // ── session:abort ──
-    this._sessionHandlerCleanups.push(bus.handle("session:abort", async ({ sessionPath } = {}) => {
+    this._sessionHandlerCleanups.push(bus.handle("session:abort", async ({ sessionPath }: any = {}) => {
       const sp = sessionPath;
       if (!sp) return { aborted: false };
       const result = await engine.abortSession(sp);
@@ -380,7 +389,7 @@ export class Hub {
     }));
 
     // ── session:history ──
-    this._sessionHandlerCleanups.push(bus.handle("session:history", async ({ sessionPath, limit: rawLimit } = {}) => {
+    this._sessionHandlerCleanups.push(bus.handle("session:history", async ({ sessionPath, limit: rawLimit }: any = {}) => {
       if (!sessionPath) throw new Error("sessionPath is required");
       if (!isValidSessionPath(sessionPath, engine.agentsDir)) {
         throw new Error("Invalid session path");
@@ -412,7 +421,7 @@ export class Hub {
     }));
 
     // ── session:list ──
-    this._sessionHandlerCleanups.push(bus.handle("session:list", async ({ agentId } = {}) => {
+    this._sessionHandlerCleanups.push(bus.handle("session:list", async ({ agentId }: any = {}) => {
       const all = await engine.listSessions();
       const filtered = agentId ? all.filter(s => s.agentId === agentId) : all;
       const sessions = filtered.map(s => ({
@@ -466,8 +475,8 @@ export class Hub {
       return { models: engine.providerRegistry.getAllModelsByType(type) };
     }));
 
-    this._sessionHandlerCleanups.push(bus.handle("provider:media-providers", async ({ capability = "image_generation" } = {}) => {
-      const providers = {};
+    this._sessionHandlerCleanups.push(bus.handle("provider:media-providers", async ({ capability = "image_generation" }: any = {}) => {
+      const providers: any = {};
       for (const provider of engine.providerRegistry.getMediaProviders(capability)) {
         const credentialStatus = engine.providerRegistry.getMediaProviderCredentialStatus(provider.providerId, capability);
         providers[provider.providerId] = {
@@ -497,7 +506,7 @@ export class Hub {
       model,
       capability = "image_generation",
       credentialLaneId,
-    } = {}) => {
+    }: any = {}) => {
       try {
         const resolved = engine.providerRegistry.resolveMediaModel({
           providerId: providerId || provider,
@@ -528,7 +537,7 @@ export class Hub {
       providerId,
       capability = "image_generation",
       model,
-    } = {}) => {
+    }: any = {}) => {
       try {
         engine.providerRegistry.addMediaModel(providerId, capability, model);
         await engine.onProviderChanged?.();
@@ -542,7 +551,7 @@ export class Hub {
       providerId,
       capability = "image_generation",
       modelId,
-    } = {}) => {
+    }: any = {}) => {
       try {
         engine.providerRegistry.removeMediaModel(providerId, capability, modelId);
         await engine.onProviderChanged?.();
@@ -579,7 +588,7 @@ export class Hub {
 
 }
 
-function matchesAgentPhoneAbortFilter(meta = {}, filter = null) {
+function matchesAgentPhoneAbortFilter( meta: any = {}, filter = null) {
   if (!filter) return true;
   if (typeof filter === "function") return filter(meta);
   for (const [key, value] of Object.entries(filter)) {

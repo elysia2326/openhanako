@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * config-yaml.js — config.yaml 可解析性检查
  *

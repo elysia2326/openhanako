@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * diary-writer.js — 日记生成模块
  *
@@ -384,7 +383,7 @@ async function collectDiaryMaterialResult({
     const memoryEnabled = typeof isSessionMemoryEnabledForPath === "function"
       ? isSessionMemoryEnabledForPath(session.filePath) !== false
       : true;
-    let existing = summariesById.get(sessionId) || null;
+    let existing: any = summariesById.get(sessionId) || null;
     if (!existing && typeof summaryManager.getSummary === "function") {
       try {
         existing = summaryManager.getSummary(sessionId) || null;
@@ -599,11 +598,13 @@ export async function writeDiary(opts) {
       api, model,
       apiKey: api_key,
       baseUrl: base_url,
+      headers: undefined,
       systemPrompt,
       messages: [{ role: "user", content: userPrompt.join("\n") }],
       temperature: 0.7,
       maxTokens: 2048,
       timeoutMs: 120_000,
+      signal: undefined,
       usageLedger: resolvedModel.usageLedger,
       usageContext: {
         source: {
@@ -617,7 +618,7 @@ export async function writeDiary(opts) {
           agentId: resolvedModel.usageAgentId ?? null,
         },
       },
-    });
+    }) as string;
   } catch (err) {
     log.error(`LLM API error: ${err.message}`);
     return { error: isZh ? `LLM 调用失败: ${err.message}` : `LLM call failed: ${err.message}` };

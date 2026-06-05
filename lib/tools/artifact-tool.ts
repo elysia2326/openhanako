@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * artifact-tool.js — Artifact 旧预览工具（create_artifact）
  *
@@ -16,7 +15,7 @@ import { t } from "../i18n.ts";
 
 let _counter = 0;
 
-export function createArtifactTool({ getHanakoHome, registerSessionFile, getSessionPath } = {}) {
+export function createArtifactTool({ getHanakoHome, registerSessionFile, getSessionPath }: { getHanakoHome?: any; registerSessionFile?: any; getSessionPath?: any } = {}) {
   return {
     name: "create_artifact",
     label: "Create Preview",

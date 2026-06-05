@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * core/provider-compat.js — LLM HTTP payload 兼容层（唯一对外入口）
  *
@@ -39,11 +38,17 @@ import {
 } from "../shared/model-capabilities.ts";
 import { normalizeRequestThinkingLevel } from "./session-thinking-level.ts";
 
+interface ProviderModule {
+  matches(model: any): boolean;
+  apply(payload: any, model: any, options?: any): any;
+  normalizeContextMessages?(messages: any[], model: any, options?: any): any[];
+}
+
 /**
  * 子模块注册表。顺序敏感：first-match-wins。
  * 新 provider 默认加在末尾；只有当模块的 matches 是另一模块子集（更具体规则）时才前置。
  */
-const PROVIDER_MODULES = [deepseek, mimo, qwen, zhipu, openaiInputAudio, openaiVideoUrl, anthropic];
+const PROVIDER_MODULES: ProviderModule[] = [deepseek, mimo, qwen, zhipu, openaiInputAudio, openaiVideoUrl, anthropic];
 
 function lower(value) {
   return typeof value === "string" ? value.toLowerCase() : "";
@@ -122,7 +127,7 @@ function normalizeAutoReasoningEffort(payload) {
   return { ...payload, reasoning_effort: "medium" };
 }
 
-function normalizeProviderOptions(options = {}) {
+function normalizeProviderOptions(options: Record<string, any> = {}) {
   if (!Object.prototype.hasOwnProperty.call(options, "reasoningLevel")) return options;
   return {
     ...options,

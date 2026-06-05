@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * workflow-activity-store.js —— 右侧活动卡（workflow + subagent）的持久化背书
  *
@@ -18,14 +17,17 @@ import { atomicWriteSync } from "../shared/safe-fs.ts";
 export const WORKFLOW_ACTIVITY_STORE_VERSION = 1;
 
 export class WorkflowActivityStore {
-  constructor(persistPath) {
+  declare _persistPath: string | null;
+  declare _entries: Map<string, any>;
+
+  constructor(persistPath: any) {
     this._persistPath = persistPath || null;
     /** @type {Map<string, object>} */
     this._entries = new Map();
     if (this._persistPath) this._load();
   }
 
-  upsert(entry) {
+  upsert(entry: any) {
     if (!entry || typeof entry.id !== "string" || !entry.id) return null;
     const next = { ...entry };
     this._entries.set(next.id, next);
@@ -33,7 +35,7 @@ export class WorkflowActivityStore {
     return { ...next };
   }
 
-  get(id) {
+  get(id: string) {
     const e = this._entries.get(id);
     return e ? { ...e } : null;
   }
@@ -42,7 +44,7 @@ export class WorkflowActivityStore {
     return [...this._entries.values()].map((e) => ({ ...e }));
   }
 
-  listBySession(sessionPath) {
+  listBySession(sessionPath: string) {
     if (!sessionPath) return [];
     const out = [];
     for (const e of this._entries.values()) {
@@ -52,7 +54,7 @@ export class WorkflowActivityStore {
   }
 
   /** 会话退场（删除 / 归档 / 冷清理）时回收该 session 的活动，返回删除条数。 */
-  removeBySession(sessionPath) {
+  removeBySession(sessionPath: string) {
     if (!sessionPath) return 0;
     let removed = 0;
     for (const [id, e] of this._entries) {
@@ -69,7 +71,7 @@ export class WorkflowActivityStore {
    * 删除早于 maxAgeMs 的 entry（按 finishedAt，回退 startedAt）。nowMs 由调用方传入
    * （服务端 Date.now()，测试可注入），返回删除条数。与 session 72h 冷清理对齐。
    */
-  prune(maxAgeMs, nowMs) {
+  prune(maxAgeMs: number, nowMs: number) {
     if (!Number.isFinite(maxAgeMs) || !Number.isFinite(nowMs)) return 0;
     const cutoff = nowMs - maxAgeMs;
     let removed = 0;

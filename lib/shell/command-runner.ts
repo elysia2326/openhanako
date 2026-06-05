@@ -1,4 +1,3 @@
-// @ts-nocheck
 import { resolveShellProfile } from "./shell-profile.ts";
 
 export function createCommandRunner({
@@ -8,8 +7,8 @@ export function createCommandRunner({
   defaultProfile = "default",
   resolveWin32ShellRuntime,
   getWin32ShellEnvForRuntime,
-} = {}) {
-  return async function runShellCommand(command, cwd, opts = {}) {
+}: Record<string, any> = {}) {
+  return async function runShellCommand(command, cwd, opts: Record<string, any> = {}) {
     if (typeof spawnCommand !== "function") {
       throw new Error("spawnCommand is required");
     }

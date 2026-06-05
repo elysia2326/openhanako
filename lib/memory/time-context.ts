@@ -1,4 +1,3 @@
-// @ts-nocheck
 const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
 const FACT_TIME_RE = /^(\d{4}-\d{2}-\d{2})T(\d{2}):(\d{2})$/;
 const SIX_HOURS_MS = 6 * 60 * 60 * 1000;
@@ -77,7 +76,7 @@ function collectLocalDatesBetween(start, end, timeZone) {
   return uniqueSorted([...dates]);
 }
 
-export function buildSourceTimeRange(messages, opts = {}) {
+export function buildSourceTimeRange(messages, opts: Record<string, any> = {}) {
   const timeZone = resolveMemoryTimeZone(opts.timeZone);
   const dates = [];
   for (const message of Array.isArray(messages) ? messages : []) {
@@ -97,7 +96,7 @@ export function buildSourceTimeRange(messages, opts = {}) {
   };
 }
 
-export function normalizeSourceTimeRange(raw, opts = {}) {
+export function normalizeSourceTimeRange(raw, opts: Record<string, any> = {}) {
   const timeZone = resolveMemoryTimeZone(raw?.timezone || raw?.timeZone || opts.timeZone);
   const start = parseDate(raw?.start);
   const end = parseDate(raw?.end);
@@ -161,7 +160,7 @@ export function extractSummaryTimeSignals(summary) {
   };
 }
 
-export function buildFactTimeContext(summaryRecord, opts = {}) {
+export function buildFactTimeContext(summaryRecord, opts: Record<string, any> = {}) {
   const sourceRange = normalizeSourceTimeRange(summaryRecord?.source_time_range, opts);
   const summarySignals = extractSummaryTimeSignals(summaryRecord?.summary);
   const localDates = sourceRange.localDates;
@@ -178,7 +177,7 @@ export function buildFactTimeContext(summaryRecord, opts = {}) {
   };
 }
 
-export function normalizeFactTime(value, context = {}) {
+export function normalizeFactTime(value, context: Record<string, any> = {}) {
   if (value == null || value === "") return null;
   const match = String(value).trim().match(FACT_TIME_RE);
   if (!match) return null;

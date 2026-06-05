@@ -1,4 +1,3 @@
-// @ts-nocheck
 const hasOwn = (obj, key) => Object.prototype.hasOwnProperty.call(obj, key);
 
 function hasToolCalls(message) {
@@ -60,7 +59,7 @@ export function extractReasoningFromContent(message) {
  * @param {{ providerLabel: string }} options
  * @returns {Array|any}
  */
-export function ensureReasoningContentForToolCalls(messages, options = {}) {
+export function ensureReasoningContentForToolCalls(messages, options: { providerLabel?: string } = {}) {
   if (!Array.isArray(messages)) return messages;
 
   const providerLabel = options.providerLabel || "Provider";

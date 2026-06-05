@@ -1,4 +1,3 @@
-// @ts-nocheck
 import fs from "fs";
 import path from "path";
 import { atomicWriteSync } from "../../shared/safe-fs.ts";
@@ -43,7 +42,7 @@ export function createUsageLedger({
   };
 
   return {
-    start(meta = {}) {
+    start(meta: Record<string, any> = {}) {
       const requestId = meta.requestId ? String(meta.requestId) : nextRequestId();
       const startedMs = now();
       const usageContext = normalizeUsageContext(meta.usageContext);
@@ -64,7 +63,7 @@ export function createUsageLedger({
       return { requestId, startedAt: pendingEntry.startedAt };
     },
 
-    finish(requestId, result = {}) {
+    finish(requestId: any, result: Record<string, any> = {}) {
       const pendingEntry = pending.get(requestId);
       if (!pendingEntry) return null;
       pending.delete(requestId);
@@ -90,7 +89,7 @@ export function createUsageLedger({
       });
     },
 
-    recordError(requestId, error, status = "error", result = {}) {
+    recordError(requestId: any, error: any, status = "error", result: Record<string, any> = {}) {
       const pendingEntry = pending.get(requestId);
       if (!pendingEntry) return null;
       pending.delete(requestId);
@@ -116,7 +115,7 @@ export function createUsageLedger({
       });
     },
 
-    record(meta = {}) {
+    record(meta: Record<string, any> = {}) {
       const request = this.start(meta);
       return this.finish(request.requestId, {
         usage: meta.usage,
@@ -126,7 +125,7 @@ export function createUsageLedger({
       });
     },
 
-    list(filter = {}) {
+    list(filter: Record<string, any> = {}) {
       const limit = normalizeLimit(filter.limit);
       const filtered = entries.filter(entry => matchesFilter(entry, filter));
       const limited = limit ? filtered.slice(Math.max(0, filtered.length - limit)) : filtered;
@@ -205,7 +204,7 @@ function normalizeUsage(usage, options) {
   return normalizeLlmUsage(usage, options);
 }
 
-function normalizeModel(model = {}) {
+function normalizeModel(model: Record<string, any> = {}) {
   return {
     provider: textOrNull(model?.provider),
     modelId: textOrNull(model?.modelId ?? model?.id),

@@ -1,4 +1,3 @@
-// @ts-nocheck
 import { createInterface } from "node:readline";
 import { spawn, spawnSync } from "child_process";
 import { extractZip } from "../extract-zip.ts";
@@ -273,7 +272,7 @@ function defaultGrepOperations() {
   };
 }
 
-function createGrepExecute(cwd, options = {}) {
+function createGrepExecute(cwd, options: Record<string, any> = {}) {
   const customOps = options?.operations;
 
   return async function executeGrep(
@@ -455,7 +454,7 @@ function createGrepExecute(cwd, options = {}) {
 
             const truncation = truncateHead(outputLines.join("\n"), { maxLines: Number.MAX_SAFE_INTEGER });
             let output = truncation.content;
-            const details = {};
+            const details: Record<string, any> = {};
             const notices = [];
             if (matchLimitReached) {
               notices.push(`${effectiveLimit} matches limit reached. Use limit=${effectiveLimit * 2} for more, or refine pattern`);
@@ -484,7 +483,7 @@ function createGrepExecute(cwd, options = {}) {
   };
 }
 
-function createFindExecute(cwd, options = {}) {
+function createFindExecute(cwd, options: Record<string, any> = {}) {
   const customOps = options?.operations;
 
   return async function executeFind(_toolCallId, { pattern, path: searchDir, limit }, signal) {
@@ -640,7 +639,7 @@ function formatFindResults(results, searchPath, effectiveLimit) {
   const resultLimitReached = relativized.length >= effectiveLimit;
   const truncation = truncateHead(relativized.join("\n"), { maxLines: Number.MAX_SAFE_INTEGER });
   let resultOutput = truncation.content;
-  const details = {};
+  const details: Record<string, any> = {};
   const notices = [];
   if (resultLimitReached) {
     notices.push(`${effectiveLimit} results limit reached. Use limit=${effectiveLimit * 2} for more, or refine pattern`);

@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * Resolve target agent from request context.
  * Priority: query.agentId > params.agentId > engine.currentAgentId (焦点 agent)
@@ -30,6 +29,8 @@ export function resolveAgentStrict(engine, c) {
 }
 
 export class AgentNotFoundError extends Error {
+  declare status: number;
+  declare agentId: any;
   constructor(id) {
     super(`agent "${id}" not found`);
     this.name = "AgentNotFoundError";

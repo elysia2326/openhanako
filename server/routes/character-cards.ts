@@ -1,4 +1,3 @@
-// @ts-nocheck
 import fsp from "fs/promises";
 import path from "path";
 import { Hono } from "hono";
@@ -45,7 +44,7 @@ function routeError(c, err) {
   return c.json({ error: err.message || String(err) }, status);
 }
 
-function pickUploadedFile(body) {
+function pickUploadedFile(body: Record<string, any>) {
   for (const value of Object.values(body || {})) {
     if (value && typeof value.arrayBuffer === "function") return value;
   }

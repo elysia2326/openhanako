@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * HanaAgent Server — HTTP + WebSocket API
  *
@@ -97,9 +96,9 @@ import { callText } from "../core/llm-client.ts";
 
 const productDir = fromRoot("lib");
 
-async function bindServerTransportOwnership(server, { host, port, listenHost, networkMode }) {
+async function bindServerTransportOwnership(server: any, { host, port, listenHost, networkMode }: any) {
   try {
-    await new Promise((resolve, reject) => {
+    await new Promise<void>((resolve, reject) => {
       const cleanup = () => {
         server.off("listening", onListening);
         server.off("error", onError);
@@ -116,8 +115,8 @@ async function bindServerTransportOwnership(server, { host, port, listenHost, ne
       server.once("error", onError);
       server.listen(port, host);
     });
-  } catch (err) {
-    const startupError = isAddressInUseError(err)
+  } catch (err: any) {
+    const startupError: any = isAddressInUseError(err)
       ? createPortInUseStartupError(err, { host, port, listenHost, networkMode })
       : isListenPermissionError(err)
       ? createListenPermissionStartupError(err, { host, port, listenHost, networkMode })
@@ -130,15 +129,15 @@ async function bindServerTransportOwnership(server, { host, port, listenHost, ne
   }
 }
 
-function isAddressInUseError(err) {
+function isAddressInUseError(err: any) {
   return err?.code === "EADDRINUSE";
 }
 
-function isListenPermissionError(err) {
+function isListenPermissionError(err: any) {
   return err?.code === "EACCES" || err?.code === "EPERM";
 }
 
-function createPortInUseStartupError(cause, { host, port, listenHost, networkMode }) {
+function createPortInUseStartupError(cause: any, { host, port, listenHost, networkMode }: any) {
   const payload = {
     code: "PORT_IN_USE",
     host,
@@ -151,7 +150,7 @@ function createPortInUseStartupError(cause, { host, port, listenHost, networkMod
       "To use a different port, change the port in Access & Devices and restart.",
     ],
   };
-  const err = new Error(
+  const err: any = new Error(
     `PORT_IN_USE: ${host}:${port} is already in use (network mode: ${networkMode}, configured host: ${listenHost}).`
   );
   err.code = "PORT_IN_USE";
@@ -160,7 +159,7 @@ function createPortInUseStartupError(cause, { host, port, listenHost, networkMod
   return err;
 }
 
-function createListenPermissionStartupError(cause, { host, port, listenHost, networkMode }) {
+function createListenPermissionStartupError(cause: any, { host, port, listenHost, networkMode }: any) {
   const payload = {
     code: "LISTEN_PERMISSION_DENIED",
     host,
@@ -173,7 +172,7 @@ function createListenPermissionStartupError(cause, { host, port, listenHost, net
       "To use a different port, change the port in Access & Devices and restart.",
     ],
   };
-  const err = new Error(
+  const err: any = new Error(
     `LISTEN_PERMISSION_DENIED: ${host}:${port} cannot be listened on (network mode: ${networkMode}, configured host: ${listenHost}).`
   );
   err.code = "LISTEN_PERMISSION_DENIED";
@@ -212,7 +211,7 @@ const serverRuntimeState = {
 };
 const host = serverRuntimeState.bindHost;
 
-let activeFetch = (request) => {
+let activeFetch: any = (request: any) => {
   const url = new URL(request.url);
   if (url.pathname === "/api/health") {
     return Response.json({
@@ -225,8 +224,8 @@ let activeFetch = (request) => {
   return Response.json({ error: "server_starting" }, { status: 503 });
 };
 
-let server = createAdaptorServer({
-  fetch: (...args) => activeFetch(...args),
+let server: any = createAdaptorServer({
+  fetch: (...args: any[]) => activeFetch(...args),
   hostname: host,
 });
 
@@ -247,16 +246,16 @@ const dlog = initDebugLog(path.join(hanakoHome, "logs"));
 
 // ── 初始化引擎 ──
 log.log("② 创建 HanaEngine...");
-const engine = new HanaEngine({ hanakoHome, productDir, appVersion });
+const engine: any = new HanaEngine({ hanakoHome, productDir, appVersion } as any);
 log.log("② HanaEngine 构造完成，开始 init...");
-await engine.init((msg) => log.log(msg));
+await engine.init((msg: any) => log.log(msg));
 log.log("② engine.init 完成");
 dlog.log("server", "engine initialized");
 
 const outboundProxyRuntime = createOutboundProxyRuntime({
-  log: (msg) => dlog.log("server", msg),
-  warn: (msg) => log.warn(msg),
-});
+  log: (msg: any) => dlog.log("server", msg),
+  warn: (msg: any) => log.warn(msg),
+} as any);
 engine.setOutboundProxyRuntime(outboundProxyRuntime);
 outboundProxyRuntime.apply(engine.getNetworkProxy());
 
@@ -320,12 +319,12 @@ const { injectWebSocket, upgradeWebSocket } = createNodeWebSocket({ app });
 
 // CORS（默认允许 localhost 开发前端和 production Electron file:// 前端；HANA_CORS_ORIGIN 可收紧到单一来源）+ 鉴权
 const corsAllowedOrigin = process.env.HANA_CORS_ORIGIN;
-app.use("*", async (c, next) => {
+app.use("*", async (c: any, next: any) => {
   const origin = c.req.header("origin") || "";
   const isAllowed = isCorsOriginAllowed({
     origin,
     configuredOrigin: corsAllowedOrigin,
-  });
+  } as any);
   if (origin && isAllowed) {
     c.header("Access-Control-Allow-Origin", origin);
     c.header("Access-Control-Allow-Credentials", "true");
@@ -336,9 +335,9 @@ app.use("*", async (c, next) => {
 
   const transport = inferHttpConnectionKind({
     hostHeader: c.req.header("host"),
-    remoteAddress: c.env?.incoming?.socket?.remoteAddress,
+    remoteAddress: (c.env as any)?.incoming?.socket?.remoteAddress,
     networkMode: serverRuntimeState.mode,
-  });
+  } as any);
   if (!transport.connectionKind) {
     return c.json({ error: "invalid_transport", detail: transport.reason }, 403);
   }
@@ -353,9 +352,9 @@ app.use("*", async (c, next) => {
   if (isPluginIframeTicketRequest(c, routePath)) {
     try {
       verifyPluginIframeTicketForHostRequest(c, engine, { requireTicket: true });
-    } catch (err) {
+    } catch (err: any) {
       if (err instanceof PluginIframeTicketError) {
-        return c.json({ error: err.code, detail: err.message }, err.status);
+        return c.json({ error: (err as any).code, detail: err.message }, (err as any).status);
       }
       throw err;
     }
@@ -385,7 +384,7 @@ app.use("*", async (c, next) => {
       connectionKind: denied.connectionKind || transport.connectionKind,
     }, 403);
   }
-  const authz = authorizeHttpRoute({
+  const authz: any = authorizeHttpRoute({
     method: c.req.method,
     path: routePath,
     principal: authPrincipal,
@@ -402,14 +401,14 @@ app.use("*", async (c, next) => {
   await next();
 });
 
-function isResourceTicketContentRequest(c, routePath) {
+function isResourceTicketContentRequest(c: any, routePath: any) {
   const method = c.req.method;
   return (method === "GET" || method === "HEAD")
     && /^\/api\/resources\/[^/]+\/content$/.test(routePath)
     && !!c.req.query("ticket");
 }
 
-function isPluginIframeTicketRequest(c, routePath) {
+function isPluginIframeTicketRequest(c: any, routePath: any) {
   const method = c.req.method;
   return (method === "GET" || method === "HEAD")
     && /^\/api\/plugins\/[^/]+\/.+$/.test(routePath)
@@ -417,7 +416,7 @@ function isPluginIframeTicketRequest(c, routePath) {
 }
 
 // 全局错误处理
-app.onError((err, c) => {
+app.onError((err: any, c: any) => {
   const appErr = AppError.wrap(err);
   errorBus.report(appErr, {
     context: { method: c.req.method, url: c.req.url },
@@ -503,7 +502,7 @@ hub.eventBus.handle("session:get-titles", async ({ paths }) => {
   const titles = await coord.getTitlesForPaths(paths);
   return { titles };
 });
-hub.eventBus.handle("utility:call-text", async (payload = {}) => {
+hub.eventBus.handle("utility:call-text", async (payload: any = {}) => {
   const sessionPath = typeof payload.sessionPath === "string" && payload.sessionPath.trim()
     ? payload.sessionPath.trim()
     : null;
@@ -532,7 +531,7 @@ hub.eventBus.handle("utility:call-text", async (payload = {}) => {
         ? { kind: "session", agentId: utility.usageAgentId || agentId || null, sessionPath }
         : { kind: "utility", agentId: utility.usageAgentId || agentId || null },
     },
-  });
+  } as any);
   return { text };
 });
 hub.eventBus.handle("usage:list", (filter = {}) => {
@@ -622,7 +621,7 @@ let bridgeManagerInitError = null;
 let bridgeAutoStartRequested = false;
 let bridgeAutoStartDone = false;
 
-function runBridgeAutoStart(manager) {
+function runBridgeAutoStart(manager: any) {
   if (!manager || bridgeAutoStartDone) return;
   bridgeAutoStartDone = true;
   manager.autoStart(engine.agents);
@@ -678,13 +677,13 @@ app.route("", chatWsRoute);
 app.route("/api", createWebAuthRoute({
   hanakoHome: engine.hanakoHome,
   authService: serverAuthService,
-  getConnectionKind: (c) => c.get("transportConnectionKind"),
+  getConnectionKind: (c: any) => c.get("transportConnectionKind"),
   getRuntimeContext: () => engine.getRuntimeContext(),
-}));
+} as any));
 app.route("/api", createAccessRoute({
   engine,
   runtimeState: serverRuntimeState,
-}));
+} as any));
 app.route("/api", createSessionsRoute(engine, hub));
 app.route("/api", createSessionProjectsRoute(engine));
 app.route("/api", createModelsRoute(engine));
@@ -717,7 +716,7 @@ app.route("/api", createServerIdentityRoute({
   hanakoHome: engine.hanakoHome,
   appVersion,
   getRuntimeContext: () => engine.getRuntimeContext(),
-}));
+} as any));
 // internal-browser WS — see unified upgrade handler in server startup below
 
 // 健康检查 + 身份信息
@@ -873,7 +872,7 @@ try {
       hostHeader: req.headers.host,
       remoteAddress: req.socket?.remoteAddress,
       networkMode: serverRuntimeState.mode,
-    });
+    } as any);
     if (!transport.connectionKind) {
       socket.destroy();
       return;
@@ -916,14 +915,14 @@ try {
         fs.promises.appendFile(_bwsLogPath, chunk)
       ).catch(() => {});
     };
-    const _bwsLog = (line) => {
+    const _bwsLog = (line: any) => {
       if (!_bwsEnabled) return;
       _bwsBuf += `${new Date().toISOString()} ${line}\n`;
       if (!_bwsFlushTimer) _bwsFlushTimer = setTimeout(_bwsFlush, 500);
     };
     _bwsLog("browser WS connected");
     const origSend = ws.send.bind(ws);
-    ws.send = function(data, ...args) {
+    ws.send = function(data: any, ...args: any[]) {
       try { const m = JSON.parse(data); _bwsLog(`→ cmd=${m.cmd || m.type} id=${m.id || "?"}`); } catch {}
       return origSend(data, ...args);
     };
@@ -945,9 +944,9 @@ try {
   // Inject Hono WS for chat and other WS routes, but skip /internal/browser
   // to prevent double-handling the same upgrade request
   injectWebSocket({
-    on(event, handler) {
+    on(event: any, handler: any) {
       if (event === "upgrade") {
-        server.on("upgrade", (req, socket, head) => {
+        server.on("upgrade", (req: any, socket: any, head: any) => {
           const url = new URL(req.url ?? "/", `http://${req.headers.host}`);
           if (url.pathname === "/internal/browser") return; // already handled above
           handler(req, socket, head);
@@ -956,9 +955,9 @@ try {
         server.on(event, handler);
       }
     },
-  });
+  } as any);
 
-  const address = server.address();
+  const address: any = server.address();
   const actualPort = address.port;
   serverRuntimeState.actualPort = actualPort;
 
@@ -1085,7 +1084,7 @@ function _safeConsoleError(...args) {
   }
 }
 
-process.on("uncaughtException", (err) => {
+process.on("uncaughtException", (err: any) => {
   if (err?.code === "EPIPE" || err?.code === "ERR_IPC_CHANNEL_CLOSED") {
     if (!_stdoutBroken) {
       _stdoutBroken = true;

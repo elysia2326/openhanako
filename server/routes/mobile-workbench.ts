@@ -1,4 +1,3 @@
-// @ts-nocheck
 import fs from "fs";
 import path from "path";
 import { Hono } from "hono";
@@ -197,7 +196,7 @@ function authorizeWorkbench(c, engine, capability) {
     result: "denied",
     decision,
     errorCode: decision.reason,
-  });
+  } as any);
   return {
     requestContext,
     decision,
@@ -220,7 +219,7 @@ async function writeActionResponse(c, engine, action, auth, rootId, operation) {
       sessionId: "mobile_workbench",
       resourceIds: [rootId || "default"],
       mountId: rootId && rootId !== "default" ? rootId : null,
-    });
+    } as any);
     const result = await operation();
     if (lease) consumeRemoteWriteLease(engine?.hanakoHome, lease);
     return auditActionResult(c, engine, action, result, auth, lease);
@@ -237,12 +236,12 @@ function auditActionResult(c, engine, action, result, auth, lease = null) {
     result: result?.ok === false ? "failed" : "success",
     decision: auth?.decision || null,
     leaseId: lease?.leaseId || null,
-  });
+  } as any);
   return c.json(result);
 }
 
 function routeError(message, code, status) {
-  const err = new Error(message);
+  const err: any = new Error(message);
   err.code = code;
   err.status = status;
   return err;

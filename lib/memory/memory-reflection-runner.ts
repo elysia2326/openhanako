@@ -1,4 +1,3 @@
-// @ts-nocheck
 import { runSessionSnapshotSideTask } from "../llm/session-snapshot-side-task-runner.ts";
 import { scrubPII } from "../pii-guard.ts";
 
@@ -35,7 +34,7 @@ export async function runMemoryReflection({
   options = {},
   usageLedger,
   usageContext,
-} = {}) {
+}: Record<string, any> = {}) {
   const sideTask = await runSessionSnapshotSideTask({
     snapshot,
     model,

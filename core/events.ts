@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * MoodParser — 从 streaming text 中解析内省标签
  *
@@ -29,6 +28,10 @@ function trailingPrefixLen(buffer, target) {
 }
 
 export class MoodParser {
+  declare _currentTag: any;
+  declare _justEndedMood: any;
+  declare buffer: any;
+  declare inMood: any;
   constructor() {
     this.inMood = false;
     this.buffer = "";
@@ -175,6 +178,11 @@ export class MoodParser {
 const THINK_TAGS = ["think", "thinking"];
 
 export class ThinkTagParser {
+  declare _allowOpenTag: any;
+  declare _currentTag: any;
+  declare _justEnded: any;
+  declare buffer: any;
+  declare inThink: any;
   constructor() {
     this.inThink = false;
     this.buffer = "";
@@ -310,6 +318,9 @@ export class ThinkTagParser {
 const CARD_ATTR_RE = /(\w+)="([^"]*)"/g;
 
 export class CardParser {
+  declare _attrs: any;
+  declare buffer: any;
+  declare inCard: any;
   constructor() {
     this.inCard = false;
     this.buffer = "";

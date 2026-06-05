@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * ChannelRouter — 频道调度（从 engine.js 搬出）
  *
@@ -51,6 +50,10 @@ export class ChannelRouter {
    */
   static _AGENT_ORDER_TTL = 30_000; // 30 秒
 
+  declare _hub: any;
+  declare _ticker: any;
+  declare _agentOrderCache: any;
+
   constructor({ hub }) {
     this._hub = hub;
     this._ticker = null;
@@ -98,7 +101,7 @@ export class ChannelRouter {
     try {
       const filePath = path.join(this._engine.channelsDir, `${channelName}.md`);
       if (!fs.existsSync(filePath)) return "read_only";
-      return normalizeAgentPhoneToolMode(getChannelMeta(filePath).agentPhoneToolMode);
+      return normalizeAgentPhoneToolMode((getChannelMeta(filePath) as any).agentPhoneToolMode);
     } catch {
       return "read_only";
     }
@@ -110,7 +113,7 @@ export class ChannelRouter {
       if (!fs.existsSync(filePath)) {
         return DEFAULT_AGENT_PHONE_SETTINGS;
       }
-      const meta = getChannelMeta(filePath);
+      const meta: any = getChannelMeta(filePath);
       const override = normalizeAgentPhoneModelOverride({
         enabled: meta.agentPhoneModelOverrideEnabled,
         id: meta.agentPhoneModelOverrideId,
@@ -133,7 +136,7 @@ export class ChannelRouter {
   }
 
   _formatPhonePromptGuidance(agentId, settings, isZh) {
-    return formatAgentPhonePromptGuidance({
+    return (formatAgentPhonePromptGuidance as any)({
       agentId,
       agent: this._getAgentInstance(agentId),
       agentsDir: this._engine.agentsDir,
@@ -154,7 +157,7 @@ export class ChannelRouter {
     }
   }
 
-  _createChannelPhoneTools(agentId, channelName, { setDecision } = {}) {
+  _createChannelPhoneTools(agentId, channelName, { setDecision }: any = {}) {
     const engine = this._engine;
     const isZh = getLocale().startsWith("zh");
     const channelFile = path.join(engine.channelsDir || "", `${channelName}.md`);
@@ -190,7 +193,7 @@ export class ChannelRouter {
             description: isZh ? "要读取的最近消息数量，默认 20，最多 50。" : "Number of recent messages to read, defaults to 20, max 50.",
           })),
         }),
-        execute: async (_toolCallId, params = {}) => {
+        execute: async (_toolCallId, params: any = {}) => {
           if (!fs.existsSync(channelFile)) {
             return {
               content: [{ type: "text", text: isZh ? "频道不存在。" : "Channel not found." }],
@@ -199,7 +202,7 @@ export class ChannelRouter {
           }
           if (!isCurrentMember()) return notMemberResult("read_context");
           const count = Math.max(1, Math.min(50, Number(params.count) || 20));
-          const messages = getRecentMessages(channelFile, count);
+          const messages = (getRecentMessages as any)(channelFile, count);
           return {
             content: [{
               type: "text",
@@ -223,7 +226,7 @@ export class ChannelRouter {
             description: isZh ? "可选：本次发言前的内省摘要，只记录在工具详情中，不发送到频道。" : "Optional private mood summary. Stored in tool details, not posted.",
           })),
         }),
-        execute: async (_toolCallId, params = {}) => {
+        execute: async (_toolCallId, params: any = {}) => {
           const content = String(params.content || "").trim();
           if (!content) {
             return {
@@ -296,7 +299,7 @@ export class ChannelRouter {
             description: isZh ? "可选：本次判断的内省摘要。" : "Optional private mood summary for this decision.",
           })),
         }),
-        execute: async (_toolCallId, params = {}) => {
+        execute: async (_toolCallId, params: any = {}) => {
           if (decided) {
             return {
               content: [{ type: "text", text: isZh ? "本轮已经完成过频道决定。" : "This phone turn already made a channel decision." }],
@@ -412,7 +415,7 @@ export class ChannelRouter {
     const text = typeof message === "string" ? message : message?.body;
     if (!text) return [];
     const channelFile = path.join(this._engine.channelsDir || "", `${channelName}.md`);
-    const meta = getChannelMeta(channelFile);
+    const meta: any = getChannelMeta(channelFile);
     return extractMentionedAgentIds(text, {
       channelMembers: Array.isArray(meta.members) ? meta.members : [],
       agents: this._listMentionableAgents(),
@@ -480,7 +483,7 @@ export class ChannelRouter {
     mentionedAgents = [],
     mentionTargeted = false,
     deliveryWindow = null,
-  } = {}) {
+  }: any = {}) {
     const msgText = formatMessagesForLLM(newMessages);
     const isZh = getLocale().startsWith("zh");
     const lastNewMessage = newMessages[newMessages.length - 1] || null;
@@ -732,7 +735,7 @@ export class ChannelRouter {
     mentionedAgents = [],
     mentionTargeted = false,
     decisionRepairAttempt = 0,
-  } = {}) {
+  }: any = {}) {
     const isZh = getLocale().startsWith("zh");
     const phoneSettings = this._resolveChannelPhoneSettings(channelName);
     const promptGuidance = this._formatPhonePromptGuidance(agentId, phoneSettings, isZh);
@@ -819,7 +822,7 @@ export class ChannelRouter {
                 ...(activeSessionPath ? { sessionPath: activeSessionPath } : {}),
               },
           ),
-        },
+        } as any,
       );
       if (phoneResult && typeof phoneResult === "object") {
         phoneDiagnostics = phoneResult.diagnostics || null;
@@ -1001,7 +1004,7 @@ export class ChannelRouter {
       }
 
       const previousFacts = this._getPreviousChannelMemoryFacts(factStore, sessionId);
-      const rawSummary = await callText({
+      const rawSummary = await (callText as any)({
         api, model,
         apiKey: api_key,
         baseUrl: base_url,

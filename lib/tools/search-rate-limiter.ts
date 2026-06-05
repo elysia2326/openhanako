@@ -1,4 +1,4 @@
-// @ts-nocheck
+
 const DEFAULT_RETRY_JITTER_MS = 1_000;
 
 const DEFAULT_POLICIES = Object.freeze({
@@ -71,19 +71,19 @@ const FALLBACK_POLICIES = Object.freeze({
   }),
 });
 
-function positiveInteger(value) {
+function positiveInteger(value: any) {
   const n = Number(value);
   if (!Number.isFinite(n) || n < 0) return 0;
   return Math.floor(n);
 }
 
-function positiveConcurrency(value) {
+function positiveConcurrency(value: any) {
   const n = Number(value);
   if (!Number.isFinite(n) || n < 1) return 1;
   return Math.floor(n);
 }
 
-export function retryAfterMsFromHeaders(headers) {
+export function retryAfterMsFromHeaders(headers: any) {
   if (!headers) return null;
   const raw = headers.get?.("retry-after") || headers.get?.("Retry-After");
   if (!raw) return null;
@@ -99,7 +99,11 @@ export function retryAfterMsFromHeaders(headers) {
 }
 
 export class SearchRateLimitError extends Error {
-  constructor(message, { retryAfterMs = null, status = 429 } = {}) {
+  declare status: number;
+  declare retryAfterMs: any;
+  declare isSearchRateLimitError: boolean;
+
+  constructor(message: any, { retryAfterMs = null, status = 429 }: { retryAfterMs?: any; status?: number } = {}) {
     super(message);
     this.name = "SearchRateLimitError";
     this.status = status;
@@ -109,7 +113,11 @@ export class SearchRateLimitError extends Error {
 }
 
 export class SearchRateLimiter {
-  constructor({ policies = {}, random = Math.random } = {}) {
+  declare _policies: Record<string, any>;
+  declare _random: () => number;
+  declare _states: Map<string, any>;
+
+  constructor({ policies = {}, random = Math.random }: { policies?: Record<string, any>; random?: () => number } = {}) {
     this._policies = { ...DEFAULT_POLICIES, ...policies };
     this._random = random;
     this._states = new Map();
@@ -122,7 +130,7 @@ export class SearchRateLimiter {
     this._states.clear();
   }
 
-  async run(provider, sourceType, operation) {
+  async run(provider: any, sourceType: any, operation: any) {
     const key = String(provider || sourceType || "search");
     const state = this._stateFor(key);
     return new Promise((resolve, reject) => {
@@ -131,7 +139,7 @@ export class SearchRateLimiter {
     });
   }
 
-  _stateFor(key) {
+  _stateFor(key: string) {
     let state = this._states.get(key);
     if (!state) {
       state = {
@@ -148,30 +156,30 @@ export class SearchRateLimiter {
     return state;
   }
 
-  _policy(provider, sourceType) {
+  _policy(provider: any, sourceType: any) {
     return this._policies[provider]
       || FALLBACK_POLICIES[sourceType]
       || FALLBACK_POLICIES.api;
   }
 
-  _jitter(maxMs) {
+  _jitter(maxMs: any) {
     const max = positiveInteger(maxMs);
     if (max <= 0) return 0;
     return Math.floor(this._random() * max);
   }
 
-  _maxConcurrent(provider, sourceType) {
+  _maxConcurrent(provider: any, sourceType: any) {
     return positiveConcurrency(this._policy(provider, sourceType).maxConcurrent);
   }
 
-  _nextStartDelay(provider, sourceType) {
+  _nextStartDelay(provider: any, sourceType: any) {
     const state = this._stateFor(provider);
     const now = Date.now();
     const waitUntil = Math.max(state.nextStartAt || 0, state.cooldownUntil || 0);
     return Math.max(0, waitUntil - now);
   }
 
-  _schedulePump(provider, sourceType, delayMs) {
+  _schedulePump(provider: any, sourceType: any, delayMs: any) {
     const state = this._stateFor(provider);
     if (state.pumpTimer) return;
     state.pumpTimer = setTimeout(() => {
@@ -180,7 +188,7 @@ export class SearchRateLimiter {
     }, delayMs);
   }
 
-  _pump(provider) {
+  _pump(provider: any, sourceType?: any) {
     const state = this._stateFor(provider);
     if (state.queue.length === 0) return;
 
@@ -200,7 +208,7 @@ export class SearchRateLimiter {
     }
   }
 
-  _startTask(provider, task) {
+  _startTask(provider: any, task: any) {
     const state = this._stateFor(provider);
     const sourceType = task.sourceType;
     state.activeCount += 1;
@@ -229,7 +237,7 @@ export class SearchRateLimiter {
       });
   }
 
-  _recordRateLimit(provider, sourceType, err) {
+  _recordRateLimit(provider: any, sourceType: any, err: any) {
     if (!err?.isSearchRateLimitError && err?.status !== 429) return;
 
     const state = this._stateFor(provider);

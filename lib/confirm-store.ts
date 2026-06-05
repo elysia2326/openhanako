@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * ConfirmStore — 阻塞式确认存储
  *
@@ -12,6 +11,9 @@ import crypto from "crypto";
 const DEFAULT_TIMEOUT = 5 * 60 * 1000; // 5 分钟
 
 export class ConfirmStore {
+  declare _pending: Map<string, any>;
+  declare onResolved: ((confirmId: string, action: string) => void) | null;
+
   constructor() {
     /** @type {Map<string, { resolve, timer, sessionPath, kind, payload }>} */
     this._pending = new Map();

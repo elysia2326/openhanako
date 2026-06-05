@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * Temporary provider prompt patches.
  *
@@ -34,7 +33,7 @@ function deepseekOutputContractPrompt(locale) {
   ].join("\n");
 }
 
-export function getProviderPromptPatches(model, options = {}) {
+export function getProviderPromptPatches(model, options: { reasoningLevel?: any; locale?: any } = {}) {
   if (isThinkingOff(options.reasoningLevel)) return [];
   if (!isDeepSeekReasoningModel(model)) return [];
   return [deepseekOutputContractPrompt(options.locale)];

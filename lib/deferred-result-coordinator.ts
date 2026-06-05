@@ -1,4 +1,3 @@
-// @ts-nocheck
 import {
   buildDeferredResultMessage,
   buildDeferredResultRecord,
@@ -30,6 +29,15 @@ function isExternallyDeliveredTask(task) {
 }
 
 export class DeferredResultCoordinator {
+  declare _inFlight: any;
+  declare _retryTimer: any;
+  declare _started: any;
+  declare _unsubs: any;
+  declare log: any;
+  declare recordCustomEntry: any;
+  declare retryIntervalMs: any;
+  declare sessionCoordinator: any;
+  declare store: any;
   constructor({
     store,
     sessionCoordinator,
@@ -79,7 +87,7 @@ export class DeferredResultCoordinator {
     this._started = false;
   }
 
-  async flushUndelivered(sessionPath) {
+  async flushUndelivered(sessionPath?) {
     const tasks = this.store.listUndelivered(sessionPath);
     for (const task of tasks) {
       await this.deliverTask(task.taskId);

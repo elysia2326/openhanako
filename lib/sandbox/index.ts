@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * sandbox/index.js — 沙盒入口（无状态工厂）
  *
@@ -151,7 +150,7 @@ export function createSandboxedTools(cwd, customTools, {
   if (platform === "win32-restricted-token") {
     const sandboxedBashTool = createBashTool(cwd, {
       operations: {
-        exec: (command, execCwd, execOpts) => createWin32Exec({
+        exec: ((command, execCwd, execOpts) => createWin32Exec({
           sandbox: {
             policy: makePolicy(),
             hanakoHome,
@@ -159,7 +158,7 @@ export function createSandboxedTools(cwd, customTools, {
             getSandboxNetworkEnabled: resolveSandboxNetworkEnabled,
             legacyCleanupQueue,
           },
-        })(command, execCwd, execOpts),
+        })(command, execCwd, execOpts)) as any,
       },
     });
     return {
@@ -168,8 +167,8 @@ export function createSandboxedTools(cwd, customTools, {
         wrapPathTool(writeTool, guard, "write", cwd, wrapOpts),
         wrapPathTool(editTool, guard, "write", cwd, wrapOpts),
         wrapBashTool(sandboxedBashTool, guard, cwd, bashWrapOpts),
-        wrapPathTool(createGrepTool(cwd), guard, "read", cwd, wrapOpts),
-        wrapPathTool(createFindTool(cwd), guard, "read", cwd, wrapOpts),
+        wrapPathTool(createGrepTool(cwd, undefined), guard, "read", cwd, wrapOpts),
+        wrapPathTool(createFindTool(cwd, undefined), guard, "read", cwd, wrapOpts),
         wrapPathTool(createLsTool(cwd), guard, "read", cwd, wrapOpts),
       ],
       customTools,
@@ -188,13 +187,13 @@ export function createSandboxedTools(cwd, customTools, {
           makePolicy(),
           { getExternalReadPaths, getSandboxNetworkEnabled: resolveSandboxNetworkEnabled },
         )(command, execCwd, execOpts);
-    sandboxedBashTool = createBashTool(cwd, { operations: { exec: sandboxExec } });
+    sandboxedBashTool = createBashTool(cwd, { operations: { exec: sandboxExec as any } });
   } else if (platform === "bwrap") {
     sandboxedBashTool = {
       ...normalBashTool,
       execute: async () => ({
-        content: [{ type: "text", text: t("sandbox.osRequired", { platform }) }],
-      }),
+        content: [{ type: "text" as const, text: t("sandbox.osRequired", { platform }) }],
+      }) as any,
     };
   }
 
@@ -204,8 +203,8 @@ export function createSandboxedTools(cwd, customTools, {
       wrapPathTool(writeTool, guard, "write", cwd, wrapOpts),
       wrapPathTool(editTool, guard, "write", cwd, wrapOpts),
       wrapBashTool(sandboxedBashTool, guard, cwd, bashWrapOpts),
-      wrapPathTool(createGrepTool(cwd), guard, "read", cwd, wrapOpts),
-      wrapPathTool(createFindTool(cwd), guard, "read", cwd, wrapOpts),
+      wrapPathTool(createGrepTool(cwd, undefined), guard, "read", cwd, wrapOpts),
+      wrapPathTool(createFindTool(cwd, undefined), guard, "read", cwd, wrapOpts),
       wrapPathTool(createLsTool(cwd), guard, "read", cwd, wrapOpts),
     ],
     customTools,
@@ -225,7 +224,7 @@ function wrapFileTouchTool(tool, cwd, {
   operationForPath,
   getSessionPath,
   recordFileOperation,
-} = {}) {
+}: { origin?: any; operationForPath?: any; getSessionPath?: any; recordFileOperation?: any } = {}) {
   return {
     ...tool,
     execute: async (toolCallId, params, ...rest) => {
@@ -287,11 +286,11 @@ function sessionFilePath(file) {
   return filePath;
 }
 
-function wrapSessionFilePathTool(tool, { getSessionPath, resolveSessionFile } = {}) {
+function wrapSessionFilePathTool(tool, { getSessionPath, resolveSessionFile }: { getSessionPath?: any; resolveSessionFile?: any } = {}) {
   return {
     ...tool,
     parameters: addSessionFileParameters(tool.parameters),
-    execute: async (toolCallId, params = {}, ...rest) => {
+    execute: async (toolCallId, params: Record<string, any> = {}, ...rest) => {
       const fileId = typeof params.fileId === "string" && params.fileId.trim() ? params.fileId.trim() : null;
       if (!fileId) return tool.execute(toolCallId, params, ...rest);
       if (typeof resolveSessionFile !== "function") {

@@ -1,4 +1,3 @@
-// @ts-nocheck
 import fs from "fs";
 import path from "path";
 import { createHash } from "crypto";
@@ -35,7 +34,13 @@ export function deleteSessionFileSidecarSync(sessionPath) {
 }
 
 export class SessionFileRegistry {
-  constructor({ now = () => Date.now(), managedCacheRoot = null } = {}) {
+  declare _byId: any;
+  declare _idsBySession: any;
+  declare _loadedSessions: any;
+  declare _managedCacheRoot: any;
+  declare _now: any;
+  declare _sidecarsBySession: any;
+  constructor({ now = () => Date.now(), managedCacheRoot = null }: any = {}) {
     this._now = now;
     this._managedCacheRoot = managedCacheRoot ? normalizeExistingOrResolvedPath(managedCacheRoot) : null;
     this._byId = new Map();
@@ -54,7 +59,7 @@ export class SessionFileRegistry {
     presentation = "attachment",
     listed = true,
     waveform = null,
-  } = {}) {
+  }: any = {}) {
     if (!sessionPath) throw new Error("sessionPath is required to register a session file");
     if (!filePath || !path.isAbsolute(filePath)) throw new Error("filePath must be an absolute path");
     this._hydrateSession(sessionPath);
@@ -123,12 +128,12 @@ export class SessionFileRegistry {
     return entry;
   }
 
-  get(fileId, { sessionPath } = {}) {
+  get(fileId, { sessionPath }: any = {}) {
     if (fileId && sessionPath && !this._byId.has(fileId)) this._hydrateSession(sessionPath);
     return this._byId.get(fileId) || null;
   }
 
-  getByFilePath(filePath, { sessionPath } = {}) {
+  getByFilePath(filePath, { sessionPath }: any = {}) {
     if (!filePath) return null;
     if (sessionPath) this._hydrateSession(sessionPath);
     const target = normalizeExistingOrResolvedPath(filePath);
@@ -146,7 +151,7 @@ export class SessionFileRegistry {
     return null;
   }
 
-  updateTranscription(fileId, transcription, { sessionPath } = {}) {
+  updateTranscription(fileId, transcription, { sessionPath }: any = {}) {
     if (!fileId) throw new Error("fileId is required to update transcription");
     if (sessionPath) this._hydrateSession(sessionPath);
     const existing = this._byId.get(fileId);
@@ -177,7 +182,7 @@ export class SessionFileRegistry {
     return ids.map(id => this._byId.get(id)).filter(Boolean);
   }
 
-  cleanupColdSessionFiles({ sessionPath, maxInactiveMs = SESSION_FILE_CACHE_INACTIVE_TTL_MS } = {}) {
+  cleanupColdSessionFiles({ sessionPath, maxInactiveMs = SESSION_FILE_CACHE_INACTIVE_TTL_MS }: any = {}) {
     if (!sessionPath) throw new Error("sessionPath is required to clean session files");
     this._hydrateSession(sessionPath);
 
@@ -198,7 +203,7 @@ export class SessionFileRegistry {
     let deleted = 0;
     let changed = false;
 
-    for (const [id, file] of Object.entries(sidecar.files || {})) {
+    for (const [id, file] of Object.entries(sidecar.files || {}) as any) {
       if (!isManagedCache(file) || file.status === "expired") continue;
       const target = file.realPath || file.filePath;
       if (target) {
@@ -208,7 +213,7 @@ export class SessionFileRegistry {
         if (existed) deleted += 1;
       }
       const next = freezeEntry({
-        ...file,
+        ...(file as any),
         status: "expired",
         missingAt: this._now(),
       });
@@ -227,7 +232,7 @@ export class SessionFileRegistry {
     return { sessionPath, cold: true, ageMs, expired, deleted };
   }
 
-  cleanupColdSessions({ agentsDir, maxInactiveMs = SESSION_FILE_CACHE_INACTIVE_TTL_MS } = {}) {
+  cleanupColdSessions({ agentsDir, maxInactiveMs = SESSION_FILE_CACHE_INACTIVE_TTL_MS }: any = {}) {
     if (!agentsDir) throw new Error("agentsDir is required to clean session files");
     const sessions = collectSessionPaths(agentsDir);
     const results = [];
@@ -244,10 +249,10 @@ export class SessionFileRegistry {
     const sidecar = this._readSidecar(sessionPath);
     this._sidecarsBySession.set(sessionPath, sidecar);
     this._loadedSessions.add(sessionPath);
-    for (const raw of Object.values(sidecar.files || {})) {
+    for (const raw of Object.values(sidecar.files || {}) as any) {
       const entry = freezeEntry({
-        ...raw,
-        operations: raw.operations || operationsFromRefs(sidecar.refs, raw),
+        ...(raw as any),
+        operations: (raw as any).operations || operationsFromRefs(sidecar.refs, raw),
       });
       this._remember(entry, sessionPath);
     }
@@ -292,7 +297,7 @@ export class SessionFileRegistry {
         updatedAt: raw.updatedAt || this._now(),
       };
     } catch (err) {
-      throw new Error(`failed to read session file sidecar: ${sidecarPath}: ${err.message}`);
+      throw new Error(`failed to read session file sidecar: ${sidecarPath}: ${(err as any).message}`);
     }
   }
 

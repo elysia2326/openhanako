@@ -1,4 +1,3 @@
-// @ts-nocheck
 import MarkdownIt from "markdown-it";
 
 const TELEGRAM_MAX_HTML_LENGTH = 4096;
@@ -191,7 +190,7 @@ function splitSource(source, limit) {
   return chunks;
 }
 
-export function formatTelegramMessageChunks(markdown, options = {}) {
+export function formatTelegramMessageChunks(markdown, options: { maxLength?: number } = {}) {
   const maxLength = Math.max(64, Number(options.maxLength) || TELEGRAM_MAX_HTML_LENGTH);
   const initialSourceLimit = Math.max(32, maxLength - SOURCE_CHUNK_HEADROOM);
   const queue = splitSource(String(markdown || ""), initialSourceLimit);

@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * 头像管理 REST 路由
  *
@@ -22,7 +21,7 @@ export function createAvatarRoute(engine) {
   const route = new Hono();
 
   // 根据 role 选择存储目录（接受可选的 Hono context 来解析目标 agent）
-  function avatarDirFor(role, c) {
+  function avatarDirFor(role, c?) {
     const base = role === "user" ? engine.userDir : (c ? resolveAgent(engine, c).agentDir : engine.agentDir);
     return path.join(base, "avatars");
   }

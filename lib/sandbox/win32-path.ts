@@ -1,4 +1,3 @@
-// @ts-nocheck
 import path from "path";
 
 const MSYS_DRIVE_RE = /^\/([a-zA-Z])(?:\/(.*))?$/;
@@ -41,7 +40,7 @@ function userHomeWin32(env = process.env) {
  * must check the native object path, not the spelling used by a given shell.
  * Non-filesystem pseudo paths such as /dev/null return null.
  */
-export function normalizeWin32ShellPath(rawPath, cwd, opts = {}) {
+export function normalizeWin32ShellPath(rawPath, cwd, opts: { allowRelative?: boolean; env?: Record<string, string | undefined> } = {}) {
   const { allowRelative = true, env = process.env } = opts;
   const value = trimQuotes(rawPath);
   if (!value) return null;

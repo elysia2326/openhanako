@@ -1,4 +1,3 @@
-// @ts-nocheck
 import fs from "fs";
 import crypto from "crypto";
 import os from "os";
@@ -89,11 +88,11 @@ export function collectWin32LegacySandboxMigrationTargets({
   hanakoHome,
   workspaceRoots = [],
   env = process.env,
-  resourcesPath = process.resourcesPath,
+  resourcesPath = (process as any).resourcesPath,
   existsSync = fs.existsSync,
   readdirSync = fs.readdirSync,
   homedir = os.homedir,
-} = {}) {
+}: any = {}) {
   if (platform !== "win32") return { aclPaths: [], profileNames: [] };
 
   const aclPaths = [];
@@ -132,7 +131,7 @@ function runHelper(helperPath, args, {
   timeoutMs = DEFAULT_TIMEOUT_MS,
   maxOutputBytes = DEFAULT_MAX_OUTPUT_BYTES,
 } = {}) {
-  return new Promise((resolve) => {
+  return new Promise<any>((resolve) => {
     let stdout = "";
     let stderr = "";
     let settled = false;
@@ -253,10 +252,10 @@ export async function runWin32LegacySandboxMigration({
   spawn = defaultSpawn,
   existsSync = fs.existsSync,
   readdirSync = fs.readdirSync,
-  resourcesPath = process.resourcesPath,
+  resourcesPath = (process as any).resourcesPath,
   homedir = os.homedir,
   timeoutMs = DEFAULT_TIMEOUT_MS,
-} = {}) {
+}: any = {}) {
   if (platform !== "win32") return { status: "skipped", reason: "platform" };
 
   const completionMarkerPath = cleanup && !disableMarker
@@ -367,7 +366,7 @@ export function summarizeWin32LegacySandboxMigration(result) {
 
 function isoNow(now = Date.now) {
   if (typeof now === "function") return new Date(now()).toISOString();
-  if (now instanceof Date) return now.toISOString();
+  if ((now as any) instanceof Date) return (now as any).toISOString();
   if (typeof now === "string" && now) return new Date(now).toISOString();
   return new Date(now || Date.now()).toISOString();
 }
@@ -442,11 +441,11 @@ export async function runWin32LegacySandboxRootCleanup({
   spawn = defaultSpawn,
   existsSync = fs.existsSync,
   readdirSync = fs.readdirSync,
-  resourcesPath = process.resourcesPath,
+  resourcesPath = (process as any).resourcesPath,
   homedir = os.homedir,
   timeoutMs = DEFAULT_TIMEOUT_MS,
   now = Date.now,
-} = {}) {
+}: any = {}) {
   if (platform !== "win32") return { status: "skipped", reason: "platform", rootResults: [] };
   const marker = markerPath || defaultCleanupMarkerPath(hanakoHome);
   const state = readCleanupState(marker);
@@ -526,11 +525,11 @@ export async function runWin32LegacySandboxProfileCleanup({
   spawn = defaultSpawn,
   existsSync = fs.existsSync,
   readdirSync = fs.readdirSync,
-  resourcesPath = process.resourcesPath,
+  resourcesPath = (process as any).resourcesPath,
   homedir = os.homedir,
   timeoutMs = DEFAULT_TIMEOUT_MS,
   now = Date.now,
-} = {}) {
+}: any = {}) {
   if (platform !== "win32") return { status: "skipped", reason: "platform", profileResults: [] };
   const marker = markerPath || defaultCleanupMarkerPath(hanakoHome);
   const state = readCleanupState(marker);
@@ -603,6 +602,27 @@ export async function runWin32LegacySandboxProfileCleanup({
 }
 
 export class Win32LegacySandboxCleanupQueue {
+  declare activeRootCounts: any;
+  declare delayMs: any;
+  declare draining: any;
+  declare env: any;
+  declare existsSync: any;
+  declare hanakoHome: any;
+  declare helperPath: any;
+  declare homedir: any;
+  declare log: any;
+  declare markerPath: any;
+  declare pendingRootKeys: any;
+  declare pendingRoots: any;
+  declare platform: any;
+  declare profileBatchSize: any;
+  declare profileCleanupPending: any;
+  declare readdirSync: any;
+  declare resourcesPath: any;
+  declare scheduleEnabled: any;
+  declare spawn: any;
+  declare timeoutMs: any;
+  declare timer: any;
   constructor({
     platform = process.platform,
     hanakoHome,
@@ -612,14 +632,14 @@ export class Win32LegacySandboxCleanupQueue {
     spawn = defaultSpawn,
     existsSync = fs.existsSync,
     readdirSync = fs.readdirSync,
-    resourcesPath = process.resourcesPath,
+    resourcesPath = (process as any).resourcesPath,
     homedir = os.homedir,
     timeoutMs = DEFAULT_TIMEOUT_MS,
     delayMs = DEFAULT_CLEANUP_DELAY_MS,
     profileBatchSize = DEFAULT_PROFILE_BATCH_SIZE,
     schedule = true,
     log,
-  } = {}) {
+  }: any = {}) {
     this.platform = platform;
     this.hanakoHome = hanakoHome;
     this.helperPath = helperPath;

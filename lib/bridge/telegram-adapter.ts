@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * telegram-adapter.js — Telegram Bot 长轮询适配器
  *
@@ -61,9 +60,9 @@ function safeExtFromUrl(url) {
   catch { return ""; }
 }
 
-function telegramMessageOptions(options = {}, format = "plain") {
+function telegramMessageOptions(options: Record<string, any> = {}, format = "plain") {
   const messageThreadId = options.messageThreadId ?? options.replyContext?.messageThreadId;
-  const result = {};
+  const result: Record<string, any> = {};
   if (format === "html") result.parse_mode = "HTML";
   if (messageThreadId != null && messageThreadId !== "") result.message_thread_id = messageThreadId;
   return Object.keys(result).length ? result : undefined;
@@ -232,7 +231,7 @@ export function createTelegramAdapter({ token, agentId, onMessage, onStatus }) {
     },
 
     /** 流式草稿（Bot API 9.5 sendMessageDraft） */
-    async sendDraft(chatId, text, options = {}) {
+    async sendDraft(chatId, text, options: Record<string, any> = {}) {
       const draftId = Number(options.draftId);
       if (!Number.isInteger(draftId) || draftId === 0) {
         throw new Error("Telegram sendDraft requires a non-zero integer draftId");
@@ -270,7 +269,7 @@ export function createTelegramAdapter({ token, agentId, onMessage, onStatus }) {
     },
 
     /** 发送本地 staged file 内容：MediaDeliveryService 负责归属校验和读入 Buffer。 */
-    async sendMediaBuffer(chatId, buffer, metadata = {}) {
+    async sendMediaBuffer(chatId, buffer, metadata: Record<string, any> = {}) {
       const mime = metadata.mime || "application/octet-stream";
       const filename = metadata.filename;
       try {

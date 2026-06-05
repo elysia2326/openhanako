@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * session-key.js — bridge sessionKey 解析工具
  *
@@ -96,10 +95,10 @@ function cleanString(value) {
  * @returns {Record<string, Array<{userId: string, name: string|null}>>}
  */
 export function collectKnownUsers(index) {
-  const byPlatform = {};
+  const byPlatform: Record<string, any> = {};
 
   for (const [sessionKey, raw] of Object.entries(index)) {
-    const entry = typeof raw === "string" ? { file: raw } : raw;
+    const entry: any = typeof raw === "string" ? { file: raw } : raw;
     if (!entry.userId) continue;
 
     const parsed = parseSessionKey(sessionKey);
@@ -136,7 +135,7 @@ export function collectKnownUsers(index) {
     }
   }
 
-  const result = {};
+  const result: Record<string, any> = {};
   for (const [platform, map] of Object.entries(byPlatform)) {
     result[platform] = [...map.values()];
   }

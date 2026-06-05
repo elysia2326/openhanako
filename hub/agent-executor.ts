@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * AgentExecutor — Agent 会话执行器
  *
@@ -168,7 +167,7 @@ async function getRuntimeAgent(engine, agentId, reason) {
  * @param {boolean} [opts.readOnly=false] - 只读执行权限（保留工具 schema，调用时拦截副作用工具）
  * @returns {Promise<string>}  capture 轮的输出（已去掉 MOOD 块）
  */
-export async function runAgentSession(agentId, rounds, { engine, signal, sessionSuffix = "temp", ephemeralDir, systemAppend, keepSession = false, noMemory = false, noTools = false, readOnly = false } = {}) {
+export async function runAgentSession(agentId, rounds, { engine, signal, sessionSuffix = "temp", ephemeralDir, systemAppend, keepSession = false, noMemory = false, noTools = false, readOnly = false }: { engine?: any; signal?: any; sessionSuffix?: string; ephemeralDir?: any; systemAppend?: any; keepSession?: boolean; noMemory?: boolean; noTools?: boolean; readOnly?: boolean } = {}) {
   // 1. 从长驻 Map 获取 Agent 实例
   const agent = await getRuntimeAgent(engine, agentId, "agent-session");
   const agentDir = agent.agentDir;
@@ -306,7 +305,7 @@ export async function runAgentPhoneSession(agentId, rounds, {
   extraCustomTools = [],
   returnDiagnostics = false,
   now = new Date(),
-} = {}) {
+}: { engine?: any; signal?: any; conversationId?: any; conversationType?: string; systemAppend?: any; noMemory?: boolean; toolMode?: string; modelOverride?: any; onActivity?: any; onSessionReady?: any; emitEvents?: boolean; extraCustomTools?: any[]; returnDiagnostics?: boolean; now?: Date } = {}) {
   if (!conversationId) throw new Error("conversationId is required for agent phone session");
   assertAgentPhoneEnabled(engine);
 
@@ -360,6 +359,7 @@ export async function runAgentPhoneSession(agentId, rounds, {
     getSessionPath: () => sessionManager?.getSessionFile?.() || null,
     getPermissionMode: () => phonePermissionMode,
   });
+  // @ts-expect-error filterAgentPhoneTools signature accepts 1 arg; second arg ({ toolMode }) is unused at runtime
   const { tools, customTools } = filterAgentPhoneTools(built, { toolMode });
   const sessionCustomTools = [
     ...customTools,

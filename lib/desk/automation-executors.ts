@@ -1,4 +1,3 @@
-// @ts-nocheck
 export function getAutomationExecutor(job) {
   if (job?.executor?.kind) return job.executor;
   return {
@@ -21,7 +20,7 @@ export async function executeDirectAutomationAction(job, deps = {}) {
   throw new Error(`unsupported direct automation action: ${executor.action}`);
 }
 
-export async function executePluginAutomationAction(job, deps = {}) {
+export async function executePluginAutomationAction(job, deps: Record<string, any> = {}) {
   const executor = getAutomationExecutor(job);
   if (executor.kind !== "plugin_action") {
     throw new Error(`unsupported plugin automation executor: ${executor.kind}`);
@@ -46,7 +45,7 @@ export async function executePluginAutomationAction(job, deps = {}) {
   };
 }
 
-async function executeNotifyAction(job, executor, { deliverNotification } = {}) {
+async function executeNotifyAction(job, executor, { deliverNotification }: Record<string, any> = {}) {
   if (typeof deliverNotification !== "function") {
     throw new Error("notification gateway unavailable");
   }

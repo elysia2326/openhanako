@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * memory-ticker.js — 记忆调度器（v3）
  *
@@ -322,7 +321,7 @@ export function createMemoryTicker(opts) {
       const strictSessionSnapshot = metadata.cacheStrategy === CACHE_STRATEGIES.SESSION_SNAPSHOT && metadata.strict === true;
 
       if (!strictSessionSnapshot) {
-        const err = new Error("Cache snapshot memory write requires a strict session_snapshot result");
+        const err: any = new Error("Cache snapshot memory write requires a strict session_snapshot result");
         err.cacheMetadata = metadata;
         throw err;
       }
@@ -397,7 +396,7 @@ export function createMemoryTicker(opts) {
       if (messages.length === 0) return;
 
       const sessionId = sessionIdFromFilename(path.basename(sessionPath));
-      const rollingOptions = {
+      const rollingOptions: { resetAt: any; timeZone: string; memoryReflectionSnapshot?: any } = {
         resetAt,
         timeZone: _getTimezone(),
       };

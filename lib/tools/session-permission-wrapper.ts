@@ -1,4 +1,3 @@
-// @ts-nocheck
 import {
   classifySessionPermission,
   normalizeSessionPermissionMode,
@@ -8,7 +7,7 @@ import { getToolSessionPath } from "./tool-session.ts";
 import { toolError, toolOk } from "./tool-result.ts";
 import { t } from "../i18n.ts";
 
-function findRuntimeCtx(args) {
+function findRuntimeCtx(args: any[]) {
   for (let i = args.length - 1; i >= 2; i--) {
     const value = args[i];
     if (value && typeof value === "object" && (value.sessionManager || value.sessionPath || value.agentId || value.model)) {
@@ -18,7 +17,7 @@ function findRuntimeCtx(args) {
   return null;
 }
 
-function buildToolApprovalRequest(confirmId, toolName, params) {
+function buildToolApprovalRequest(confirmId: any, toolName: any, params: any) {
   return {
     type: "session_confirmation",
     confirmId,
@@ -40,7 +39,7 @@ function buildToolApprovalRequest(confirmId, toolName, params) {
   };
 }
 
-function buildToolApprovalGatewayRequest(toolName, params, sessionPath) {
+function buildToolApprovalGatewayRequest(toolName: any, params: any, sessionPath: any) {
   const target = approvalTargetForTool(toolName, params);
   return {
     id: `${sessionPath || "session"}:${toolName}:${Date.now()}`,
@@ -56,7 +55,7 @@ function buildToolApprovalGatewayRequest(toolName, params, sessionPath) {
   };
 }
 
-function approvalTargetForTool(toolName, params = {}) {
+function approvalTargetForTool(toolName: any, params: any = {}) {
   const command = typeof params.command === "string" ? params.command : "";
   if (command) return { type: "command", label: command };
   const path = typeof params.path === "string" ? params.path : typeof params.file_path === "string" ? params.file_path : "";
@@ -69,7 +68,7 @@ function approvalTargetForTool(toolName, params = {}) {
   return { type: "tool", label };
 }
 
-function summarizeParams(params) {
+function summarizeParams(params: any) {
   if (!params || typeof params !== "object") return "";
   const keys = ["action", "path", "file_path", "command", "url", "key", "label"];
   for (const key of keys) {
@@ -79,14 +78,14 @@ function summarizeParams(params) {
   return "";
 }
 
-function toStatus(action) {
+function toStatus(action: any) {
   if (action === "confirmed") return "confirmed";
   if (action === "timeout") return "timeout";
   if (action === "aborted") return "aborted";
   return "rejected";
 }
 
-async function askForToolApproval(toolName, params, sessionPath, deps) {
+async function askForToolApproval(toolName: any, params: any, sessionPath: any, deps: any) {
   const confirmStore = deps.getConfirmStore?.() || deps.confirmStore || null;
   if (!confirmStore || !sessionPath) {
     return { allowed: false, status: "rejected", confirmId: "", reason: "confirmation-unavailable" };
@@ -109,7 +108,7 @@ async function askForToolApproval(toolName, params, sessionPath, deps) {
   };
 }
 
-async function reviewToolApproval(toolName, params, sessionPath, deps) {
+async function reviewToolApproval(toolName: any, params: any, sessionPath: any, deps: any) {
   const gateway = deps.getApprovalGateway?.() || deps.approvalGateway || null;
   if (!gateway || typeof gateway.review !== "function") {
     return {
@@ -137,7 +136,7 @@ async function reviewToolApproval(toolName, params, sessionPath, deps) {
   };
 }
 
-function resolveToolPermissionMode(deps, sessionPath) {
+function resolveToolPermissionMode(deps: any, sessionPath: any) {
   if (typeof deps.getPermissionMode !== "function") return SESSION_PERMISSION_MODES.AUTO;
   const scoped = deps.getPermissionMode(sessionPath);
   const raw = scoped ?? deps.getPermissionMode();
@@ -145,18 +144,18 @@ function resolveToolPermissionMode(deps, sessionPath) {
   return normalizeSessionPermissionMode(raw);
 }
 
-export function wrapWithSessionPermission(tools = [], deps = {}) {
-  return tools.map((tool) => {
+export function wrapWithSessionPermission(tools: any[] = [], deps: any = {}) {
+  return tools.map((tool: any) => {
     if (!tool?.execute || tool._sessionPermissionWrapped) return tool;
     return {
       ...tool,
       _sessionPermissionWrapped: true,
-      execute: async (...args) => {
+      execute: async (...args: any[]) => {
         const params = args[1] || {};
         const ctx = findRuntimeCtx(args);
         const sessionPath = getToolSessionPath(ctx) || ctx?.sessionPath || deps.getSessionPath?.() || null;
         const mode = resolveToolPermissionMode(deps, sessionPath);
-        const decision = classifySessionPermission({ mode, toolName: tool.name, params, context: deps.permissionContext });
+        const decision: any = classifySessionPermission({ mode, toolName: tool.name, params, context: deps.permissionContext });
         if (decision.action === "allow") {
           return tool.execute(...args);
         }

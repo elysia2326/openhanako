@@ -1,4 +1,3 @@
-// @ts-nocheck
 import { Buffer } from "node:buffer";
 import * as piSdk from "../lib/pi-sdk/index.ts";
 
@@ -12,8 +11,8 @@ export const MODEL_IMAGE_INPUT_POLICY = Object.freeze({
   jpegQuality: 80,
 });
 
-function imagePreprocessError(message) {
-  const error = new Error(`image input preprocessing failed: ${message}`);
+function imagePreprocessError(message: any) {
+  const error: any = new Error(`image input preprocessing failed: ${message}`);
   error.code = "IMAGE_INPUT_PREPROCESS_FAILED";
   return error;
 }
@@ -207,6 +206,13 @@ export async function prepareModelImageInputsForPrompt({
   resizeImage,
   formatDimensionNote,
   signal,
+}: {
+  text?: any;
+  opts?: any;
+  imagePolicy?: any;
+  resizeImage?: any;
+  formatDimensionNote?: any;
+  signal?: AbortSignal;
 } = {}) {
   if (!Array.isArray(opts?.images) || opts.images.length === 0) {
     return { text, opts };

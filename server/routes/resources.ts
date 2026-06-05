@@ -1,4 +1,3 @@
-// @ts-nocheck
 import fs from "fs";
 import { Readable } from "stream";
 import { Hono } from "hono";
@@ -17,7 +16,7 @@ export function createResourcesRoute(engine) {
     try {
       const requestContext = createRequestContext(c, engine);
       const resource = getResource(engine, c.req.param("resourceId"), requestContext);
-      if (!resource) return jsonError(c, { code: "resource_not_found", status: 404 });
+      if (!resource) return jsonError(c, { code: "resource_not_found", detail: undefined, status: 404 });
       return c.json(resource);
     } catch (err) {
       return resourceRouteError(c, err);

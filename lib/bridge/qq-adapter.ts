@@ -1,4 +1,4 @@
-// @ts-nocheck
+
 /**
  * qq-adapter.js — QQ 机器人适配器（v2 API）
  *
@@ -62,7 +62,7 @@ const INTENTS = {
   GROUP_AND_C2C: 1 << 25,
 };
 
-function qqFileTypeForMedia(url, metadata = {}) {
+function qqFileTypeForMedia(url: any, metadata: Record<string, any> = {}) {
   const kind = metadata.kind;
   if (kind === "image") return 1;
   if (kind === "video") return 2;
@@ -80,7 +80,7 @@ function qqFileTypeForMedia(url, metadata = {}) {
   return 4;
 }
 
-function qqMediaEndpoints(chatId, metadata = {}, resource) {
+function qqMediaEndpoints(chatId: any, metadata: Record<string, any> = {}, resource: any) {
   const targetType = qqTargetType(metadata);
   if (targetType === "group") return [`/v2/groups/${chatId}/${resource}`];
   if (targetType === "user") return [`/v2/users/${chatId}/${resource}`];
@@ -99,7 +99,7 @@ function qqMessageEndpoints(chatId, replyContext = {}) {
   ];
 }
 
-function qqTargetType(metadata = {}) {
+function qqTargetType(metadata: Record<string, any> = {}) {
   const ctx = metadata.replyContext || metadata;
   if (ctx.targetType) return String(ctx.targetType);
   if (metadata.isGroup === true || ctx.isGroup === true || metadata.targetScope === "group" || ctx.targetScope === "group") return "group";
@@ -130,7 +130,7 @@ function qqDisplayName(name) {
   return value;
 }
 
-export function deriveQQPrincipal(author = {}) {
+export function deriveQQPrincipal(author: Record<string, any> = {}) {
   const principalId = cleanQQString(author.id)
     || cleanQQString(author.user_openid)
     || cleanQQString(author.member_openid)
@@ -260,7 +260,7 @@ export function createQQAdapter({ appID, appSecret, agentId, onMessage, dmGuildM
 
   // ── API 请求 ──
 
-  async function apiRequest(method, path, body) {
+  async function apiRequest(method: any, path: any, body?: any) {
     const token = await getToken();
     const res = await fetch(`${API_BASE}${path}`, {
       method,
@@ -565,7 +565,7 @@ export function createQQAdapter({ appID, appSecret, agentId, onMessage, dmGuildM
     }
   }, 60 * 60 * 1000); // 每小时刷新
 
-  async function sendRichMediaMessage(chatId, fileInfo, metadata = {}) {
+  async function sendRichMediaMessage(chatId: any, fileInfo: any, metadata: Record<string, any> = {}) {
     const msgBody = { msg_type: 7, media: { file_info: fileInfo }, content: " " };
     attachPassiveReplyFields(msgBody, metadata.replyContext || metadata);
     const messageEndpoints = qqMediaEndpoints(chatId, metadata, "messages");
@@ -626,7 +626,7 @@ export function createQQAdapter({ appID, appSecret, agentId, onMessage, dmGuildM
     },
 
     /** 发送媒体（两步上传：先上传获取 file_info，再发送富媒体消息） */
-    async sendMedia(chatId, url, metadata = {}) {
+    async sendMedia(chatId: any, url: any, metadata: Record<string, any> = {}) {
       const fileType = qqFileTypeForMedia(url, metadata);
       if (metadata.isGroup === true && fileType === 4) {
         throw new Error("QQ 群聊暂不开放文件类型发送，请改用单聊或发送图片/视频/语音");
@@ -653,7 +653,7 @@ export function createQQAdapter({ appID, appSecret, agentId, onMessage, dmGuildM
     },
 
     /** 发送已归属的本地 SessionFile：本机直接分片上传到 QQ，再发送 file_info。 */
-    async sendMediaFile(chatId, filePath, metadata = {}) {
+    async sendMediaFile(chatId: any, filePath: any, metadata: Record<string, any> = {}) {
       const fileType = qqFileTypeForMedia(metadata.filename || filePath, metadata);
       if (metadata.isGroup === true && fileType === QQ_FILE_TYPE.FILE) {
         throw new Error("QQ 群聊暂不开放文件类型发送，请改用单聊或发送图片/视频/语音");
@@ -666,7 +666,7 @@ export function createQQAdapter({ appID, appSecret, agentId, onMessage, dmGuildM
     },
 
     /** QQ 本地文件入口必须保留文件归属和 realpath 校验，不接受裸 buffer。 */
-    async sendMediaBuffer(_chatId, _buffer, { filename } = {}) {
+    async sendMediaBuffer(_chatId: any, _buffer: any, { filename }: Record<string, any> = {}) {
       const label = filename ? `：${filename}` : "";
       throw new Error(`QQ 发送本地文件需要已注册的 staged file${label}`);
     },

@@ -1,4 +1,3 @@
-// @ts-nocheck
 import fs from "fs";
 import os from "os";
 import path from "path";
@@ -34,12 +33,12 @@ const MACOS_CUA_ALLOWED_ACTIONS = [
 ];
 const MACOS_CUA_DISABLED_PIXEL_ACTIONS = new Set(["click_point", "double_click", "drag"]);
 
-function expandHome(filePath, homeDir = os.homedir()) {
+function expandHome(filePath: any, homeDir = os.homedir()) {
   if (!filePath || !filePath.startsWith("~/")) return filePath;
   return path.join(homeDir, filePath.slice(2));
 }
 
-function helperPath(root) {
+function helperPath(root: any) {
   return path.join(root, "hana-computer-use-helper");
 }
 
@@ -47,11 +46,11 @@ function defaultHanaComputerUseSocketPath(homeDir = os.homedir()) {
   return path.join(homeDir, "Library", "Caches", "hana-computer-use", "hana-computer-use-helper.sock");
 }
 
-function commandIsBundledHanaHelper(command) {
+function commandIsBundledHanaHelper(command: any) {
   return path.basename(String(command || "")) === "hana-computer-use-helper";
 }
 
-function bundledHelperCandidates({ env, hanaRoot, cwd, arch }) {
+function bundledHelperCandidates({ env, hanaRoot, cwd, arch }: any) {
   const roots = [];
   if (env.HANA_COMPUTER_USE_RUNTIME_ROOT) {
     roots.push(env.HANA_COMPUTER_USE_RUNTIME_ROOT);
@@ -89,7 +88,7 @@ export function resolveCuaDriverCommand({
   return "cua-driver";
 }
 
-function parseJsonMaybe(stdout) {
+function parseJsonMaybe(stdout: any) {
   const text = String(stdout || "").trim();
   if (!text) return {};
   try {
@@ -99,29 +98,29 @@ function parseJsonMaybe(stdout) {
   }
 }
 
-function getStructured(result) {
+function getStructured(result: any) {
   return result?.structuredContent
     || result?.structured_content
     || result?.data
     || null;
 }
 
-function getContent(result) {
+function getContent(result: any) {
   return Array.isArray(result?.content) ? result.content : [];
 }
 
-function getText(result) {
+function getText(result: any) {
   return getContent(result)
     .filter((block) => block?.type === "text")
     .map((block) => block.text || "")
     .join("\n");
 }
 
-function getImage(result) {
+function getImage(result: any) {
   return getContent(result).find((block) => block?.type === "image") || null;
 }
 
-function parsePermissionText(text) {
+function parsePermissionText(text: any) {
   return String(text || "")
     .split(/\r?\n/)
     .map((line) => line.trim())
@@ -136,13 +135,13 @@ function parsePermissionText(text) {
     .filter(Boolean);
 }
 
-function normalizePermissions(result) {
+function normalizePermissions(result: any) {
   const structured = getStructured(result);
   if (Array.isArray(structured?.permissions)) return structured.permissions;
   return parsePermissionText(getText(result));
 }
 
-function normalizeWindows(windows = []) {
+function normalizeWindows(windows: any[] = []) {
   if (!Array.isArray(windows)) return [];
   return windows.map((win) => ({
     windowId: String(win.window_id ?? win.windowId ?? win.id ?? ""),
@@ -155,7 +154,7 @@ function normalizeWindows(windows = []) {
   })).filter((win) => win.windowId);
 }
 
-function normalizeAppsPayload(payload) {
+function normalizeAppsPayload(payload: any) {
   const apps = Array.isArray(payload) ? payload : (payload?.apps || payload?.items || []);
   if (!Array.isArray(apps)) return [];
   return apps.map((app) => {
@@ -176,18 +175,18 @@ function normalizeAppsPayload(payload) {
   });
 }
 
-function normalizeWindowsPayload(payload) {
+function normalizeWindowsPayload(payload: any) {
   const windows = Array.isArray(payload) ? payload : (payload?.windows || payload?.items || []);
   return normalizeWindows(windows);
 }
 
-function windowArea(win) {
+function windowArea(win: any) {
   const width = Number(win?.bounds?.width || 0);
   const height = Number(win?.bounds?.height || 0);
   return Number.isFinite(width) && Number.isFinite(height) ? width * height : 0;
 }
 
-function scoreLaunchWindow(win) {
+function scoreLaunchWindow(win: any) {
   let score = 0;
   if (win?.isOnScreen === true) score += 1000;
   if (win?.onCurrentSpace === true) score += 500;
@@ -198,7 +197,7 @@ function scoreLaunchWindow(win) {
   return score;
 }
 
-function selectLaunchWindow(windows, targetWindowId = null) {
+function selectLaunchWindow(windows: any, targetWindowId: any = null) {
   if (!Array.isArray(windows) || !windows.length) return null;
   if (targetWindowId) {
     const explicit = windows.find((win) => String(win.windowId) === String(targetWindowId));
@@ -207,7 +206,7 @@ function selectLaunchWindow(windows, targetWindowId = null) {
   return [...windows].sort((a, b) => scoreLaunchWindow(b) - scoreLaunchWindow(a))[0] || null;
 }
 
-function normalizeLaunchPayload(payload, target) {
+function normalizeLaunchPayload(payload: any, target: any) {
   const data = payload || {};
   const windows = normalizeWindows(data.windows);
   const pid = data.pid ?? data.process_id ?? data.processId ?? target?.pid ?? null;
@@ -232,11 +231,11 @@ function normalizeLaunchPayload(payload, target) {
   };
 }
 
-function sameAppId(left, right) {
+function sameAppId(left: any, right: any) {
   return String(left || "").trim().toLowerCase() === String(right || "").trim().toLowerCase();
 }
 
-function appMatchesTarget(app, target = {}) {
+function appMatchesTarget(app: any, target: any = {}) {
   if (target.appId) {
     return [
       app?.appId,
@@ -252,12 +251,12 @@ function appMatchesTarget(app, target = {}) {
   ].some((value) => String(value || "").trim().toLowerCase() === targetName);
 }
 
-function runningPid(app) {
+function runningPid(app: any) {
   const pid = Number(app?.pid ?? app?.providerData?.pid);
   return Number.isFinite(pid) && pid > 0 ? pid : null;
 }
 
-function normalizeRunningAppLease(app, windows, target = {}) {
+function normalizeRunningAppLease(app: any, windows: any, target: any = {}) {
   const pid = runningPid(app);
   const selectedWindow = selectLaunchWindow(windows, target.windowId);
   if (!pid || !selectedWindow) return null;
@@ -274,12 +273,12 @@ function normalizeRunningAppLease(app, windows, target = {}) {
   };
 }
 
-function sleep(ms) {
+function sleep(ms: number) {
   if (!ms) return Promise.resolve();
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
-function parseElementsFromMarkdown(markdown) {
+function parseElementsFromMarkdown(markdown: any) {
   const elements = [];
   const lines = String(markdown || "").split(/\r?\n/);
   for (let index = 0; index < lines.length; index += 1) {
@@ -310,7 +309,7 @@ function parseElementsFromMarkdown(markdown) {
   return elements;
 }
 
-function actionsFromMarkdownFragment(fragment) {
+function actionsFromMarkdownFragment(fragment: any) {
   const match = String(fragment || "").match(/\bactions=\[([^\]]*)\]/);
   if (!match?.[1]) return [];
   return match[1]
@@ -319,7 +318,7 @@ function actionsFromMarkdownFragment(fragment) {
     .filter(Boolean);
 }
 
-function labelFromMarkdownFragment(fragment) {
+function labelFromMarkdownFragment(fragment: any) {
   const text = String(fragment || "");
   const quoted = text.match(/"([^"]+)"/);
   if (quoted?.[1]) return quoted[1].trim();
@@ -330,7 +329,7 @@ function labelFromMarkdownFragment(fragment) {
   return "";
 }
 
-function uniqueLabelParts(labels) {
+function uniqueLabelParts(labels: any[]) {
   const seen = new Set();
   const result = [];
   for (const label of labels) {
@@ -342,7 +341,7 @@ function uniqueLabelParts(labels) {
   return result;
 }
 
-function normalizeWindowState(result, lease) {
+function normalizeWindowState(result: any, lease: any) {
   const structured = getStructured(result) || {};
   const text = getText(result);
   const image = getImage(result);
@@ -384,17 +383,17 @@ function normalizeWindowState(result, lease) {
   };
 }
 
-function finiteNumber(value, fallback = 0) {
+function finiteNumber(value: any, fallback = 0) {
   const number = Number(value);
   return Number.isFinite(number) ? number : fallback;
 }
 
-function positiveNumber(value, fallback = 1) {
+function positiveNumber(value: any, fallback = 1) {
   const number = Number(value);
   return Number.isFinite(number) && number > 0 ? number : fallback;
 }
 
-function normalizeScreenshotDisplay(structured = {}) {
+function normalizeScreenshotDisplay(structured: any = {}) {
   const source = structured.display || structured.screen || {};
   const width = positiveNumber(structured.screenshot_width ?? source.width, 1568);
   const height = positiveNumber(structured.screenshot_height ?? source.height, 1000);
@@ -417,7 +416,7 @@ function normalizeScreenshotDisplay(structured = {}) {
   };
 }
 
-function elementIndexFromId(elementId) {
+function elementIndexFromId(elementId: any) {
   const raw = String(elementId || "").replace(/^cua:/, "");
   const n = Number(raw);
   if (!Number.isInteger(n)) {
@@ -426,7 +425,7 @@ function elementIndexFromId(elementId) {
   return n;
 }
 
-function requireElementIndex(action) {
+function requireElementIndex(action: any) {
   if (action?.elementId) return elementIndexFromId(action.elementId);
   throw computerUseError(
     COMPUTER_USE_ERRORS.TARGET_NOT_FOUND,
@@ -435,7 +434,7 @@ function requireElementIndex(action) {
   );
 }
 
-function rejectDisabledPixelAction(action = {}) {
+function rejectDisabledPixelAction(action: any = {}) {
   throw computerUseError(
     COMPUTER_USE_ERRORS.CAPABILITY_UNSUPPORTED,
     `macOS Cua pixel input is disabled for clean background control: ${action.type}`,
@@ -443,13 +442,13 @@ function rejectDisabledPixelAction(action = {}) {
   );
 }
 
-function advertisedActions(snapshotElement = {}) {
+function advertisedActions(snapshotElement: any = {}) {
   return Array.isArray(snapshotElement?.actions)
     ? snapshotElement.actions.map(String).filter(Boolean)
     : [];
 }
 
-function semanticClickActionForElement(snapshotElement = {}) {
+function semanticClickActionForElement(snapshotElement: any = {}) {
   const actions = advertisedActions(snapshotElement);
   if (!actions.length || actions.includes("AXPress")) return null;
   if (actions.includes("AXShowDefaultUI")) return "show_default_ui";
@@ -457,7 +456,7 @@ function semanticClickActionForElement(snapshotElement = {}) {
   return null;
 }
 
-function normalizeCursorStyle({ cursorStyle, cursorImagePath, cursorBloomColor }) {
+function normalizeCursorStyle({ cursorStyle, cursorImagePath, cursorBloomColor }: any) {
   if (cursorStyle === false || cursorStyle == null) return null;
   if (cursorImagePath) {
     return {
@@ -466,7 +465,7 @@ function normalizeCursorStyle({ cursorStyle, cursorImagePath, cursorBloomColor }
     };
   }
   if (typeof cursorStyle !== "object") return null;
-  const normalized = {};
+  const normalized: Record<string, any> = {};
   if (Array.isArray(cursorStyle.gradient_colors)) {
     normalized.gradient_colors = [...cursorStyle.gradient_colors];
   }
@@ -514,7 +513,7 @@ export function createMacosCuaProvider({
       }
     : null;
 
-  function runEnv(baseEnv) {
+  function runEnv(baseEnv: any) {
     return {
       ...(baseEnv || process.env),
       [HANA_AGENT_SOCKET_PATH_ENV]: socketPath,
@@ -524,8 +523,8 @@ export function createMacosCuaProvider({
     };
   }
 
-  async function runRaw(args, options = {}) {
-    const result = await runner.run(command, args, {
+  async function runRaw(args: any, options: any = {}) {
+    const result: any = await runner.run(command, args, {
       timeoutMs: options.timeoutMs || timeoutMs,
       env: runEnv(options.env),
     });
@@ -547,7 +546,7 @@ export function createMacosCuaProvider({
     return parsed;
   }
 
-  async function runTool(name, payload = null) {
+  async function runTool(name: any, payload: any = null) {
     const args = payload == null
       ? [name, "--raw", "--compact", "--socket", socketPath]
       : [name, JSON.stringify(payload), "--raw", "--compact", "--socket", socketPath];
@@ -556,7 +555,7 @@ export function createMacosCuaProvider({
 
   async function isDaemonRunning() {
     try {
-      const result = await runner.run(command, ["status", "--socket", socketPath], {
+      const result: any = await runner.run(command, ["status", "--socket", socketPath], {
         timeoutMs: 2000,
         env: runEnv(process.env),
       });
@@ -620,7 +619,7 @@ export function createMacosCuaProvider({
     spawnedDaemonPid = null;
   }
 
-  function killSpawnedDaemon(signal) {
+  function killSpawnedDaemon(signal: any) {
     if (!spawnedDaemonPid || platform !== "darwin") return false;
     try {
       process.kill(-spawnedDaemonPid, signal);
@@ -647,7 +646,7 @@ export function createMacosCuaProvider({
         return { stopped: false, reason: "not-running" };
       }
 
-      let stopResult = null;
+      let stopResult: any = null;
       try {
         stopResult = await runner.run(command, ["stop", "--socket", socketPath], {
           timeoutMs: 5000,
@@ -696,7 +695,7 @@ export function createMacosCuaProvider({
     await nativeCursorConfigPromise;
   }
 
-  async function tryCreateLeaseFromRunningApp(target = {}) {
+  async function tryCreateLeaseFromRunningApp(target: any = {}) {
     const appsResult = await runTool("list_apps");
     const app = normalizeAppsPayload(getStructured(appsResult)).find((candidate) => appMatchesTarget(candidate, target));
     const pid = runningPid(app);
@@ -740,14 +739,14 @@ export function createMacosCuaProvider({
         return { providerId, available: false, reason: "unsupported-platform", platform };
       }
       try {
-        const status = await runner.run(command, ["status", "--socket", socketPath], {
+        const status: any = await runner.run(command, ["status", "--socket", socketPath], {
           timeoutMs: 5000,
           env: runEnv(process.env),
         });
         if (status.exitCode !== 0) {
           return { providerId, available: false, reason: "daemon-unavailable", stderr: status.stderr || "" };
         }
-        let permissions = [];
+        let permissions: any = [];
         try {
           const perms = await runTool("check_permissions", { prompt: false });
           permissions = normalizePermissions(perms);
@@ -778,7 +777,7 @@ export function createMacosCuaProvider({
       return normalizeAppsPayload(getStructured(result));
     },
 
-    async createLease(_ctx, target = {}) {
+    async createLease(_ctx: any, target: any = {}) {
       ensureDarwin();
       await ensureNativeCursorConfigured();
       if (target.pid || target.processId) {
@@ -831,7 +830,7 @@ export function createMacosCuaProvider({
       };
     },
 
-    async getAppState(_ctx, lease) {
+    async getAppState(_ctx: any, lease: any) {
       ensureDarwin();
       await ensureDaemonRunning();
       await ensureNativeCursorConfigured();
@@ -843,7 +842,7 @@ export function createMacosCuaProvider({
       return normalizeWindowState(result, lease);
     },
 
-    async performAction(_ctx, lease, action) {
+    async performAction(_ctx: any, lease: any, action: any) {
       ensureDarwin();
       await ensureDaemonRunning();
       await ensureNativeCursorConfigured();
@@ -871,7 +870,7 @@ export function createMacosCuaProvider({
         return getStructured(await runTool("right_click", { pid, window_id: windowId, element_index: requireElementIndex(action) })) || { ok: true };
       }
       if (action.type === "type_text") {
-        const payload = { pid, text: action.text || "" };
+        const payload: Record<string, any> = { pid, text: action.text || "" };
         if (action.elementId) {
           payload.window_id = windowId;
           payload.element_index = requireElementIndex(action);
@@ -882,7 +881,7 @@ export function createMacosCuaProvider({
         return getStructured(await runTool("press_key", { pid, key: action.key })) || { ok: true };
       }
       if (action.type === "scroll") {
-        const payload = { pid, direction: action.direction, amount: action.amount || 3 };
+        const payload: Record<string, any> = { pid, direction: action.direction, amount: action.amount || 3 };
         if (action.elementId) {
           payload.window_id = windowId;
           payload.element_index = requireElementIndex(action);

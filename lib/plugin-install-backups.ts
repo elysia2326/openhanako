@@ -1,4 +1,3 @@
-// @ts-nocheck
 import fs from "fs";
 import path from "path";
 
@@ -37,7 +36,7 @@ export function createPluginInstallBackup({
   pluginDir,
   version,
   maxBackups = DEFAULT_MAX_BACKUPS_PER_PLUGIN,
-} = {}) {
+}: { hanakoHome?: string; pluginId?: string; pluginDir?: string; version?: string; maxBackups?: number } = {}) {
   if (!hanakoHome || !pluginId || !pluginDir || !fs.existsSync(pluginDir)) return null;
   const backupRoot = path.join(hanakoHome, "plugin-backups", safeSegment(pluginId));
   fs.mkdirSync(backupRoot, { recursive: true });

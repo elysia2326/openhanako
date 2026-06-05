@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * WebSocket 聊天路由
  *
@@ -46,7 +45,7 @@ const wsLog = createModuleLogger("ws");
 /** tool_start 事件只广播这些 arg 字段，避免传输完整文件内容（同步维护：chat-render-shim.ts extractToolDetail） */
 const TOOL_ARG_SUMMARY_KEYS = ["file_path", "path", "command", "pattern", "url", "query", "key", "value", "action", "type", "schedule", "prompt", "label"];
 
-export function summarizeToolStartArgs(toolName, rawArgs, startedAt = Date.now()) {
+export function summarizeToolStartArgs(toolName: any, rawArgs: any, startedAt = Date.now()) {
   if (!rawArgs || typeof rawArgs !== "object") return undefined;
   const args = {};
   for (const k of TOOL_ARG_SUMMARY_KEYS) {
@@ -58,7 +57,7 @@ export function summarizeToolStartArgs(toolName, rawArgs, startedAt = Date.now()
 /**
  * 从 Pi SDK 的 content 块中提取纯文本
  */
-function extractText(content) {
+function extractText(content: any) {
   if (typeof content === "string") return content;
   if (!Array.isArray(content)) return "";
   return content
@@ -67,7 +66,7 @@ function extractText(content) {
     .join("");
 }
 
-function deferredResultFileBlocks(result, taskId = null) {
+function deferredResultFileBlocks(result: any, taskId: any = null) {
   if (!result || typeof result !== "object" || Array.isArray(result)) return [];
   const sessionFiles = Array.isArray(result.sessionFiles) ? result.sessionFiles : [];
   return sessionFiles
@@ -75,7 +74,7 @@ function deferredResultFileBlocks(result, taskId = null) {
     .filter(Boolean);
 }
 
-function sessionFileToContentBlock(file, extra = undefined) {
+function sessionFileToContentBlock(file: any, extra: any = undefined) {
   if (!file || typeof file !== "object") return null;
   const filePath = file.filePath || file.realPath || null;
   if (!filePath) return null;
@@ -104,7 +103,7 @@ function sessionFileToContentBlock(file, extra = undefined) {
   };
 }
 
-function deferredResultFailureBlock(event) {
+function deferredResultFailureBlock(event: any) {
   const metaType = event?.meta?.type || "";
   const mediaKind = event?.meta?.mediaKind || (metaType === "video-generation" ? "video" : (metaType === "image-generation" ? "image" : null));
   if (!mediaKind || !event?.taskId) return null;
@@ -118,7 +117,7 @@ function deferredResultFailureBlock(event) {
   };
 }
 
-export function toCompactionLifecycleWsMessage(event, sessionPath, getSessionByPath) {
+export function toCompactionLifecycleWsMessage(event: any, sessionPath: any, getSessionByPath: any) {
   if (!sessionPath) return null;
   if (event.type === "compaction_start") {
     return {
@@ -142,7 +141,7 @@ export function toCompactionLifecycleWsMessage(event, sessionPath, getSessionByP
   };
 }
 
-export function toNotificationWsMessage(event, sessionPath = null) {
+export function toNotificationWsMessage(event: any, sessionPath: any = null) {
   const desktopFocusPolicy = event.desktopFocusPolicy === "when_session_unfocused"
     ? "when_session_unfocused"
     : event.desktopFocusPolicy === "when_unfocused"
@@ -164,7 +163,7 @@ export function toNotificationWsMessage(event, sessionPath = null) {
 // 必须带顶层 sessionPath —— wsClientCanReceiveEvent 靠它给非本地（PWA/远程）client 做
 // session 订阅校验，缺失会 fail-closed。优先用 listener 第二参数（emit 时的权威 sessionPath），
 // entry.sessionPath 兜底。
-export function toAgentActivityWsMessage(event, sessionPath) {
+export function toAgentActivityWsMessage(event: any, sessionPath: any) {
   if (!event || event.type !== "agent_activity") return null;
   return {
     type: "agent_activity",
@@ -182,7 +181,7 @@ export function resolveDisconnectAbortGraceMs(value = process.env.HANA_WS_DISCON
   return Math.floor(parsed);
 }
 
-export function createChatRoute(engine, hub, { upgradeWebSocket }) {
+export function createChatRoute(engine: any, hub: any, { upgradeWebSocket }: any) {
   const restRoute = new Hono();
   const wsRoute = new Hono();
 
@@ -291,7 +290,7 @@ export function createChatRoute(engine, hub, { upgradeWebSocket }) {
       subscriptions: requestContext.studioId
         ? [{ kind: "studio", studioId: requestContext.studioId }]
         : [],
-    });
+    } as any);
   }
 
   function ensureWsClientRecord(ws, requestContext, options = {}) {
@@ -647,7 +646,7 @@ export function createChatRoute(engine, hub, { upgradeWebSocket }) {
 
       if (event.toolName === "browser") {
         const d = event.result?.details || {};
-        const statusMsg = {
+        const statusMsg: Record<string, any> = {
           type: "browser_status",
           running: d.running ?? false,
           url: d.url || null,
@@ -670,7 +669,7 @@ export function createChatRoute(engine, hub, { upgradeWebSocket }) {
     } else if (event.type === "devlog") {
       broadcast({ type: "devlog", text: event.text, level: event.level });
     } else if (event.type === "browser_status") {
-      const statusMsg = {
+      const statusMsg: Record<string, any> = {
         type: "browser_status",
         running: !!event.running,
         url: event.url || null,
@@ -948,7 +947,7 @@ export function createChatRoute(engine, hub, { upgradeWebSocket }) {
               provider: model?.provider ?? null,
               usage,
               costRates: model?.cost,
-            });
+            } as any);
             hub.eventBus.emit({
               type: "token_usage",
               usage,
@@ -1186,12 +1185,12 @@ export function createChatRoute(engine, hub, { upgradeWebSocket }) {
               }
               try {
                 try {
-                  await compactSessionWithCachePreservation(session);
+                  await compactSessionWithCachePreservation(session, undefined);
                 } catch (err) {
                   if (!isStaleExtensionContextError(err)) throw err;
                   session = await engine.reloadSessionRuntime?.(compactPath);
                   if (!session) throw err;
-                  await compactSessionWithCachePreservation(session);
+                  await compactSessionWithCachePreservation(session, undefined);
                 }
               } catch (err) {
                 const errMsg = err.message || "";
@@ -1305,7 +1304,7 @@ export function createChatRoute(engine, hub, { upgradeWebSocket }) {
             errorBus.report(appErr, { context: { wsMessageType: msg.type } });
             const isUserAbort = appErr.name === 'AbortError'
               || appErr.message === 'This operation was aborted'
-              || appErr.type === 'aborted';
+              || (appErr as any).type === 'aborted';
             if (!isUserAbort) {
               wsSend(ws, { type: 'error', message: appErr.message || 'Unknown error', error: appErr.toJSON(), sessionPath: msg.sessionPath });
             }
@@ -1340,7 +1339,7 @@ export function createChatRoute(engine, hub, { upgradeWebSocket }) {
   return { restRoute, wsRoute };
 }
 
-function enrichSessionFileBlocks(blocks, engine, sessionPath) {
+function enrichSessionFileBlocks(blocks: any, engine: any, sessionPath: any) {
   if (!Array.isArray(blocks) || blocks.length === 0 || !sessionPath) return blocks || [];
   return blocks.map((block) => {
     const patch = sessionFileBlockPatch(block, engine, sessionPath);
@@ -1353,7 +1352,7 @@ function enrichSessionFileBlocks(blocks, engine, sessionPath) {
   });
 }
 
-function sessionFileBlockPatch(block, engine, sessionPath) {
+function sessionFileBlockPatch(block: any, engine: any, sessionPath: any) {
   if (!block || typeof block !== "object") return null;
   if (!["file", "artifact", "skill"].includes(block.type)) return null;
   let file = null;
@@ -1370,7 +1369,7 @@ function sessionFileBlockPatch(block, engine, sessionPath) {
   return sessionFileFields(serialized || file);
 }
 
-function sessionFileFields(file) {
+function sessionFileFields(file: any) {
   if (!file || typeof file !== "object") return null;
   const fileId = file.fileId || file.id || null;
   return {
@@ -1391,7 +1390,7 @@ function sessionFileFields(file) {
  * 后台生成 session 标题：从第一轮对话提取摘要
  * 只在 session 还没有自定义标题时执行
  */
-async function generateSessionTitle(engine, notify, opts = {}) {
+async function generateSessionTitle(engine: any, notify: any, opts: any = {}) {
   try {
     const sessionPath = opts.sessionPath;
     if (!sessionPath) return false;

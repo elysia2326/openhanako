@@ -1,10 +1,9 @@
-// @ts-nocheck
 import fs from "fs";
 import path from "path";
 import { Hono } from "hono";
 import { guessMime } from "../http/file-content.ts";
 
-export function createMobileStaticRoute({ distDir } = {}) {
+export function createMobileStaticRoute({ distDir }: { distDir?: string } = {}) {
   if (!distDir) throw new Error("distDir required");
   const route = new Hono();
 

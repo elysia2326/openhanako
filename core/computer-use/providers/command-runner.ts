@@ -1,9 +1,23 @@
-// @ts-nocheck
 import { spawn } from "child_process";
+
+interface SpawnOptions {
+  env?: Record<string, string>;
+  windowsHide?: boolean;
+  detached?: boolean;
+  stdio?: any;
+  unref?: boolean;
+}
+
+interface RunOptions {
+  env?: Record<string, string>;
+  windowsHide?: boolean;
+  timeoutMs?: number;
+  stdin?: any;
+}
 
 export function createCommandRunner({ spawnImpl = spawn } = {}) {
   return {
-    spawn(command, args = [], options = {}) {
+    spawn(command: string, args: string[] = [], options: SpawnOptions = {}) {
       const child = spawnImpl(command, args, {
         env: options.env || process.env,
         windowsHide: options.windowsHide !== false,
@@ -16,7 +30,7 @@ export function createCommandRunner({ spawnImpl = spawn } = {}) {
       return child;
     },
 
-    run(command, args = [], options = {}) {
+    run(command: string, args: string[] = [], options: RunOptions = {}) {
       return new Promise((resolve, reject) => {
         const child = spawnImpl(command, args, {
           env: options.env || process.env,
@@ -39,7 +53,7 @@ export function createCommandRunner({ spawnImpl = spawn } = {}) {
         if (options.timeoutMs) {
           timer = setTimeout(() => {
             try { child.kill("SIGKILL"); } catch {}
-            const err = new Error(`Command timed out after ${options.timeoutMs}ms`);
+            const err: Error & { code?: string } = new Error(`Command timed out after ${options.timeoutMs}ms`);
             err.code = "ETIMEDOUT";
             finish(reject, err);
           }, options.timeoutMs);

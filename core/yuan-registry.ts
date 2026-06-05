@@ -1,4 +1,3 @@
-// @ts-nocheck
 import fs from "fs";
 import path from "path";
 
@@ -51,7 +50,7 @@ export function isKnownYuan(productDir, value) {
 export function assertKnownYuan(productDir, value) {
   const key = normalizeYuanKey(value);
   if (!isKnownYuan(productDir, key)) {
-    const err = new Error(`Invalid yuan "${key}": template not found in lib/yuan`);
+    const err = new Error(`Invalid yuan "${key}": template not found in lib/yuan`) as Error & { code: string; statusCode: number };
     err.code = "INVALID_YUAN";
     err.statusCode = 400;
     throw err;

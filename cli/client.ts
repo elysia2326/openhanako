@@ -1,15 +1,18 @@
-// @ts-nocheck
 import WebSocket from "ws";
 
 export class HanaCliClient {
+  declare baseUrl: string;
+  declare token: string;
+  declare queryTokenAllowed: boolean;
+
   constructor({ baseUrl, token = "", queryTokenAllowed = false }) {
     this.baseUrl = String(baseUrl || "").replace(/\/+$/, "");
     this.token = token;
     this.queryTokenAllowed = queryTokenAllowed;
   }
 
-  async request(path, opts = {}) {
-    const headers = { ...(opts.headers || {}) };
+  async request(path, opts: Record<string, any> = {}) {
+    const headers: Record<string, string> = { ...(opts.headers || {}) };
     if (this.token) headers.Authorization = `Bearer ${this.token}`;
     let body = opts.body;
     if (body && typeof body === "object" && !(body instanceof Uint8Array)) {
@@ -25,7 +28,7 @@ export class HanaCliClient {
     const data = text ? safeJson(text) : null;
     if (!res.ok) {
       const detail = data?.detail || data?.reason || data?.error || text || res.statusText;
-      const err = new Error(`HTTP ${res.status}: ${detail}`);
+      const err: any = new Error(`HTTP ${res.status}: ${detail}`);
       err.status = res.status;
       err.data = data;
       throw err;
@@ -64,7 +67,7 @@ export class HanaCliClient {
     const url = new URL(this.baseUrl.replace(/^http/i, "ws"));
     url.pathname = "/ws";
     url.search = "";
-    const headers = {};
+    const headers: Record<string, string> = {};
     if (this.token && this.queryTokenAllowed) {
       url.searchParams.set("token", this.token);
     } else if (this.token) {

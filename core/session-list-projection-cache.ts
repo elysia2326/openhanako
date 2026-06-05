@@ -1,8 +1,9 @@
-// @ts-nocheck
 import fs from "fs/promises";
 import path from "path";
 
 export class SessionListProjectionCache {
+  declare _dirs: Map<string, Map<string, any>>;
+
   constructor() {
     this._dirs = new Map();
   }

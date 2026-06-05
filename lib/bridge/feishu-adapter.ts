@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * feishu-adapter.js — 飞书 Bot WebSocket 长连接适配器
  *
@@ -53,12 +52,12 @@ const FEISHU_WS_HEALTH_INTERVAL_MS = 30_000;
 const FEISHU_WS_DISCONNECTED_ERROR = "WebSocket disconnected";
 const FEISHU_AT_TOKEN_RE = /<at\s+user_id=(["'])([^"']+)\1\s*>([\s\S]*?)<\/at>/gi;
 
-function unrefTimer(timer) {
+function unrefTimer(timer: any) {
   if (typeof timer?.unref === "function") timer.unref();
   return timer;
 }
 
-function renderFeishuPostParagraph(text) {
+function renderFeishuPostParagraph(text: any) {
   const parts = [];
   let cursor = 0;
   FEISHU_AT_TOKEN_RE.lastIndex = 0;
@@ -76,7 +75,7 @@ function renderFeishuPostParagraph(text) {
   return parts;
 }
 
-function renderFeishuPostMessageContent(text) {
+function renderFeishuPostMessageContent(text: any) {
   const paragraphs = String(text || "")
     .split(/\r?\n/)
     .map(renderFeishuPostParagraph);
@@ -87,17 +86,17 @@ function renderFeishuPostMessageContent(text) {
   });
 }
 
-function isSelfFeishuBotSender(sender, appId) {
+function isSelfFeishuBotSender(sender: any, appId: any) {
   const senderType = sender?.sender_type;
   if (senderType !== "bot" && senderType !== "app") return false;
   return Boolean(appId && sender?.sender_id?.app_id === appId);
 }
 
-function isFeishuBotSender(sender) {
+function isFeishuBotSender(sender: any) {
   return sender?.sender_type === "bot" || sender?.sender_type === "app";
 }
 
-function extractFeishuMessageId(res) {
+function extractFeishuMessageId(res: any) {
   const candidates = [
     res?.data?.message_id,
     res?.message_id,
@@ -110,7 +109,7 @@ function extractFeishuMessageId(res) {
   return null;
 }
 
-function describeFeishuError(err) {
+function describeFeishuError(err: any) {
   const data = err?.response?.data || err?.data || err?.body || null;
   if (data && typeof data === "object") {
     const parts = [];
@@ -123,13 +122,13 @@ function describeFeishuError(err) {
   return err?.message || String(err);
 }
 
-function wrapFeishuError(label, err) {
+function wrapFeishuError(label: any, err: any) {
   const wrapped = new Error(`飞书${label}失败：${describeFeishuError(err)}`);
-  wrapped.cause = err;
+  (wrapped as any).cause = err;
   return wrapped;
 }
 
-async function callFeishu(label, fn) {
+async function callFeishu(label: any, fn: any) {
   try {
     return await fn();
   } catch (err) {
@@ -137,7 +136,7 @@ async function callFeishu(label, fn) {
   }
 }
 
-function assertUploadBuffer(buffer, label, maxBytes) {
+function assertUploadBuffer(buffer: any, label: any, maxBytes: any) {
   if (!buffer || typeof buffer.length !== "number") {
     throw new Error(`飞书${label}上传失败：媒体内容必须是 Buffer`);
   }
@@ -149,7 +148,7 @@ function assertUploadBuffer(buffer, label, maxBytes) {
   }
 }
 
-function requireUploadKey(res, key, label) {
+function requireUploadKey(res: any, key: any, label: any) {
   // @larksuiteoapi/node-sdk returns the OpenAPI data object directly; the
   // nested data fallback keeps this boundary tolerant of raw HTTP responses.
   const value = res?.[key] || res?.data?.[key];
@@ -157,7 +156,7 @@ function requireUploadKey(res, key, label) {
   throw new Error(`飞书${label}上传失败：未返回 ${key}`);
 }
 
-function feishuFileDelivery({ mime = "", filename = "" } = {}) {
+function feishuFileDelivery({ mime = "", filename = "" }: Record<string, any> = {}) {
   const ext = filename.split(".").pop()?.toLowerCase() || "";
   const lowerMime = String(mime || "").toLowerCase();
   if (ext === "mp4" || lowerMime === "video/mp4") {
@@ -171,8 +170,8 @@ function feishuFileDelivery({ mime = "", filename = "" } = {}) {
   return { fileType, msgType: "file" };
 }
 
-function fileMessageContent(msgType, fileKey, metadata = {}) {
-  const content = { file_key: fileKey };
+function fileMessageContent(msgType: any, fileKey: any, metadata: Record<string, any> = {}) {
+  const content: Record<string, any> = { file_key: fileKey };
   if (msgType === "media") {
     const imageKey = metadata.imageKey || metadata.image_key;
     if (imageKey) content.image_key = imageKey;
@@ -180,7 +179,7 @@ function fileMessageContent(msgType, fileKey, metadata = {}) {
   return content;
 }
 
-function parseFeishuMessageContent(message) {
+function parseFeishuMessageContent(message: any) {
   if (message?.content && typeof message.content === "object") return message.content;
   try {
     return JSON.parse(message?.content || "{}");
@@ -189,26 +188,26 @@ function parseFeishuMessageContent(message) {
   }
 }
 
-function warnFeishuInbound(message) {
+function warnFeishuInbound(message: any) {
   log.warn(`${message}`);
   debugLog()?.warn("bridge", message);
 }
 
-function diagnosticText(message) {
+function diagnosticText(message: any) {
   return `[${message}]`;
 }
 
-function normalizePostAtText(item) {
+function normalizePostAtText(item: any) {
   const id = item.user_name || item.name || item.user_id || item.open_id || item.id || "";
   return id ? `@${id}` : "@unknown";
 }
 
-function normalizeFeishuPost(message, content) {
+function normalizeFeishuPost(message: any, content: any) {
   const attachments = [];
   const diagnostics = [];
   const localePayload = content?.zh_cn
     || content?.en_us
-    || Object.values(content || {}).find(value => value && typeof value === "object" && Array.isArray(value.content))
+    || Object.values(content || {}).find(value => value && typeof value === "object" && Array.isArray((value as any).content))
     || (Array.isArray(content?.content) ? content : null);
   if (!localePayload) {
     const detail = "Unsupported Feishu post content: missing locale content";
@@ -267,7 +266,7 @@ function normalizeFeishuPost(message, content) {
   return { text: textParts.join("\n"), attachments };
 }
 
-function normalizeFeishuInboundMessage(message) {
+function normalizeFeishuInboundMessage(message: any) {
   let content;
   try {
     content = parseFeishuMessageContent(message);
@@ -333,7 +332,7 @@ function normalizeFeishuInboundMessage(message) {
   return { text: diagnosticText(detail), attachments: [] };
 }
 
-async function bufferFromFeishuDownload(resp, label) {
+async function bufferFromFeishuDownload(resp: any, label: any) {
   let stream;
   try {
     stream = resp?.getReadableStream ? resp.getReadableStream() : resp;
@@ -358,7 +357,7 @@ async function bufferFromFeishuDownload(resp, label) {
  * @param {(status: string, error?: string) => void} [opts.onStatus]
  * @returns {{ sendReply, stop }}
  */
-export function createFeishuAdapter({ appId, appSecret, agentId, onMessage, onStatus }) {
+export function createFeishuAdapter({ appId, appSecret, agentId, onMessage, onStatus }: Record<string, any>) {
   const client = new lark.Client({ appId, appSecret });
 
   /** 用户信息缓存 { [openId]: { name, avatarUrl } }，LRU 上限 200 */
@@ -422,14 +421,14 @@ export function createFeishuAdapter({ appId, appSecret, agentId, onMessage, onSt
       }
 
       const chatId = message.chat_id;
-      const openId = sender.sender_id?.open_id || sender.sender_id?.app_id || "unknown";
-      const userId = sender.sender_id?.user_id || sender.sender_id?.open_id || sender.sender_id?.app_id || openId;
+      const openId = sender.sender_id?.open_id || (sender.sender_id as any)?.app_id || "unknown";
+      const userId = sender.sender_id?.user_id || sender.sender_id?.open_id || (sender.sender_id as any)?.app_id || openId;
       const chatType = message.chat_type; // "p2p" | "group"
       const isGroup = chatType === "group";
       const sessionKey = isGroup ? `fs_group_${chatId}@${agentId}` : `fs_dm_${openId}@${agentId}`;
 
       const userInfo = isFeishuBotSender(sender)
-        ? { name: sender.sender_id?.app_id || "Feishu Bot", avatarUrl: null }
+        ? { name: (sender.sender_id as any)?.app_id || "Feishu Bot", avatarUrl: null }
         : await getUserInfo(openId);
 
       onMessage({
@@ -461,7 +460,7 @@ export function createFeishuAdapter({ appId, appSecret, agentId, onMessage, onSt
   let lastReportedError = null;
 
   function isWsOpen() {
-    return wsClient.wsConfig?.wsInstance?.readyState === FEISHU_WS_OPEN;
+    return (wsClient as any).wsConfig?.wsInstance?.readyState === FEISHU_WS_OPEN;
   }
 
   function clearConnectionPoll() {
@@ -478,7 +477,7 @@ export function createFeishuAdapter({ appId, appSecret, agentId, onMessage, onSt
     }
   }
 
-  function reportStatus(status, error) {
+  function reportStatus(status: any, error?: any) {
     const normalizedError = error || null;
     if (lastReportedStatus === status && lastReportedError === normalizedError) return;
     lastReportedStatus = status;
@@ -653,7 +652,7 @@ export function createFeishuAdapter({ appId, appSecret, agentId, onMessage, onSt
     },
 
     /** 发送媒体（图片走 image API，其他走 file API） */
-    async sendMedia(chatId, url, metadata = {}) {
+    async sendMedia(chatId: any, url: any, metadata: Record<string, any> = {}) {
       const buffer = await downloadMedia(url);
       const filename = metadata.filename || (() => { try { return new URL(url).pathname.split("/").pop() || "file"; } catch { return "file"; } })();
       const mime = metadata.mime || detectMime(buffer, "application/octet-stream", filename);
@@ -661,11 +660,11 @@ export function createFeishuAdapter({ appId, appSecret, agentId, onMessage, onSt
     },
 
     /** 发送本地 staged file 内容：MediaDeliveryService 负责归属校验和读入 Buffer。 */
-    async sendMediaBuffer(chatId, buffer, metadata = {}) {
+    async sendMediaBuffer(chatId: any, buffer: any, metadata: Record<string, any> = {}) {
       const filename = metadata.filename || "file";
       const mime = metadata.mime || detectMime(buffer, "application/octet-stream", filename);
       if (mime.startsWith("image/")) {
-        assertUploadBuffer(buffer, "图片", FEISHU_MEDIA_CAPABILITIES.maxBytes.buffer.image);
+        assertUploadBuffer(buffer, "图片", (FEISHU_MEDIA_CAPABILITIES.maxBytes as any).buffer.image);
         const res = await callFeishu("图片上传", () => client.im.image.create({
           data: { image_type: "message", image: buffer },
         }));
@@ -678,10 +677,10 @@ export function createFeishuAdapter({ appId, appSecret, agentId, onMessage, onSt
           },
         }));
       } else {
-        assertUploadBuffer(buffer, "文件", FEISHU_MEDIA_CAPABILITIES.maxBytes.buffer.document);
+        assertUploadBuffer(buffer, "文件", (FEISHU_MEDIA_CAPABILITIES.maxBytes as any).buffer.document);
         const { fileType, msgType } = feishuFileDelivery({ mime, filename });
         const res = await callFeishu("文件上传", () => client.im.file.create({
-          data: { file_type: fileType, file_name: filename, file: buffer },
+          data: { file_type: fileType as any, file_name: filename, file: buffer },
         }));
         const fileKey = requireUploadKey(res, "file_key", "文件");
         await callFeishu("消息发送", () => client.im.message.create({

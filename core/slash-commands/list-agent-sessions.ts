@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * list-agent-sessions.js — /rc 菜单的数据源
  *
@@ -33,7 +32,7 @@ const EPHEMERAL_SEGMENT_RE = /(^|[\\/])\.ephemeral([\\/]|$)/;
  * @param {{ limit?: number, excludePaths?: string[] }} [opts]
  * @returns {Promise<AgentSessionSummary[]>}
  */
-export async function listRecentAgentSessions(engine, agentId, opts = {}) {
+export async function listRecentAgentSessions(engine, agentId, opts: { limit?: number; excludePaths?: string[] } = {}) {
   if (!agentId) throw new Error("listRecentAgentSessions: agentId required");
   if (typeof engine?.listSessions !== "function") {
     throw new Error("listRecentAgentSessions: engine.listSessions missing");

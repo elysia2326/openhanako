@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * web-search.js — web_search 自定义工具
  *
@@ -45,7 +44,7 @@ const defaultSearchRateLimiter = createSearchRateLimiter();
 let _configPath = null;
 let _searchConfigResolver = null;
 
-export function initWebSearch(configPath, opts = {}) {
+export function initWebSearch(configPath, opts: Record<string, any> = {}) {
   _configPath = configPath;
   if (opts.searchConfigResolver) _searchConfigResolver = opts.searchConfigResolver;
 }
@@ -467,7 +466,7 @@ async function doAutoSearch(query, maxResults, { apiKeys, rateLimiter }) {
 
   for (const provider of chain) {
     const meta = providerMeta(provider);
-    const attempt = { provider, source_type: meta.sourceType };
+    const attempt: Record<string, any> = { provider, source_type: meta.sourceType };
     try {
       const payload = await runProviderSearch({
         provider,
@@ -519,7 +518,7 @@ async function doAutoSearch(query, maxResults, { apiKeys, rateLimiter }) {
   };
 }
 
-async function doSearch(query, maxResults, { configPath, searchConfigResolver, rateLimiter } = {}) {
+async function doSearch(query, maxResults, { configPath, searchConfigResolver, rateLimiter }: Record<string, any> = {}) {
   // Use explicitly passed args; fall back to module globals for backward compat
   const resolverFn = searchConfigResolver ?? _searchConfigResolver;
   const cfgPath = configPath ?? _configPath;
@@ -568,7 +567,7 @@ async function doSearch(query, maxResults, { configPath, searchConfigResolver, r
  * @param {Function} [opts.searchConfigResolver] - per-agent resolver returning { provider, api_key }
  * @param {object} [opts.rateLimiter]          - test/advanced hook with run(provider, sourceType, op)
  */
-export function createWebSearchTool({ configPath, searchConfigResolver, rateLimiter } = {}) {
+export function createWebSearchTool({ configPath, searchConfigResolver, rateLimiter }: Record<string, any> = {}) {
   // Capture per-agent config in the closure so each agent's tool reads its own config
   const closureOpts = { configPath, searchConfigResolver, rateLimiter };
 

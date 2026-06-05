@@ -1,4 +1,3 @@
-// @ts-nocheck
 import fs from "fs";
 import path from "path";
 import { atomicWriteSync } from "../../shared/safe-fs.ts";
@@ -49,12 +48,28 @@ function publicEntry(entry) {
 }
 
 export class TerminalSessionManager {
+
+declare _backendPromise: any;
+
+declare _bySession: any;
+
+declare _createBackend: any;
+
+declare _emitEvent: any;
+
+declare _now: any;
+
+declare _terminals: any;
+
+declare hanakoHome: any;
+
+declare root: any;
   constructor({
     hanakoHome,
     createBackend = createDefaultBackend,
     now = defaultNow,
     emitEvent = null,
-  } = {}) {
+  }: any = {}) {
     this.hanakoHome = asNonEmptyString(hanakoHome, "hanakoHome");
     this.root = path.join(this.hanakoHome, TERMINAL_ROOT);
     this._createBackend = createBackend;
@@ -76,7 +91,7 @@ export class TerminalSessionManager {
     cols = 80,
     rows = 24,
     env,
-  } = {}) {
+  }: any = {}) {
     const normalizedSessionPath = asNonEmptyString(sessionPath, "sessionPath");
     const normalizedCwd = asNonEmptyString(cwd, "cwd");
     const id = terminalId();
@@ -124,7 +139,7 @@ export class TerminalSessionManager {
     return { ...publicEntry(entry), output: "" };
   }
 
-  write({ sessionPath, terminalId, chars } = {}) {
+  write({ sessionPath, terminalId, chars }: any = {}) {
     const entry = this._requireOwned({ sessionPath, terminalId });
     if (entry.status !== "running") {
       throw new Error(`terminal ${entry.terminalId} is not running`);
@@ -137,7 +152,7 @@ export class TerminalSessionManager {
     return this.read({ sessionPath: entry.sessionPath, terminalId: entry.terminalId, sinceSeq });
   }
 
-  read({ sessionPath, terminalId, sinceSeq = 0 } = {}) {
+  read({ sessionPath, terminalId, sinceSeq = 0 }: any = {}) {
     const entry = this._requireOwned({ sessionPath, terminalId });
     const chunks = this._readTranscript(entry.transcriptPath, sinceSeq);
     return {
@@ -147,7 +162,7 @@ export class TerminalSessionManager {
     };
   }
 
-  close({ sessionPath, terminalId } = {}) {
+  close({ sessionPath, terminalId }: any = {}) {
     const entry = this._requireOwned({ sessionPath, terminalId });
     if (entry.status === "running") {
       entry.status = "killed";
@@ -261,7 +276,7 @@ export class TerminalSessionManager {
     this._emit("terminal_output", entry, { seq: entry.seq, data: text });
   }
 
-  _markExited(id, result = {}) {
+  _markExited(id, result: any = {}) {
     const entry = this._terminals.get(id);
     if (!entry) return;
     if (entry.status === "running") {
@@ -311,7 +326,7 @@ export class TerminalSessionManager {
     }
   }
 
-  _emit(type, entry, extra = {}) {
+  _emit(type, entry, extra: any = {}) {
     this._emitEvent?.({
       type,
       terminalId: entry.terminalId,

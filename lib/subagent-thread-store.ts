@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * subagent-thread-store.js — subagent 线程生命周期账本
  *
@@ -56,7 +55,7 @@ function normalizeAccess(access, fallback = null) {
   return VALID_ACCESS.has(fallback) ? fallback : null;
 }
 
-function pickThreadLabel(record = {}, existing = null) {
+function pickThreadLabel( record: any = {}, existing = null) {
   if (pickString(record.label)) return pickString(record.label);
   if (pickString(record.instance)) return pickString(record.instance);
   if (pickString(record.taskSuffix)) return pickString(record.taskSuffix);
@@ -67,7 +66,7 @@ function pickThreadLabel(record = {}, existing = null) {
   return existing?.label || null;
 }
 
-function normalizeThread(threadId, record = {}, existing = null) {
+function normalizeThread(threadId, record: any = {}, existing = null) {
   const timestamp = nowIso();
   const kind = normalizeKind(record.kind, normalizeKind(existing?.kind || "direct"));
   const status = normalizeThreadStatus(record.status, existing?.status || "open");
@@ -96,6 +95,9 @@ function normalizeThread(threadId, record = {}, existing = null) {
 }
 
 export class SubagentThreadStore {
+  declare _chains: any;
+  declare _persistPath: any;
+  declare _threads: any;
   constructor(persistPath) {
     this._persistPath = persistPath || null;
     this._threads = new Map();
@@ -103,7 +105,7 @@ export class SubagentThreadStore {
     if (this._persistPath) this._load();
   }
 
-  beginRun(threadId, record = {}) {
+  beginRun(threadId, record: any = {}) {
     if (!threadId) return null;
     const existing = this._threads.get(threadId) || null;
     const next = normalizeThread(threadId, {
@@ -119,7 +121,7 @@ export class SubagentThreadStore {
     return clone(next);
   }
 
-  attachSession(threadId, childSessionPath, record = {}) {
+  attachSession(threadId, childSessionPath, record: any = {}) {
     if (!threadId) return null;
     const existing = this._threads.get(threadId) || null;
     const next = normalizeThread(threadId, {
@@ -132,7 +134,7 @@ export class SubagentThreadStore {
     return clone(next);
   }
 
-  finishRun(threadId, record = {}) {
+  finishRun(threadId, record: any = {}) {
     if (!threadId) return null;
     const existing = this._threads.get(threadId) || null;
     if (!existing) return null;
@@ -148,7 +150,7 @@ export class SubagentThreadStore {
     return clone(next);
   }
 
-  upsert(threadId, record = {}) {
+  upsert(threadId, record: any = {}) {
     if (!threadId) return null;
     const existing = this._threads.get(threadId) || null;
     const next = normalizeThread(threadId, record, existing);
@@ -178,7 +180,7 @@ export class SubagentThreadStore {
     return out.sort((a, b) => String(a.lastRunAt || a.updatedAt || "").localeCompare(String(b.lastRunAt || b.updatedAt || "")));
   }
 
-  closeDirectThread(threadId, record = {}) {
+  closeDirectThread(threadId, record: any = {}) {
     if (!threadId) return null;
     const existing = this._threads.get(threadId) || null;
     if (!existing || existing.kind !== "direct") return null;

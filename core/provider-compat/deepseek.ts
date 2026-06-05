@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * DeepSeek provider 兼容层
  *
@@ -107,7 +106,7 @@ function normalizeAnthropicThinking(thinking) {
   if (!thinking || typeof thinking !== "object" || Array.isArray(thinking)) {
     return { type: "enabled" };
   }
-  const next = { type: "enabled" };
+  const next: { type: string; budget_tokens?: number } = { type: "enabled" };
   if (positiveInteger(thinking.budget_tokens)) {
     next.budget_tokens = positiveInteger(thinking.budget_tokens);
   }
@@ -165,7 +164,7 @@ function hasRoleplayReasoningMarker(text) {
   return DEEPSEEK_ROLEPLAY_MARKER_SIGNATURES.some((signature) => value.includes(signature));
 }
 
-function buildRoleplayReasoningMarker(options = {}) {
+function buildRoleplayReasoningMarker(options: Record<string, any> = {}) {
   const context = options.deepseekRoleplayReasoningContext || {};
   const locale = context.locale || options.locale;
   const isZh = !locale || String(locale).startsWith("zh");
@@ -296,7 +295,7 @@ function hasNonEmptyThinking(content) {
   });
 }
 
-export function normalizeContextMessages(messages, model, options = {}) {
+export function normalizeContextMessages(messages, model, options: Record<string, any> = {}) {
   if (!Array.isArray(messages)) return messages;
   if (!isDeepSeekAnthropicProfile(model)) return messages;
   if (options.mode === "utility" || isThinkingOff(options.reasoningLevel)) return messages;
@@ -313,7 +312,7 @@ export function normalizeContextMessages(messages, model, options = {}) {
   return messages;
 }
 
-function applyAnthropicPayload(payload, model, options = {}) {
+function applyAnthropicPayload(payload, model, options: Record<string, any> = {}) {
   const mode = options.mode || "chat";
   const reasoningLevel = options.reasoningLevel;
 
@@ -363,7 +362,7 @@ function stripToolChoice(payload) {
   return next;
 }
 
-export function apply(payload, model, options = {}) {
+export function apply(payload, model, options: Record<string, any> = {}) {
   if (!Array.isArray(payload.messages)) return payload;
   if (isDeepSeekAnthropicProfile(model)) {
     return applyAnthropicPayload(payload, model, options);

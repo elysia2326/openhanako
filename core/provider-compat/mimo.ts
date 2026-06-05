@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * MiMo provider 兼容层
  *
@@ -92,7 +91,7 @@ function enableThinking(payload) {
   };
 }
 
-export function apply(payload, model, options = {}) {
+export function apply(payload, model, options: { mode?: string; reasoningLevel?: string } = {}) {
   if (!Array.isArray(payload.messages)) return payload;
   const mode = options.mode || "chat";
   const reasoningLevel = options.reasoningLevel;

@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * bwrap.js — Linux bubblewrap 沙盒
  *
@@ -20,7 +19,7 @@ import { writeScript, cleanup } from "./script.ts";
  * @param {() => boolean} [options.getSandboxNetworkEnabled]
  * @returns {(command, cwd, opts) => Promise<{exitCode}>}
  */
-export function createBwrapExec(policy, { getExternalReadPaths, getSandboxNetworkEnabled } = {}) {
+export function createBwrapExec(policy, { getExternalReadPaths, getSandboxNetworkEnabled }: { getExternalReadPaths?: () => string[]; getSandboxNetworkEnabled?: () => boolean } = {}) {
   return async (command, cwd, { onData, signal, timeout, env }) => {
     const { scriptPath } = writeScript(command, cwd);
     const args = buildBwrapArgs(policy, {
@@ -120,7 +119,7 @@ export function buildBwrapArgs(policy, {
   allowNetwork = true,
   externalReadPaths = [],
   runtimeReadPaths = [],
-} = {}) {
+}: { cwd?: string; env?: Record<string, string>; allowNetwork?: boolean; externalReadPaths?: string[]; runtimeReadPaths?: string[] } = {}) {
   const readAll = policy.allowExternalReads !== false;
   const args = [
     // Mount order matters: the read-only root gives read-all semantics first;

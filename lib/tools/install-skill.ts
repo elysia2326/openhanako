@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * install-skill.js — install_skill 工具
  *
@@ -45,7 +44,7 @@ export { sanitizeSkillName };
  *   https://github.com/owner/repo
  *   https://github.com/owner/repo/tree/main/path/to/skill
  */
-function parseGithubUrl(url) {
+function parseGithubUrl(url: any) {
   try {
     const u = new URL(url);
     if (u.hostname !== "github.com") return null;
@@ -69,7 +68,7 @@ function parseGithubUrl(url) {
  * 通过 utility model 做安全审查
  * 返回 { safe: boolean, reason?: string }
  */
-export async function safetyReview(skillContent, resolveUtilityConfig) {
+export async function safetyReview(skillContent: any, resolveUtilityConfig: any) {
   const isZh = getLocale().startsWith("zh");
 
   // 大小上限检查
@@ -125,6 +124,8 @@ ${skillContent}`;
       api, model: utility,
       apiKey: api_key,
       baseUrl: base_url,
+      headers: undefined,
+      signal: undefined,
       messages: [{ role: "user", content: prompt }],
       temperature: 0,
       maxTokens: 200,
@@ -142,7 +143,7 @@ ${skillContent}`;
           agentId: utilCfg.usageAgentId ?? null,
         },
       },
-    });
+    } as any) as string;
 
     if (!reply) {
       return { safe: false, reason: t("error.installSkillSafetyEmpty") };
@@ -167,7 +168,7 @@ ${skillContent}`;
  * @param {() => object} opts.resolveUtilityConfig  返回 { utility, api_key, base_url }
  * @param {(skillName: string) => Promise<void>} opts.onInstalled  安装完成后的回调
  */
-export function createInstallSkillTool({ getUserSkillsDir, getConfig, resolveUtilityConfig, onInstalled, registerSessionFile }) {
+export function createInstallSkillTool({ getUserSkillsDir, getConfig, resolveUtilityConfig, onInstalled, registerSessionFile }: any) {
   return {
     name: "install_skill",
     label: "Install Skill",
@@ -269,7 +270,7 @@ export function createInstallSkillTool({ getUserSkillsDir, getConfig, resolveUti
             repo,
             subpath,
             installDir,
-          });
+          } as any);
         } catch {
           return {
             content: [{ type: "text", text: t("error.installSkillNoSkillMd", { owner, repo, paths: subpath ? `${subpath}/SKILL.md, SKILL.md` : "SKILL.md" }) }],
@@ -301,7 +302,7 @@ export function createInstallSkillTool({ getUserSkillsDir, getConfig, resolveUti
             owner: "user",
             subpath,
             defaultEnabled: false,
-          });
+          } as any);
         } catch (err) {
           prepared.cleanup?.();
           return {
@@ -377,7 +378,7 @@ export function createInstallSkillTool({ getUserSkillsDir, getConfig, resolveUti
         installDir,
         owner: "user",
         defaultEnabled: false,
-      });
+      } as any);
       const skillFilePath = installed.filePath;
       const installedFile = registerInstalledSkillFile(registerSessionFile, ctx, skillFilePath);
 
@@ -399,7 +400,7 @@ export function createInstallSkillTool({ getUserSkillsDir, getConfig, resolveUti
   };
 }
 
-function registerInstalledSkillFile(registerSessionFile, ctx, skillFilePath) {
+function registerInstalledSkillFile(registerSessionFile: any, ctx: any, skillFilePath: any) {
   if (typeof registerSessionFile !== "function") return null;
   const sessionPath = getToolSessionPath(ctx) || ctx?.sessionPath || null;
   if (!sessionPath) return null;

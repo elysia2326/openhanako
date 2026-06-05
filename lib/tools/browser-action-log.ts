@@ -1,7 +1,6 @@
-// @ts-nocheck
 import { redactLogText, redactLogValue } from "../log-redactor.ts";
 
-export function summarizeBrowserActionParams(action, params = {}) {
+export function summarizeBrowserActionParams(action: any, params: any = {}) {
   if (!params || typeof params !== "object") return {};
 
   switch (action) {
@@ -51,8 +50,8 @@ export function summarizeBrowserActionParams(action, params = {}) {
   }
 }
 
-function compact(value) {
-  const out = {};
+function compact(value: any) {
+  const out: Record<string, any> = {};
   for (const [key, item] of Object.entries(value)) {
     if (item !== undefined && item !== null && item !== "") out[key] = item;
   }

@@ -1,4 +1,3 @@
-// @ts-nocheck
 import { Hono } from "hono";
 
 export function createUsageRoute(engine) {
@@ -6,7 +5,7 @@ export function createUsageRoute(engine) {
 
   route.get("/usage/llm", (c) => {
     const query = c.req.query();
-    const filter = {};
+    const filter: Record<string, any> = {};
     for (const key of [
       "since",
       "until",

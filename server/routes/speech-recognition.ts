@@ -1,4 +1,3 @@
-// @ts-nocheck
 import { Hono } from "hono";
 import { safeJson } from "../hono-helpers.ts";
 import { denyWithoutScope } from "../http/capability-guard.ts";

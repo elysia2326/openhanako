@@ -1,4 +1,3 @@
-// @ts-nocheck
 import fs from "fs";
 import os from "os";
 import path from "path";
@@ -68,7 +67,7 @@ export function readLocalServerInfo({ hanaHome = resolveCliHanaHome(), checkProc
   };
 }
 
-export function resolveConnection({ url, token, hanaHome } = {}) {
+export function resolveConnection({ url, token, hanaHome }: { url?: string; token?: string; hanaHome?: string } = {}) {
   if (url) {
     return {
       ok: true,

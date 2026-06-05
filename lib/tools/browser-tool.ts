@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * browser-tool.js — 浏览器控制工具
  *
@@ -43,7 +42,7 @@ const BROWSER_ACTIONS = [
 ];
 
 /** Browser 专用错误：content 显示格式化文本，details.error 保留原始消息 */
-function browserError(rawMsg, details = {}) {
+function browserError(rawMsg: any, details: Record<string, any> = {}) {
   return {
     content: [{ type: "text", text: t("error.browserError", { msg: rawMsg }) }],
     details: { ...details, error: rawMsg },
@@ -62,7 +61,14 @@ function browserError(rawMsg, details = {}) {
  * @param {boolean} [options.screenshotEnabled] - false 时从 schema 屏蔽 screenshot
  * @returns {import('../pi-sdk/index.ts').ToolDefinition}
  */
-export function createBrowserTool(getSessionPath, options = {}) {
+export function createBrowserTool(getSessionPath: any, options: {
+  screenshotEnabled?: boolean;
+  getSessionModel?: (sessionPath: string | null) => any;
+  getVisionBridge?: () => any;
+  isVisionAuxiliaryEnabled?: () => boolean;
+  getHanakoHome?: () => string | null;
+  registerSessionFile?: (entry: any) => any;
+} = {}) {
   const browser = BrowserManager.instance();
   const screenshotEnabled = options.screenshotEnabled !== false;
   const actionValues = screenshotEnabled
@@ -74,11 +80,11 @@ export function createBrowserTool(getSessionPath, options = {}) {
   const ACTION_LOG_MAX_SESSIONS = 20;  // 最多保留 20 个 session 的日志
   const ACTION_LOG_MAX_PER_SESSION = 200; // 每个 session 最多 200 条
 
-  function getActionLog(sessionPath) {
+  function getActionLog(sessionPath: any) {
     return _actionLogs.get(sessionPath) || [];
   }
 
-  function logAction(sessionPath, action, params, resultSummary, error) {
+  function logAction(sessionPath: any, action: any, params: any, resultSummary: any, error?: any) {
     if (!_actionLogs.has(sessionPath)) {
       _actionLogs.set(sessionPath, []);
       // 淘汰最早的 session 日志
@@ -101,10 +107,10 @@ export function createBrowserTool(getSessionPath, options = {}) {
   }
 
   /** 当前状态快照（附加到每个 action 的 details），运行时自动带缩略图 */
-  async function statusFields(sessionPath) {
+  async function statusFields(sessionPath: any) {
     const running = browser.isRunning(sessionPath);
     const url = browser.currentUrl(sessionPath);
-    const fields = { running, url };
+    const fields: Record<string, any> = { running, url };
     if (running) {
       const thumbnail = await browser.thumbnail(sessionPath);
       if (thumbnail) {
@@ -116,7 +122,7 @@ export function createBrowserTool(getSessionPath, options = {}) {
     return fields;
   }
 
-  async function safeStatusFields(sessionPath) {
+  async function safeStatusFields(sessionPath: any) {
     try {
       return await statusFields(sessionPath);
     } catch {
@@ -127,11 +133,11 @@ export function createBrowserTool(getSessionPath, options = {}) {
     }
   }
 
-  function resolveSessionPath(ctx) {
+  function resolveSessionPath(ctx: any) {
     return getToolSessionPath(ctx) || getSessionPath?.() || null;
   }
 
-  function isExplicitTextOnlyModel(model) {
+  function isExplicitTextOnlyModel(model: any) {
     return Array.isArray(model?.input) && !modelSupportsDirectImageInput(model);
   }
 
@@ -223,7 +229,7 @@ export function createBrowserTool(getSessionPath, options = {}) {
               base64,
               mimeType,
               registerSessionFile: options.registerSessionFile,
-            });
+            } as any);
             const mediaItem = browserScreenshotMediaItem(screenshotFile);
             const details = {
               action: "screenshot",

@@ -1,4 +1,3 @@
-// @ts-nocheck
 import fs from "fs";
 import path from "path";
 import { atomicWriteSync } from "../shared/safe-fs.ts";
@@ -29,6 +28,8 @@ function atomicWriteJson(filePath, value) {
 }
 
 export class PluginInstallRecords {
+  declare _path: string;
+
   constructor({ hanakoHome }) {
     if (!hanakoHome) throw new Error("PluginInstallRecords requires hanakoHome");
     this._path = path.join(hanakoHome, "plugin-installs.json");

@@ -1,4 +1,3 @@
-// @ts-nocheck
 import crypto from "crypto";
 import fs from "fs";
 import path from "path";
@@ -9,6 +8,9 @@ export const PLUGIN_IFRAME_TICKET_ACTION = "plugins.iframe";
 export const DEFAULT_PLUGIN_IFRAME_TICKET_TTL_MS = 5 * 60 * 1000;
 
 export class PluginIframeTicketError extends Error {
+  declare code: string;
+  declare status: number;
+
   constructor(message, { code = "plugin_iframe_ticket_invalid", status = 403 } = {}) {
     super(message);
     this.name = "PluginIframeTicketError";
@@ -24,7 +26,7 @@ export function issuePluginIframeTicket({
   principalId,
   now = new Date().toISOString(),
   ttlMs = DEFAULT_PLUGIN_IFRAME_TICKET_TTL_MS,
-} = {}) {
+}: { hanakoHome?: string; pluginId?: string; surfacePath?: string; principalId?: string; now?: string; ttlMs?: number } = {}) {
   assertNonEmpty(hanakoHome, "hanakoHome");
   assertNonEmpty(pluginId, "pluginId");
   assertNonEmpty(surfacePath, "surfacePath");
@@ -56,7 +58,7 @@ export function verifyPluginIframeTicket({
   pluginId,
   surfacePath,
   now = new Date().toISOString(),
-} = {}) {
+}: { hanakoHome?: string; ticket?: string; pluginId?: string; surfacePath?: string; now?: string } = {}) {
   assertNonEmpty(hanakoHome, "hanakoHome");
   assertNonEmpty(pluginId, "pluginId");
   assertNonEmpty(surfacePath, "surfacePath");

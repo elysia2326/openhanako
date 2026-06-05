@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * ConfigCoordinator — 运行时配置管理
  *
@@ -59,7 +58,7 @@ export function normalizeSharedModelsPatch(partial) {
     throw new Error("shared models patch must be an object");
   }
 
-  const result = {};
+  const result: any = {};
   for (const [field] of SHARED_MODEL_KEYS) {
     if (!hasOwn(partial, field)) continue;
     const raw = partial[field];
@@ -87,6 +86,7 @@ export function normalizeSharedModelsPatch(partial) {
 }
 
 export class ConfigCoordinator {
+  declare _d: any;
   /**
    * @param {object} deps
    * @param {string} deps.hanakoHome
@@ -160,7 +160,7 @@ export class ConfigCoordinator {
     log.log(`setHomeFolder(${agentId}): ${folder || "(cleared)"}`);
   }
 
-  gcWorkspaceConfig(agentId, options = {}) {
+  gcWorkspaceConfig(agentId, options: any = {}) {
     const targetId = agentId || this._getPrimaryAgentId();
     if (!targetId) return { changed: false, patch: {} };
     const agent = this._d.getAgentById(targetId);
@@ -172,7 +172,7 @@ export class ConfigCoordinator {
     return result;
   }
 
-  gcAllWorkspaceConfigs(options = {}) {
+  gcAllWorkspaceConfigs( options: any = {}) {
     const agents = this._d.getAgents?.();
     const ids = agents instanceof Map ? [...agents.keys()] : [];
     if (ids.length === 0) {
@@ -185,7 +185,7 @@ export class ConfigCoordinator {
 
   getSharedModels() {
     const prefs = this._prefs();
-    const result = {};
+    const result: any = {};
     for (const [field, prefKey] of SHARED_MODEL_KEYS) {
       const raw = prefs[prefKey];
       if (typeof raw === "object" && raw?.id) {
@@ -336,7 +336,7 @@ export class ConfigCoordinator {
     log.log(`setUtilityApi: provider=${partial.provider || "-"}, base_url=${partial.base_url || "-"}`);
   }
 
-  resolveUtilityConfig(options = {}) {
+  resolveUtilityConfig( options: any = {}) {
     const { agentId } = options || {};
     const agent = agentId ? this._d.getAgentById?.(agentId) : this._d.getAgent();
     if (!agent) {
@@ -394,7 +394,7 @@ export class ConfigCoordinator {
    *
    * provider 必填——setDefaultModel 不做按 id 猜 provider 的兜底。
    */
-  async setDefaultModel(modelId, provider, { agentId } = {}) {
+  async setDefaultModel(modelId, provider, { agentId }: any = {}) {
     if (!modelId || !provider) {
       throw new Error(`setDefaultModel: modelId and provider both required (got ${modelId}, ${provider})`);
     }
@@ -403,7 +403,7 @@ export class ConfigCoordinator {
     if (!model) throw new Error(t("error.modelNotFound", { id: `${provider}/${modelId}` }));
     await this.updateConfig(
       { models: { chat: { id: modelId, provider } } },
-      agentId ? { agentId } : {},
+      agentId ? { agentId } : {} as any,
     );
     log.log(`default model set to: ${model.provider}/${model.id}${agentId ? ` agentId=${agentId}` : ""}`);
     return model;
@@ -447,7 +447,7 @@ export class ConfigCoordinator {
 
   // ── updateConfig ──
 
-  async updateConfig(partial, { agentId, refreshDescription = false } = {}) {
+  async updateConfig(partial, { agentId, refreshDescription = false }: any = {}) {
     const keys = Object.keys(partial);
     if (keys.length) log.log(`updateConfig: keys=[${keys.join(",")}]${agentId ? ` agentId=${agentId}` : ""}`);
 

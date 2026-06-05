@@ -1,4 +1,3 @@
-// @ts-nocheck
 import { createSessionFileResourceEnvelope } from "../resources/resource-envelope.ts";
 
 export function serializeSessionFile(file, options = {}) {
@@ -83,7 +82,7 @@ export function registerSessionFileFromRequest(engine, {
   return serializeSessionFile(engine.registerSessionFile(entry), { runtimeContext: safeRuntimeContext(engine) });
 }
 
-function resolveStudioId(options = {}) {
+function resolveStudioId(options: { studioId?: string; runtimeContext?: { studioId?: string } } = {}) {
   if (typeof options.studioId === "string" && options.studioId.trim()) return options.studioId;
   if (typeof options.runtimeContext?.studioId === "string" && options.runtimeContext.studioId.trim()) {
     return options.runtimeContext.studioId;

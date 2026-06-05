@@ -1,4 +1,3 @@
-// @ts-nocheck
 import path from "path";
 import { debugLog } from "../debug-log.ts";
 import { extOfName, inferFileKind } from "../file-metadata.ts";
@@ -6,12 +5,14 @@ import { downloadMedia, detectMime, resolveAllowedLocalPath } from "./media-util
 import { normalizeMediaItems } from "./media-item-normalizer.ts";
 
 export class MediaDeliveryService {
-  constructor({ engine, mediaPublisher } = {}) {
+  declare engine: any;
+  declare mediaPublisher: any;
+  constructor({ engine, mediaPublisher }: any = {}) {
     this.engine = engine || null;
     this.mediaPublisher = mediaPublisher || null;
   }
 
-  async send({ adapter, chatId, platform, mediaItem, isGroup, replyContext } = {}) {
+  async send({ adapter, chatId, platform, mediaItem, isGroup, replyContext }: any = {}) {
     if (!adapter) throw new Error("media delivery adapter is required");
     if (!chatId) throw new Error("media delivery chatId is required");
 
@@ -54,7 +55,7 @@ export class MediaDeliveryService {
     } catch {}
   }
 
-  async _sendSessionFile(adapter, chatId, source, platform, targetMetadata = {}) {
+  async _sendSessionFile(adapter, chatId, source, platform, targetMetadata: any = {}) {
     const file = this._resolveSessionFile(source);
     const kind = normalizeKind(file.kind, file.filename || file.filePath || file.realPath, file.mime);
     const publicUrl = getPublicUrl(file);
@@ -128,7 +129,7 @@ export class MediaDeliveryService {
     this.mediaPublisher.setBaseUrl(baseUrl);
   }
 
-  async _sendUrl(adapter, chatId, url, platform, mode, knownKind = null, metadata = {}) {
+  async _sendUrl(adapter, chatId, url, platform, mode, knownKind = null, metadata: any = {}) {
     const kind = knownKind || kindFromUrl(url);
     this._assertInputMode(adapter, mode, platform);
     this._assertKindSupported(adapter, platform, kind);
@@ -139,7 +140,7 @@ export class MediaDeliveryService {
     await adapter.sendMedia(chatId, url, { ...metadata, kind });
   }
 
-  async _sendLocalPath(adapter, chatId, filePath, platform, targetMetadata = {}) {
+  async _sendLocalPath(adapter, chatId, filePath, platform, targetMetadata: any = {}) {
     this._assertInputMode(adapter, "buffer", platform);
     const buffer = await downloadMedia(filePath);
     const filename = path.basename(filePath);
@@ -213,8 +214,8 @@ function mediaMetadata(file, kind) {
   };
 }
 
-function targetDeliveryMetadata({ isGroup, replyContext } = {}) {
-  const metadata = {};
+function targetDeliveryMetadata({ isGroup, replyContext }: any = {}) {
+  const metadata: any = {};
   if (isGroup === true) {
     metadata.isGroup = true;
     metadata.targetScope = "group";
@@ -229,7 +230,7 @@ function targetDeliveryMetadata({ isGroup, replyContext } = {}) {
 
 function normalizeReplyContext(context = null) {
   if (!context || typeof context !== "object") return null;
-  const normalized = {};
+  const normalized: any = {};
   if (context.messageId) normalized.messageId = String(context.messageId);
   if (context.messageThreadId != null && context.messageThreadId !== "") {
     normalized.messageThreadId = context.messageThreadId;
@@ -271,7 +272,7 @@ function publicUrlRequiredMessage(platform, detail = null) {
   return `${platform || "platform"} 当前 adapter 不能直接消费这个本地 staged file，只能走 public_url fallback（配置 bridge_media_public_base_url 或 HANA_BRIDGE_PUBLIC_BASE_URL 后可启用）${suffix}`;
 }
 
-function logDelivery({ platform, mode, kind, file, metadata, filename, size } = {}) {
+function logDelivery({ platform, mode, kind, file, metadata, filename, size }: any = {}) {
   const fileId = file?.fileId || file?.id || metadata?.fileId || "n/a";
   const name = filename || file?.filename || file?.label || metadata?.filename || "unnamed";
   const byteSize = Number.isFinite(size) ? size : (Number.isFinite(file?.size) ? file.size : "unknown");

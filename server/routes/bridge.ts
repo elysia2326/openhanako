@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * bridge.js — 外部平台接入 REST API
  *
@@ -39,7 +38,7 @@ function feishuLongConnectionInfo() {
   };
 }
 
-function feishuTestInfo({ credentialOk, response, data } = {}) {
+function feishuTestInfo({ credentialOk, response, data }: { credentialOk?: any; response?: any; data?: any } = {}) {
   const logId = data?.error?.log_id || data?.log_id || null;
   return {
     credentialOk,
@@ -51,7 +50,7 @@ function feishuTestInfo({ credentialOk, response, data } = {}) {
   };
 }
 
-function normalizeBridgeManagerRef(ref) {
+function normalizeBridgeManagerRef(ref: any) {
   if (ref && typeof ref.get === "function") {
     return {
       get: ref.get,
@@ -73,7 +72,7 @@ function normalizeBridgeManagerRef(ref) {
   };
 }
 
-function bridgeUnavailable(c, state = {}) {
+function bridgeUnavailable(c: any, state: { error?: any; initializing?: any } = {}) {
   const error = state.error
     ? `bridge manager unavailable: ${state.error}`
     : "bridge manager is still starting";
@@ -88,7 +87,7 @@ function bridgeUnavailable(c, state = {}) {
   }, 503);
 }
 
-export function createBridgeRoute(engine, bridgeManagerRef) {
+export function createBridgeRoute(engine: any, bridgeManagerRef: any) {
   const route = new Hono();
   const bridgeRef = normalizeBridgeManagerRef(bridgeManagerRef);
 
@@ -115,7 +114,7 @@ export function createBridgeRoute(engine, bridgeManagerRef) {
     const bridge = agent.config?.bridge || {};
     const index = engine.getBridgeIndex(agent.id);
 
-    const platformStatus = (plat, cfg, extraFields) => {
+    const platformStatus = (plat: any, cfg: any, extraFields: any) => {
       return {
         ...extraFields,
         enabled: !!cfg?.enabled,
@@ -220,7 +219,7 @@ export function createBridgeRoute(engine, bridgeManagerRef) {
       target: `bridge.${platform}`,
       secretFields,
       metadata: { agentId, platform, enabled: typeof enabled === "boolean" ? enabled : null },
-    });
+    } as any);
     return c.json({ ok: true });
   });
 
@@ -280,7 +279,7 @@ export function createBridgeRoute(engine, bridgeManagerRef) {
     const bridgeDir = path.join(agent.sessionDir, "bridge");
     const sessions = [];
 
-    for (const [sessionKey, raw] of Object.entries(index)) {
+    for (const [sessionKey, raw] of Object.entries(index) as [string, any][]) {
       // 兼容旧格式（字符串）和新格式（对象）
       const entry = typeof raw === "string" ? { file: raw } : raw;
       const file = entry.file;
@@ -614,7 +613,7 @@ export function createBridgeRoute(engine, bridgeManagerRef) {
   return route;
 }
 
-function resolveBridgeCredentials(platform, credentials, existing) {
+function resolveBridgeCredentials(platform: any, credentials: any, existing: any): any {
   return resolveSecretPatch({
     patch: credentials,
     existing,
@@ -622,16 +621,16 @@ function resolveBridgeCredentials(platform, credentials, existing) {
   });
 }
 
-function hasMaskedBridgeCredentials(platform, credentials) {
+function hasMaskedBridgeCredentials(platform: any, credentials: any) {
   const secretKeys = bridgeSecretKeys(platform);
   return secretKeys.some((key) => isMaskedSecretValue(credentials?.[key]));
 }
 
-function hasExplicitAgentId(c) {
+function hasExplicitAgentId(c: any) {
   return Boolean(c.req.query("agentId") || c.req.param("agentId"));
 }
 
-function bridgeSecretKeys(platform) {
+function bridgeSecretKeys(platform: any): any {
   return platform === "feishu"
     ? ["appSecret"]
     : platform === "qq"
@@ -641,22 +640,22 @@ function bridgeSecretKeys(platform) {
         : ["token"];
 }
 
-function buildBridgeManualSendSessionPath(agentId, platform, chatId) {
+function buildBridgeManualSendSessionPath(agentId: any, platform: any, chatId: any) {
   return `bridge:${agentId}:${platform}:${chatId}`;
 }
 
-function isUnsupportedMediaDeliveryError(err) {
+function isUnsupportedMediaDeliveryError(err: any) {
   const message = String(err?.message || err || "");
   return /暂不支持|不支持|unsupported|不能直接消费|public_url fallback|cannot deliver|does not support media input mode/i.test(message);
 }
 
-function encodeRfc5987ValueChars(value) {
+function encodeRfc5987ValueChars(value: any) {
   return encodeURIComponent(value)
     .replace(/['()]/g, (ch) => `%${ch.charCodeAt(0).toString(16).toUpperCase()}`)
     .replace(/\*/g, "%2A");
 }
 
-function isInlineBridgeMediaMime(mime) {
+function isInlineBridgeMediaMime(mime: any) {
   const value = String(mime || "").toLowerCase();
   return value.startsWith("image/") || value.startsWith("video/");
 }

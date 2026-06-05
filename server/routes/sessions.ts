@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * Session 管理 REST 路由
  */
@@ -473,7 +472,7 @@ export function createSessionsRoute(engine, hub = null) {
           hasSummary: !!summaryRecord,
           rcAttachment: rcAttachmentByPath.get(s.path)
             ? {
-              ...rcAttachmentByPath.get(s.path),
+              ...(rcAttachmentByPath.get(s.path) as any),
               title: s.title || null,
             }
             : null,
@@ -503,7 +502,7 @@ export function createSessionsRoute(engine, hub = null) {
 
       const query = c.req.query("q") || "";
       const phase = c.req.query("phase") === "content" ? "content" : "title";
-      const limit = c.req.query("limit");
+      const limit = c.req.query("limit") ? Number(c.req.query("limit")) : undefined;
       const trimmedQuery = query.trim();
       if (!trimmedQuery) return c.json({ query, phase, results: [] });
       if ([...trimmedQuery].length > SESSION_SEARCH_QUERY_MAX_LENGTH) {
@@ -538,7 +537,7 @@ export function createSessionsRoute(engine, hub = null) {
       return c.json({ query, phase, results });
     } catch (err) {
       if (err instanceof SessionSearchTokenizerUnavailableError) {
-        log.error("session search tokenizer unavailable", err.cause || err);
+        log.error(`session search tokenizer unavailable: ${err.cause || err}`);
         return c.json({ error: err.message }, 503);
       }
       return c.json({ error: err.message }, 500);
@@ -1072,7 +1071,7 @@ export function createSessionsRoute(engine, hub = null) {
         await bm.suspendForSession(oldSessionPath);
       }
 
-      const createOptions = { workspaceFolders, visibleInSessionList: true };
+      const createOptions: { workspaceFolders: any; visibleInSessionList: boolean; thinkingLevel?: any } = { workspaceFolders, visibleInSessionList: true };
       if (thinkingLevel !== undefined && thinkingLevel !== null) {
         createOptions.thinkingLevel = thinkingLevel;
       }
@@ -1150,7 +1149,7 @@ export function createSessionsRoute(engine, hub = null) {
         : [];
       const memFlag = memoryEnabled !== false;
 
-      const detachedOptions = {
+      const detachedOptions: { cwd: any; memoryEnabled: boolean; agentId: string | null; workspaceFolders: any; visibleInSessionList: boolean; permissionMode: any; thinkingLevel?: any } = {
         cwd: cwd || undefined,
         memoryEnabled: memFlag,
         agentId: typeof agentId === "string" && agentId.trim() ? agentId.trim() : null,

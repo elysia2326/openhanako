@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * config-loader.js — per-agent config.yaml 加载与保存
  *
@@ -66,7 +65,7 @@ export function loadConfig(configPath) {
 }
 
 /** 清除缓存（指定路径或全部） */
-export function clearConfigCache(configPath) {
+export function clearConfigCache(configPath?) {
   if (configPath) {
     _cache.delete(configPath);
   } else {

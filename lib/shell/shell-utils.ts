@@ -1,4 +1,3 @@
-// @ts-nocheck
 import path from "node:path";
 
 export function envValue(env, name) {
@@ -25,7 +24,7 @@ export function resolveWin32CmdExecutable(env = process.env) {
 
 export function resolveWin32PowerShellExecutable(token = "powershell.exe", env = process.env, {
   resolveOnPath,
-} = {}) {
+}: { resolveOnPath?: any } = {}) {
   const raw = String(token || "powershell.exe");
   if (isWin32PathLike(raw) || raw.includes("\\") || raw.includes("/")) return raw;
   const base = baseNameForShellPath(raw, { stripExe: false }).toLowerCase();

@@ -1,4 +1,4 @@
-// @ts-nocheck
+
 import fs from "fs";
 import path from "path";
 import YAML from "js-yaml";
@@ -35,7 +35,7 @@ function normalizeMediaModelEntry(providerId, model) {
   const id = isPlainObject(model) ? (typeof model.id === "string" ? model.id.trim() : "") : String(model || "").trim();
   if (!id) return null;
   if (!isPlainObject(model)) {
-    const next = { id };
+    const next: Record<string, any> = { id };
     const protocolId = inferImageProtocolId(providerId, id);
     if (protocolId) next.protocolId = protocolId;
     return next;
@@ -71,7 +71,7 @@ export function normalizeProviderMediaConfigMap(rawProviders) {
   const providers = {};
   let changed = false;
 
-  for (const [providerId, config] of Object.entries(rawProviders)) {
+  for (const [providerId, config] of Object.entries(rawProviders as Record<string, any>)) {
     if (!isPlainObject(config)) {
       providers[providerId] = config;
       continue;
@@ -108,7 +108,7 @@ export function normalizeProviderMediaConfigMap(rawProviders) {
   return { providers, changed };
 }
 
-export function migrateProviderMediaConfig(hanakoHome, log = () => {}) {
+export function migrateProviderMediaConfig(hanakoHome, log: (...args: any[]) => void = () => {}) {
   const ymlPath = path.join(hanakoHome, "added-models.yaml");
   const existing = safeReadYAMLSync(ymlPath, null, YAML);
   if (!existing || !isPlainObject(existing.providers)) return false;

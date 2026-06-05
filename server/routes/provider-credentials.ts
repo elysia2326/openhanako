@@ -1,14 +1,13 @@
-// @ts-nocheck
 import { isMaskedSecretValue } from "../../shared/secret-custody.ts";
 
-export function hasInlineProviderCredentialPatch(block) {
+export function hasInlineProviderCredentialPatch(block: any) {
   return !!block && typeof block === "object" && (
     Object.prototype.hasOwnProperty.call(block, "api_key")
     || Object.prototype.hasOwnProperty.call(block, "base_url")
   );
 }
 
-export function buildInlineProviderCredentialUpdate(block, fallbackProvider = "", existingProvider = {}) {
+export function buildInlineProviderCredentialUpdate(block: any, fallbackProvider = "", existingProvider: any = {}) {
   const provider = typeof block?.provider === "string" && block.provider.trim()
     ? block.provider.trim()
     : String(fallbackProvider || "").trim();
@@ -16,7 +15,7 @@ export function buildInlineProviderCredentialUpdate(block, fallbackProvider = ""
     ? existingProvider(provider) || {}
     : existingProvider || {};
 
-  const update = {};
+  const update: Record<string, any> = {};
   if (Object.prototype.hasOwnProperty.call(block, "api_key")) {
     update.api_key = isMaskedSecretValue(block.api_key)
       ? existing.api_key || ""
@@ -29,7 +28,7 @@ export function buildInlineProviderCredentialUpdate(block, fallbackProvider = ""
   return { provider, update };
 }
 
-export function clearInlineProviderCredentialFields(block) {
+export function clearInlineProviderCredentialFields(block: any) {
   if (!block || typeof block !== "object") return;
   block.api_key = "";
   block.base_url = "";

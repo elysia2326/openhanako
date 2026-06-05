@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * current-status-tool.js — 渐进式查询当前运行环境
  *
@@ -278,13 +277,13 @@ function normalizeProvider(item) {
   };
 }
 
-export function createCurrentStatusRegistry(deps = {}) {
+export function createCurrentStatusRegistry(deps: Record<string, any> = {}) {
   const getNow = () => {
     const value = deps.now?.();
     return value instanceof Date ? value : new Date();
   };
   const getTimezone = () => resolveTimezone(deps.getTimezone?.());
-  const getStatusModel = ({ sessionPath, ctx } = {}) => (
+  const getStatusModel = ({ sessionPath, ctx }: Record<string, any> = {}) => (
     ctx?.model
     || (sessionPath ? deps.getSessionModel?.(sessionPath) : null)
     || deps.getCurrentModel?.()
@@ -403,7 +402,7 @@ export function createCurrentStatusRegistry(deps = {}) {
   return new Map(providers.map((item) => [item.key, item]));
 }
 
-export function createCurrentStatusTool(deps = {}) {
+export function createCurrentStatusTool(deps: Record<string, any> = {}) {
   const registry = createCurrentStatusRegistry(deps);
   return {
     name: "current_status",
@@ -417,7 +416,7 @@ export function createCurrentStatusTool(deps = {}) {
         description: "Status key to fetch when action=get. Common keys: time, logical_date, agent, appearance, model, ui_context, session_files, session_folders, bridge_context, subagents. Use bridge_context for references to the current Bridge platform/chat; use subagents before continuing or closing a sub-agent.",
       })),
     }),
-    execute: async (_toolCallId, params = {}, signal, _onUpdate, ctx) => {
+    execute: async (_toolCallId: any, params: Record<string, any> = {}, signal: any, _onUpdate: any, ctx: any) => {
       const action = params.action || "list";
       if (action === "list") {
         return toolOk(JSON.stringify({

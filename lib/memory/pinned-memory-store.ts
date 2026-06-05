@@ -1,4 +1,3 @@
-// @ts-nocheck
 import crypto from "node:crypto";
 import fs from "node:fs";
 import path from "node:path";
@@ -158,7 +157,7 @@ export function addPinnedMemoryItem(agentDir, content) {
   return { item: nextItems[nextItems.length - 1], items: nextItems, alreadyExists: false };
 }
 
-export function removePinnedMemoryItems(agentDir, { id, keyword } = {}) {
+export function removePinnedMemoryItems(agentDir, { id, keyword }: { id?: string; keyword?: string } = {}) {
   const normalizedId = normalizeId(id);
   const normalizedKeyword = normalizeContent(keyword).toLowerCase();
   if (!normalizedId && !normalizedKeyword) {

@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * todo.js — todo_write tool
  *
@@ -21,7 +20,7 @@ const TODO_STATUS_VALUES = ["pending", "in_progress", "completed"];
 /**
  * 校验并构建文本摘要
  */
-function buildSummary(todos) {
+function buildSummary(todos: any[]) {
   if (todos.length === 0) return t("toolDef.todoWrite.summaryEmpty");
   const counts = { pending: 0, in_progress: 0, completed: 0 };
   for (const td of todos) counts[td.status] = (counts[td.status] || 0) + 1;
@@ -36,7 +35,7 @@ function buildSummary(todos) {
 /**
  * 检测多 in_progress，返回 warning 字符串或 null
  */
-function detectMultiInProgress(todos) {
+function detectMultiInProgress(todos: any[]) {
   const count = todos.filter(td => td.status === "in_progress").length;
   if (count > 1) {
     return `multiple in_progress: ${count} (convention violated; showing all)`;
@@ -80,7 +79,7 @@ export function createTodoTool() {
       }
 
       const summary = buildSummary(todos);
-      const details = { todos };
+      const details: { todos: any[]; warning?: string } = { todos };
       if (warning) details.warning = warning;
 
       return {

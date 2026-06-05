@@ -1,4 +1,3 @@
-// @ts-nocheck
 import { DAY_BOUNDARY_HOUR } from "../time-utils.ts";
 import { createModuleLogger } from "../debug-log.ts";
 
@@ -23,7 +22,7 @@ function nextBoundaryWithOffset(now, boundaryOffsetMs) {
   return new Date(tomorrow.getTime() + boundaryOffsetMs);
 }
 
-export function getNextFreshCompactDelayMs(now = new Date(), opts = {}) {
+export function getNextFreshCompactDelayMs(now = new Date(), opts: { idleDelayMs?: number; boundaryOffsetMs?: number } = {}) {
   const date = asDate(now);
   const idleDelayMs = opts.idleDelayMs ?? DEFAULT_FRESH_COMPACT_IDLE_DELAY_MS;
   const boundaryOffsetMs = opts.boundaryOffsetMs ?? DEFAULT_FRESH_COMPACT_BOUNDARY_OFFSET_MS;
@@ -43,7 +42,7 @@ export function createFreshCompactDailyScheduler({
   setTimer = setTimeout,
   clearTimer = clearTimeout,
   warn = (msg) => log.warn(msg),
-} = {}) {
+}: { runDaily: (ctx: { now: any }) => any; getNow?: () => any; idleDelayMs?: number; boundaryOffsetMs?: number; retryDelayMs?: number; setTimer?: any; clearTimer?: any; warn?: (msg: any) => any }) {
   if (typeof runDaily !== "function") {
     throw new Error("fresh compact scheduler requires runDaily");
   }

@@ -1,4 +1,3 @@
-// @ts-nocheck
 export const COMPUTER_USE_ERRORS = Object.freeze({
   DISABLED: "COMPUTER_USE_DISABLED",
   REQUIRES_VISION_MODEL: "COMPUTER_USE_REQUIRES_VISION_MODEL",
@@ -17,7 +16,10 @@ export const COMPUTER_USE_ERRORS = Object.freeze({
 });
 
 export class ComputerUseError extends Error {
-  constructor(code, message, details = {}) {
+  declare code: any;
+  declare details: Record<string, any>;
+
+  constructor(code: any, message: any, details: Record<string, any> = {}) {
     super(message ? `${code}: ${message}` : code);
     this.name = "ComputerUseError";
     this.code = code;
@@ -25,11 +27,11 @@ export class ComputerUseError extends Error {
   }
 }
 
-export function computerUseError(code, message, details = {}) {
+export function computerUseError(code: any, message: any, details: Record<string, any> = {}) {
   return new ComputerUseError(code, message, details);
 }
 
-export function serializeComputerUseError(err) {
+export function serializeComputerUseError(err: any) {
   if (err instanceof ComputerUseError) {
     return {
       code: err.code,

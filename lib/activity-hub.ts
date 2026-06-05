@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * ActivityHub — 统一 Agent Activity 实时真相源（内存广播层）
  *
@@ -19,14 +18,14 @@ const VALID_STATUSES = new Set(["running", "done", "failed", "aborted"]);
 // heartbeat / cron 本就瞬时，不持久化。
 const PERSISTABLE_KINDS = new Set(["workflow", "workflow_agent", "workflow_step", "subagent"]);
 
-function pickStr(v, fallback) {
+function pickStr(v: any, fallback: any) {
   return typeof v === "string" && v ? v : fallback;
 }
-function pickNum(v, fallback) {
+function pickNum(v: any, fallback: any) {
   return typeof v === "number" && Number.isFinite(v) ? v : fallback;
 }
 
-function normalizeEntry(entry, existing) {
+function normalizeEntry(entry: any, existing: any) {
   return {
     id: entry.id,
     kind: VALID_KINDS.has(entry.kind) ? entry.kind : (existing?.kind || "subagent"),
@@ -54,6 +53,11 @@ function normalizeEntry(entry, existing) {
 }
 
 export class ActivityHub {
+  declare _bus: any;
+  declare _store: any;
+  declare _entries: Map<string, any>;
+  declare _cbs: any[];
+
   /**
    * @param {{ emit?: (event: object, sessionPath?: string|null) => void }} [bus]
    * @param {import("./workflow-activity-store.ts").WorkflowActivityStore|null} [store]

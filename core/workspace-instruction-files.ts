@@ -1,4 +1,3 @@
-// @ts-nocheck
 import fs from "fs";
 import path from "path";
 
@@ -65,7 +64,7 @@ function readInstructionFile(filePath) {
   }
 }
 
-export function collectWorkspaceInstructionFiles({ cwd, workspaceContext } = {}) {
+export function collectWorkspaceInstructionFiles({ cwd, workspaceContext }: { cwd?: any; workspaceContext?: any } = {}) {
   const enabled = new Set();
   const config = workspaceContext && typeof workspaceContext === "object" ? workspaceContext : {};
   for (const item of WORKSPACE_INSTRUCTION_FILES) {
@@ -96,7 +95,7 @@ export function collectWorkspaceInstructionFiles({ cwd, workspaceContext } = {})
   return files;
 }
 
-export function formatWorkspaceInstructionFiles(files, { locale } = {}) {
+export function formatWorkspaceInstructionFiles(files: any, { locale }: { locale?: any } = {}) {
   const items = Array.isArray(files) ? files : [];
   if (items.length === 0) return "";
   const isZh = String(locale || "").startsWith("zh");

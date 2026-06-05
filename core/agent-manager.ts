@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * AgentManager — 多 Agent 生命周期管理
  *
@@ -47,6 +46,21 @@ function writeStartupError(startupLog, message) {
 }
 
 export class AgentManager {
+  declare _activeAgentId: any;
+  declare _activityStores: any;
+  declare _agentListCache: any;
+  declare _agents: any;
+  declare _d: any;
+  declare _descRefreshPending: any;
+  declare _memoryMaintenanceConcurrency: any;
+  declare _memoryMaintenanceQueue: any;
+  declare _memoryMaintenanceQueued: any;
+  declare _memoryMaintenanceRunning: any;
+  declare _runtimeInitConcurrency: any;
+  declare _runtimeInitPromises: any;
+  declare _runtimeInitQueue: any;
+  declare _runtimeInitRunning: any;
+  declare _switchQueue: any;
   /**
    * @param {object} deps
    * @param {string} deps.agentsDir
@@ -103,11 +117,11 @@ export class AgentManager {
     const agentDir = path.join(this._d.agentsDir, agentId);
     const tombstonePath = this._deletedAgentTombstonePath(agentId);
     if (!fs.existsSync(tombstonePath)) return null;
-    let tombstone = {};
+    let tombstone: any = {};
     try {
       tombstone = JSON.parse(fs.readFileSync(tombstonePath, "utf-8"));
     } catch {}
-    let cfg = {};
+    let cfg: any = {};
     try {
       cfg = safeReadYAMLSync(path.join(agentDir, "config.yaml"), {}, YAML);
     } catch {}
@@ -201,7 +215,7 @@ export class AgentManager {
     return ag;
   }
 
-  async ensureAgentRuntime(agentId, options = {}) {
+  async ensureAgentRuntime(agentId, options: any = {}) {
     if (!agentId) throw new Error("ensureAgentRuntime: agentId is required");
     let ag = this._agents.get(agentId);
     if (!ag) {
@@ -728,7 +742,7 @@ export class AgentManager {
     }
   }
 
-  async createSessionForAgent(agentId, cwd, memoryEnabled = true, model = null, opts = {}) {
+  async createSessionForAgent(agentId, cwd, memoryEnabled = true, model = null, opts: any = {}) {
     if (agentId && agentId !== this._activeAgentId) {
       await this.switchAgentOnly(agentId);
     }
@@ -896,10 +910,10 @@ export class AgentManager {
   _makeOwnerIdsFn(ag) {
     return () => {
       const bridgeCfg = ag.config?.bridge || {};
-      const ids = {};
+      const ids: any = {};
       for (const [plat, cfg] of Object.entries(bridgeCfg)) {
         if (plat === 'readOnly') continue;
-        if (typeof cfg === 'object' && cfg?.owner) ids[plat] = cfg.owner;
+        if (typeof cfg === 'object' && (cfg as any)?.owner) ids[plat] = (cfg as any).owner;
       }
       return ids;
     };

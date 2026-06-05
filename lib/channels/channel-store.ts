@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * channel-store.js — 频道 MD 文件的读写层
  *
@@ -52,7 +51,7 @@ const MSG_HEADER_RE = /^### (.+?) \| (\d{4}-\d{2}-\d{2} \d{2}:\d{2}(?::\d{2})?)$
  */
 export function parseChannel(content) {
   const lines = content.split("\n");
-  let meta = {};
+  let meta: Record<string, any> = {};
   let bodyStart = 0;
 
   // 解析 frontmatter（--- ... ---）
@@ -176,7 +175,7 @@ export function assertValidChannelMembers(members) {
  * @param {string} [customId] - 用户自定义 ID（如 "crew"），省略则自动生成
  * @returns {string} 带 ch_ 前缀的 ID
  */
-export function generateChannelId(customId) {
+export function generateChannelId(customId?) {
   const base = customId || crypto.randomUUID().slice(0, 6);
   return base.startsWith("ch_") ? base : `ch_${base}`;
 }
@@ -203,7 +202,7 @@ export async function createChannel(channelsDir, { id, name, description, member
       throw new Error(t("error.channelAlreadyExists", { id: channelId }));
     }
 
-    const meta = { id: channelId, members: normalizedMembers };
+    const meta: Record<string, any> = { id: channelId, members: normalizedMembers };
     if (name) meta.name = name;
     if (description) meta.description = description;
     const parts = [serializeFrontmatter(meta), ""];

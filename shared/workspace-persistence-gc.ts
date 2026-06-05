@@ -1,4 +1,4 @@
-// @ts-nocheck
+
 import fs from "fs";
 import { mergeWorkspaceHistory, normalizeWorkspacePath } from "./workspace-history.ts";
 import { normalizeWorkspaceUiState } from "./workspace-ui-state.ts";
@@ -21,8 +21,8 @@ export function classifyWorkspacePathForGc(value, { statSync = fs.statSync } = {
   }
 }
 
-export function pruneMissingWorkspaceConfig(config = {}, options = {}) {
-  const patch = {};
+export function pruneMissingWorkspaceConfig(config: Record<string, any> = {}, options: Record<string, any> = {}) {
+  const patch: Record<string, any> = {};
 
   if (Array.isArray(config.cwd_history)) {
     const current = mergeWorkspaceHistory(config.cwd_history, []);

@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * upload.js — 文件上传路由
  *
@@ -333,6 +332,8 @@ export function createUploadRoute(engine) {
           label: name,
           origin: "user_upload",
           storageKind: uploadTarget.storageKind,
+          presentation: undefined,
+          listed: undefined,
           waveform: waveformForUploadPath(body, srcPath),
         });
 

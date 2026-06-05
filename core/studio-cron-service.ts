@@ -1,4 +1,3 @@
-// @ts-nocheck
 import fs from "fs";
 import path from "path";
 import { CronStore } from "../lib/desk/cron-store.ts";
@@ -83,6 +82,12 @@ function isSafeRunFileId(value) {
 }
 
 export class StudioCronService {
+  declare _hanakoHome: string;
+  declare _agentsDir: string;
+  declare _getStudioId: () => string;
+  declare _store: CronStore;
+  declare _storeStudioId: string;
+
   /**
    * @param {object} opts
    * @param {string} opts.hanakoHome

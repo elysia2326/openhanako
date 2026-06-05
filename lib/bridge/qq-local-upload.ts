@@ -1,4 +1,3 @@
-// @ts-nocheck
 import crypto from "crypto";
 import fs from "fs";
 import path from "path";
@@ -32,7 +31,11 @@ const COMPLETE_UPLOAD_MAX_RETRIES = 2;
 const COMPLETE_UPLOAD_BASE_DELAY_MS = 2000;
 
 export class QQApiError extends Error {
-  constructor(message, { status, path: requestPath, bizCode } = {}) {
+  declare status: any;
+  declare path: any;
+  declare bizCode: any;
+
+  constructor(message: any, { status, path: requestPath, bizCode }: any = {}) {
     super(message);
     this.name = "QQApiError";
     this.status = status;
@@ -41,7 +44,7 @@ export class QQApiError extends Error {
   }
 }
 
-export async function uploadQQLocalFile({ apiRequest, chatId, filePath, fileType, metadata = {} }) {
+export async function uploadQQLocalFile({ apiRequest, chatId, filePath, fileType, metadata = {} }: any) {
   const targets = qqMediaTargets(chatId, metadata);
   let lastError = null;
   for (const target of targets) {
@@ -59,7 +62,7 @@ export async function uploadQQLocalFile({ apiRequest, chatId, filePath, fileType
   throw lastError || new Error("QQ 本地文件上传失败");
 }
 
-function qqMediaTargets(chatId, metadata = {}) {
+function qqMediaTargets(chatId: any, metadata: any = {}) {
   const scopes = metadata.isGroup === true ? ["group"]
     : metadata.isGroup === false ? ["user"]
       : ["user", "group"];
@@ -74,7 +77,7 @@ function qqMediaTargets(chatId, metadata = {}) {
   });
 }
 
-async function chunkedUploadLocalFile({ apiRequest, target, filePath, fileType, metadata }) {
+async function chunkedUploadLocalFile({ apiRequest, target, filePath, fileType, metadata }: any) {
   const stat = fs.statSync(filePath);
   if (!stat.isFile()) throw new Error(`QQ 只能上传文件，不能上传目录：${filePath}`);
   if (stat.size === 0) throw new Error(`QQ 不能发送空文件：${filePath}`);
@@ -142,8 +145,8 @@ function formatBytes(bytes) {
   return `${(bytes / 1024 / 1024).toFixed(1)}MB`;
 }
 
-function replaceAsciiControlChars(value, replacement) {
-  return Array.from(value, (char) => {
+function replaceAsciiControlChars(value: string, replacement: string) {
+  return Array.from(value, (char: string) => {
     const code = char.charCodeAt(0);
     return code <= 0x1F || code === 0x7F ? replacement : char;
   }).join("");
@@ -161,7 +164,7 @@ function parseRetryTimeoutMs(value) {
   return Math.min(seconds * 1000, MAX_PART_FINISH_RETRY_TIMEOUT_MS);
 }
 
-async function computeLocalFileHashes(filePath, fileSize) {
+async function computeLocalFileHashes(filePath: any, fileSize: any): Promise<{ md5: string; sha1: string; md5_10m: string }> {
   return new Promise((resolve, reject) => {
     const md5 = crypto.createHash("md5");
     const sha1 = crypto.createHash("sha1");

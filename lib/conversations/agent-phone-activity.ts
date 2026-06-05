@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * In-memory Agent Phone activity snapshot.
  *
@@ -7,12 +6,18 @@
 
 const DEFAULT_HISTORY_LIMIT = 20;
 
-function keyFor(conversationId, agentId) {
+function keyFor(conversationId: any, agentId: any) {
   return `${conversationId}::${agentId}`;
 }
 
 export class AgentPhoneActivityStore {
-  constructor({ emit, now, historyLimit = DEFAULT_HISTORY_LIMIT } = {}) {
+  declare _emit: any;
+  declare _now: any;
+  declare _historyLimit: number;
+  declare _latest: Map<string, any>;
+  declare _history: Map<string, any>;
+
+  constructor({ emit, now, historyLimit = DEFAULT_HISTORY_LIMIT }: any = {}) {
     this._emit = emit || (() => {});
     this._now = now || (() => new Date().toISOString());
     this._historyLimit = historyLimit;

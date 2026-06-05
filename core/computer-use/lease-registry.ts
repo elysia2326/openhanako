@@ -1,12 +1,17 @@
-// @ts-nocheck
 import crypto from "crypto";
 import { COMPUTER_USE_ERRORS, computerUseError } from "./errors.ts";
 
-function leaseKey(sessionPath, agentId, leaseId) {
+function leaseKey(sessionPath: any, agentId: any, leaseId: any) {
   return `${sessionPath || ""}\0${agentId || ""}\0${leaseId}`;
 }
 
 export class ComputerLeaseRegistry {
+  declare _now: () => number;
+  declare _idFactory: () => string;
+  declare _snapshotIdFactory: () => string;
+  declare _leases: Map<string, any>;
+  declare _snapshots: Map<string, any>;
+
   constructor({
     now = () => Date.now(),
     idFactory = () => crypto.randomUUID(),

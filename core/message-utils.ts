@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * 消息工具函数 — 跨模块共享的消息处理工具
  *
@@ -144,7 +143,7 @@ function historyMessageFromEntry(entry) {
     return message;
   }
   if (entry?.type === "custom_message" && entry.customType) {
-    const message = {
+    const message: Record<string, any> = {
       role: "custom",
       customType: entry.customType,
       content: entry.content || "",
@@ -156,7 +155,7 @@ function historyMessageFromEntry(entry) {
     return message;
   }
   if (entry?.type === "custom" && entry.customType === DEFERRED_RESULT_RECORD_TYPE) {
-    const message = {
+    const message: Record<string, any> = {
       role: "custom",
       customType: entry.customType,
       data: entry.data,
@@ -214,7 +213,7 @@ async function readSessionTailUtf8(filePath, maxBytes = SESSION_TAIL_READ_THRESH
  *
  * 这样可以把整文件 read+split 降成有界尾读，同时不改变现有 UI 的终态判断规则。
  */
-export async function loadLatestAssistantSummaryFromSessionFile(sessionPath, options = {}) {
+export async function loadLatestAssistantSummaryFromSessionFile(sessionPath, options: { maxBytes?: number; summaryLimit?: number } = {}) {
   if (!sessionPath) return null;
   const maxBytes = options.maxBytes ?? SESSION_TAIL_READ_THRESHOLD;
   const summaryLimit = options.summaryLimit ?? 200;

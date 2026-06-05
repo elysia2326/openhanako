@@ -1,4 +1,3 @@
-// @ts-nocheck
 import crypto from "crypto";
 import fs from "fs";
 import path from "path";
@@ -15,7 +14,7 @@ const DEFAULT_PAIRING_TTL_MS = 10 * 60 * 1000;
 
 export function ensureDeviceAccessRegistries(hanakoHome, { now = new Date().toISOString() } = {}) {
   const created = [];
-  const registries = [
+  const registries: [string, any, (value: any, label: any) => void][] = [
     [DEVICES_FILE, createEmptyDevicesRegistry(now), validateDevicesRegistry],
     [DEVICE_CREDENTIALS_FILE, createEmptyCredentialsRegistry(now), validateCredentialsRegistry],
     [PAIRING_SESSIONS_FILE, createEmptyPairingSessionsRegistry(now), validatePairingSessionsRegistry],

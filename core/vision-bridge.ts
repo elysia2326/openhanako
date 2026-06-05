@@ -1,4 +1,3 @@
-// @ts-nocheck
 import crypto from "crypto";
 import fs from "fs";
 import path from "path";
@@ -56,7 +55,7 @@ function visionOutputLimit(model) {
 function abortError() {
   const err = new Error("This operation was aborted");
   err.name = "AbortError";
-  err.type = "aborted";
+  (err as any).type = "aborted";
   return err;
 }
 
@@ -380,6 +379,15 @@ function formatInvalidStructuredNote(rawResponse) {
 }
 
 export class VisionBridge {
+  declare _analysisByPrompt: any;
+  declare _callText: any;
+  declare _getActiveAgentId: any;
+  declare _getUsageLedger: any;
+  declare _maxCacheEntries: any;
+  declare _noteByPath: any;
+  declare _now: any;
+  declare _resolveVisionConfig: any;
+  declare _visionMaxTokens: any;
   constructor({
     resolveVisionConfig,
     callText = defaultCallText,
@@ -388,7 +396,7 @@ export class VisionBridge {
     now = () => Date.now(),
     maxCacheEntries = MAX_CACHE_ENTRIES,
     visionMaxTokens = DEFAULT_VISION_MAX_TOKENS,
-  } = {}) {
+  }: any = {}) {
     this._resolveVisionConfig = resolveVisionConfig || (() => null);
     this._callText = callText;
     this._getUsageLedger = typeof getUsageLedger === "function" ? getUsageLedger : () => null;
@@ -400,7 +408,7 @@ export class VisionBridge {
     this._noteByPath = new Map();
   }
 
-  async prepare({ sessionPath, targetModel, text, images, imageAttachmentPaths, signal } = {}) {
+  async prepare({ sessionPath, targetModel, text, images, imageAttachmentPaths, signal }: any = {}) {
     if (!images?.length) return { text, images };
     if (!requiresAuxiliaryVision(targetModel)) return { text, images };
     throwIfAborted(signal);
@@ -441,7 +449,7 @@ export class VisionBridge {
     return { text, images: undefined, visionNotes: notes };
   }
 
-  async prepareResources({ sessionPath, targetModel, userRequest, text, resources, signal } = {}) {
+  async prepareResources({ sessionPath, targetModel, userRequest, text, resources, signal }: any = {}) {
     if (!resources?.length) return { notes: [] };
     if (!requiresAuxiliaryVision(targetModel)) return { notes: [] };
     return this._summarizeResources({
@@ -453,7 +461,7 @@ export class VisionBridge {
     });
   }
 
-  async summarizeResources({ sessionPath, userRequest, text, resources, signal } = {}) {
+  async summarizeResources({ sessionPath, userRequest, text, resources, signal }: any = {}) {
     if (!resources?.length) return { notes: [] };
     return this._summarizeResources({
       sessionPath,
@@ -464,7 +472,7 @@ export class VisionBridge {
     });
   }
 
-  async _summarizeResources({ sessionPath, targetModel, userRequest, resources, signal } = {}) {
+  async _summarizeResources({ sessionPath, targetModel, userRequest, resources, signal }: any = {}) {
     throwIfAborted(signal);
 
     const config = this._resolveVisionConfig?.();

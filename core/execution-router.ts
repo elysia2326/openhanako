@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * ExecutionRouter -- per-agent 角色路由
  *
@@ -26,7 +25,7 @@ const ROLE_TO_PREF_KEY = {
   utility_large: "utility_large_model",
 };
 
-function withCredentialMetadata(model, cred) {
+function withCredentialMetadata(model: any, cred: any) {
   const headers = cred?.headers && typeof cred.headers === "object" ? cred.headers : {};
   const next = Object.keys(headers).length > 0
     ? { ...model, headers: { ...(model.headers || {}), ...headers } }
@@ -34,16 +33,19 @@ function withCredentialMetadata(model, cred) {
   return cred?.accountId ? { ...next, accountId: cred.accountId } : next;
 }
 
-function hasCredentialHeaders(cred) {
+function hasCredentialHeaders(cred: any) {
   return !!cred?.headers && typeof cred.headers === "object" && Object.keys(cred.headers).length > 0;
 }
 
 export class ExecutionRouter {
+  declare _resolveModel: (ref: string) => any;
+  declare _providerRegistry: any;
+
   /**
    * @param {(ref: string) => object|null} resolveModel - 从 _availableModels 解析模型的函数
    * @param {import('./provider-registry.ts').ProviderRegistry} providerRegistry
    */
-  constructor(resolveModel, providerRegistry) {
+  constructor(resolveModel: any, providerRegistry: any) {
     this._resolveModel = resolveModel;
     this._providerRegistry = providerRegistry;
   }

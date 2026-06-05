@@ -1,4 +1,3 @@
-// @ts-nocheck
 import path from "path";
 import { serializeSessionFile } from "../lib/session-files/session-file-response.ts";
 import { createPluginConfigStore } from "./plugin-config.ts";
@@ -43,7 +42,7 @@ export function createPluginContext({ pluginId, pluginKey, source, pluginDir, da
     debug: (...args) => { recordLog("debug", args); console.debug(prefix, ...args); },
   };
 
-  function registerSessionFile(entry = {}) {
+  function registerSessionFile(entry: any = {}) {
     if (typeof registerSessionFileImpl !== "function") {
       throw new Error("plugin session file registry unavailable");
     }
@@ -75,7 +74,7 @@ export function createPluginContext({ pluginId, pluginKey, source, pluginDir, da
     };
   }
 
-  function stageFile(entry = {}) {
+  function stageFile(entry: any = {}) {
     const { origin: _origin, storageKind: _storageKind, ...safeEntry } = entry;
     const file = registerSessionFile({ ...safeEntry, origin: "plugin_output" });
     return { file, mediaItem: toMediaItem(file) };
@@ -156,7 +155,7 @@ function typesFromFilter(filter) {
 }
 
 function forbiddenBusError(type, action, permission) {
-  const err = new Error(`Plugin bus ${action} "${type}" requires permission "${permission}"`);
+  const err: any = new Error(`Plugin bus ${action} "${type}" requires permission "${permission}"`);
   err.code = "FORBIDDEN";
   err.type = type;
   err.permission = permission;

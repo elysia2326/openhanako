@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * fact-store.js — 深度记忆存储（元事实 + 标签）
  *
@@ -97,11 +96,14 @@ function hasCjk(text) {
 }
 
 export class FactStore {
+  declare _stmts: any;
+  declare _tagSearchCache: any;
+  declare db: any;
   /**
    * @param {string} dbPath - facts.db 的路径
    * @param {{ Database?: import("better-sqlite3") }} [opts]
    */
-  constructor(dbPath, opts = {}) {
+  constructor(dbPath, opts: any = {}) {
     const Database = opts.Database || loadBetterSqliteDatabase();
     this.db = new Database(dbPath);
     this.db.pragma("journal_mode = WAL");
@@ -304,7 +306,7 @@ export class FactStore {
 
     const stmt = this._getTagSearchStmt(queryTags.length, dateRange);
 
-    const params = { limit };
+    const params: any = { limit };
     for (let i = 0; i < queryTags.length; i++) {
       params[`tag${i}`] = queryTags[i];
     }

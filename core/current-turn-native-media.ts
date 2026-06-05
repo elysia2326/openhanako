@@ -1,4 +1,3 @@
-// @ts-nocheck
 import path from "path";
 
 const ATTACHED_AUDIO_MARKER_RE = /\[attached_audio:\s*([^\]]+)\]/g;
@@ -7,7 +6,7 @@ export function createCurrentTurnNativeMediaStore() {
   const activeTurnsBySessionPath = new Map();
   let nextId = 1;
 
-  function begin(sessionPath, opts = {}) {
+  function begin(sessionPath, opts: { audios?: any[]; audioAttachmentPaths?: any[] } = {}) {
     const normalizedSessionPath = normalizePathKey(sessionPath);
     if (!normalizedSessionPath) return null;
     const audios = Array.isArray(opts.audios) ? opts.audios : [];

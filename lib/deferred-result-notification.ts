@@ -1,4 +1,3 @@
-// @ts-nocheck
 function escapeXml(str) {
   return String(str)
     .replace(/&/g, "&amp;")
@@ -37,8 +36,8 @@ export function shouldNotifyAgentOnFailure(task) {
   return task?.status === "failed" && task?.meta?.notifyAgentOnFailure === true;
 }
 
-function parseAttrs(rawAttrs) {
-  const attrs = {};
+function parseAttrs(rawAttrs): Record<string, string> {
+  const attrs: Record<string, string> = {};
   const re = /([a-zA-Z0-9:_-]+)="([^"]*)"/g;
   let match;
   while ((match = re.exec(rawAttrs || ""))) {
@@ -86,7 +85,7 @@ export function buildDeferredResultMessage(taskId, task) {
 
 export function buildDeferredResultRecord(taskId, task) {
   const status = task?.status === "resolved" ? "success" : task?.status;
-  const record = {
+  const record: Record<string, any> = {
     schemaVersion: 1,
     taskId,
     status,
@@ -125,7 +124,7 @@ export function parseDeferredResultNotification(content) {
   if (!taskId || !status) return null;
 
   const body = unescapeXml(match[2] || "").trim();
-  const parsed = {
+  const parsed: Record<string, any> = {
     taskId,
     status,
     type: attrs.type || "background-task",

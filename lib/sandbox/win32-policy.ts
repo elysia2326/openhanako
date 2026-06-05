@@ -1,4 +1,3 @@
-// @ts-nocheck
 import fs from "fs";
 import path from "path";
 
@@ -61,7 +60,7 @@ function basenameForPlatformPath(target) {
   return /^[a-z]:[\\/]|^\\\\/i.test(raw) ? path.win32.basename(raw) : path.basename(raw);
 }
 
-export function externalReadPathsFromSessionFiles(files = [], { workspaceRoots = [], hanakoHome } = {}) {
+export function externalReadPathsFromSessionFiles(files = [], { workspaceRoots = [], hanakoHome }: { workspaceRoots?: any[]; hanakoHome?: any } = {}) {
   const normalizedWorkspaceRoots = uniqueNormalized(workspaceRoots);
   const normalizedHome = hanakoHome ? normalizeExistingOrResolved(hanakoHome) : null;
   const out = [];
@@ -82,7 +81,7 @@ export function externalReadPathsFromSessionFiles(files = [], { workspaceRoots =
 export function buildWin32SandboxGrants({
   policy,
   cwd,
-} = {}) {
+}: { policy?: any; cwd?: any } = {}) {
   if (!policy || policy.mode === "full-access") {
     return { readPaths: [], optionalReadPaths: [], writePaths: [], optionalWritePaths: [], denyReadPaths: [], denyWritePaths: [] };
   }

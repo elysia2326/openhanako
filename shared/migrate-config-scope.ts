@@ -1,4 +1,3 @@
-// @ts-nocheck
 // shared/migrate-config-scope.js
 
 import fs from "fs";
@@ -21,7 +20,7 @@ import { CONFIG_SCHEMA } from './config-schema.ts';
  * @param {string|null} opts.primaryAgentId - 主 agent ID
  * @param {(msg: string) => void} [opts.log] - 日志回调
  */
-export function migrateConfigScope({ agentsDir, prefs, primaryAgentId, log = () => {} }) {
+export function migrateConfigScope({ agentsDir, prefs, primaryAgentId, log = () => {} }: { agentsDir: string; prefs: any; primaryAgentId: string | null; log?: (msg: string) => void }) {
   const preferences = prefs.getPreferences();
 
   // 已迁移过则跳过
@@ -85,7 +84,7 @@ export function migrateConfigScope({ agentsDir, prefs, primaryAgentId, log = () 
 
   // Phase 1: migrate up — 将 agent config 中的全局值提升到 preferences
   let prefsChanged = false;
-  for (const [schemaPath, def] of Object.entries(CONFIG_SCHEMA)) {
+  for (const [schemaPath, def] of Object.entries(CONFIG_SCHEMA) as [string, { scope: string; setter?: string; getter?: string; prefsPath?: string; defaultValue?: unknown }][]) {
     if (def.scope !== 'global') continue;
 
     const parts = schemaPath.split('.');

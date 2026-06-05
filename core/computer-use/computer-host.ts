@@ -1,4 +1,3 @@
-// @ts-nocheck
 import { COMPUTER_USE_ERRORS, computerUseError } from "./errors.ts";
 import { assertComputerUseModelSupported } from "./model-policy.ts";
 import { ComputerLeaseRegistry } from "./lease-registry.ts";
@@ -27,12 +26,12 @@ const CAPABILITY_ALLOWED_VALUES = new Set([
 
 const FOREGROUND_CAPABILITY_VALUES = new Set(["foreground"]);
 
-function sameLeaseOwner(lease, ctx = {}) {
+function sameLeaseOwner(lease, ctx: any = {}) {
   return lease?.sessionPath === (ctx?.sessionPath || null)
     && lease?.agentId === (ctx?.agentId || null);
 }
 
-function targetAppId(target = {}) {
+function targetAppId( target: any = {}) {
   return target.appId
     || (target.pid || target.processId ? `pid:${target.pid || target.processId}` : null)
     || null;
@@ -54,7 +53,7 @@ function findSnapshotElement(snapshot, elementId) {
   return snapshot.elements.find((element) => String(element?.elementId) === String(elementId)) || null;
 }
 
-function actionCapabilitiesFromProvider(capabilities = {}) {
+function actionCapabilitiesFromProvider( capabilities: any = {}) {
   return {
     backgroundControl: capabilities?.backgroundControl,
     elementActions: capabilities?.elementActions,
@@ -67,7 +66,7 @@ function actionCapabilitiesFromProvider(capabilities = {}) {
   };
 }
 
-function capabilityKeyForAction(capabilities, action = {}) {
+function capabilityKeyForAction(capabilities, action: any = {}) {
   if (action?.type === "double_click" && action?.elementId && capabilities?.elementDoubleClick !== undefined) {
     return "elementDoubleClick";
   }
@@ -75,13 +74,20 @@ function capabilityKeyForAction(capabilities, action = {}) {
 }
 
 export class ComputerHost {
+  declare _defaultProviderId: any;
+  declare _getAccessMode: any;
+  declare _getPrimaryAgentId: any;
+  declare _getSettings: any;
+  declare _leases: any;
+  declare _platform: any;
+  declare _providers: any;
   constructor({
     providers,
     defaultProviderId,
     leases = new ComputerLeaseRegistry(),
     platform = process.platform,
     getSettings = () => ({}),
-    getAccessMode = () => "operate",
+    getAccessMode = (_sessionPath?: any) => "operate" as any,
     getPrimaryAgentId = () => null,
   }) {
     if (!providers) throw new Error("ComputerHost requires providers");
@@ -94,7 +100,7 @@ export class ComputerHost {
     this._getPrimaryAgentId = getPrimaryAgentId;
   }
 
-  async getStatus(ctx = {}) {
+  async getStatus( ctx: any = {}) {
     const providers = [];
     for (const provider of this._providers.list()) {
       providers.push({
@@ -124,18 +130,18 @@ export class ComputerHost {
     };
   }
 
-  getActiveLease(ctx = {}) {
+  getActiveLease( ctx: any = {}) {
     return cloneLease(this._leases.getActiveLeaseFor?.(ctx) || null);
   }
 
-  async listApps(ctx = {}, providerId = null) {
+  async listApps( ctx: any = {}, providerId = null) {
     this._assertRuntimeAllowed(ctx);
     assertComputerUseModelSupported(ctx.model);
     const provider = this._providers.require(this._resolveProviderId(ctx, { providerId }));
     return await provider.listApps(ctx);
   }
 
-  async createLease(ctx, target = {}) {
+  async createLease(ctx, target: any = {}) {
     this._assertRuntimeAllowed(ctx);
     assertComputerUseModelSupported(ctx.model);
     const providerId = this._resolveProviderId(ctx, target);
@@ -281,7 +287,7 @@ export class ComputerHost {
     this._leases.releaseBySession(sessionPath);
   }
 
-  async requestPermissions(ctx = {}, providerId = null) {
+  async requestPermissions( ctx: any = {}, providerId = null) {
     const resolvedProviderId = this._resolveProviderId(ctx, { providerId });
     const provider = this._providers.require(resolvedProviderId);
     if (typeof provider.requestPermissions === "function") {
@@ -294,7 +300,7 @@ export class ComputerHost {
     return normalizeComputerUseSettings(this._getSettings?.() || {});
   }
 
-  _assertRuntimeAllowed(ctx = {}) {
+  _assertRuntimeAllowed( ctx: any = {}) {
     const settings = this._settings();
     if (settings.enabled !== true) {
       throw computerUseError(
@@ -321,7 +327,7 @@ export class ComputerHost {
     }
   }
 
-  _resolveActiveLease(ctx = {}, leaseId) {
+  _resolveActiveLease( ctx: any = {}, leaseId) {
     if (leaseId) return this._leases.requireActiveLease(ctx, leaseId);
     const lease = this._leases.getActiveLeaseFor?.(ctx);
     if (lease) return lease;
@@ -344,7 +350,7 @@ export class ComputerHost {
     );
   }
 
-  async _reuseOrReplaceActiveLease(ctx = {}, providerId, target = {}) {
+  async _reuseOrReplaceActiveLease( ctx: any = {}, providerId, target: any = {}) {
     const activeLease = this._leases.getActiveLease?.();
     if (!activeLease) return;
     if (
@@ -382,7 +388,7 @@ export class ComputerHost {
     }
   }
 
-  _leaseMatchesTarget(lease, providerId, target = {}) {
+  _leaseMatchesTarget(lease, providerId, target: any = {}) {
     if (!lease || lease.providerId !== providerId) return false;
     const appId = targetAppId(target);
     if (appId && lease.appId !== appId) return false;
@@ -420,7 +426,7 @@ export class ComputerHost {
     });
   }
 
-  _resolveProviderId(ctx = {}, target = {}) {
+  _resolveProviderId( ctx: any = {}, target: any = {}) {
     return resolveComputerProviderId({
       explicitProviderId: target?.providerId || ctx?.providerId || null,
       settings: this._getSettings?.() || {},
@@ -430,7 +436,7 @@ export class ComputerHost {
     });
   }
 
-  _assertAppApproved(provider, providerId, target = {}) {
+  _assertAppApproved(provider, providerId, target: any = {}) {
     if (provider.capabilities?.isolated === true) return;
     const appId = target.appId
       || (target.pid || target.processId ? `pid:${target.pid || target.processId}` : null)

@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * bridge-manager.js — 外部平台接入管理器
  *
@@ -370,6 +369,13 @@ function cleanStreamSnapshot(text) {
 }
 
 class StreamCleaner {
+  declare _buf: any;
+  declare _inCodeFence: any;
+  declare _inTag: any;
+  declare _lineBuf: any;
+  declare _tagName: any;
+  declare cleaned: any;
+  declare extractedMedia: any;
   constructor() {
     this._buf = "";
     this._inTag = false;
@@ -516,6 +522,15 @@ class StreamCleaner {
  *   结构块结束后恢复逐行发送
  */
 class BlockChunker {
+  declare _buf: any;
+  declare _currentLine: any;
+  declare _flushing: any;
+  declare _inCodeFence: any;
+  declare _inSection: any;
+  declare _maxChars: any;
+  declare _onFlush: any;
+  declare _sectionHasContent: any;
+  declare _structured: any;
   /**
    * @param {object} opts
    * @param {(text: string) => Promise<void>} opts.onFlush  发送一条消息
@@ -663,6 +678,21 @@ function timeTag(ts = Date.now()) {
 }
 
 export class BridgeManager {
+  declare _deferredMediaDeliveries: any;
+  declare _draftCounter: any;
+  declare _hub: any;
+  declare _mediaDelivery: any;
+  declare _messageLogMax: any;
+  declare _messageLogs: any;
+  declare _pending: any;
+  declare _platforms: any;
+  declare _proactiveIdempotency: any;
+  declare _processing: any;
+  declare _rcMirrorStreams: any;
+  declare _rcMirrorUnsubscribe: any;
+  declare blockStreaming: any;
+  declare engine: any;
+  declare mediaPublisher: any;
   /**
    * @param {object} opts
    * @param {import('../../core/engine.ts').HanaEngine} opts.engine
@@ -927,7 +957,7 @@ export class BridgeManager {
 
   /** 获取平台状态（可按 agentId 过滤） */
   getStatus(agentId) {
-    const result = {};
+    const result: any = {};
     for (const [, entry] of this._platforms) {
       if (agentId && entry.agentId !== agentId) continue;
       const name = entry.platform || "unknown";
@@ -1264,7 +1294,7 @@ export class BridgeManager {
     }
   }
 
-  _replyContextFromMessage({ isGroup = null, messageId = null, messageThreadId = null, targetType = null } = {}) {
+  _replyContextFromMessage({ isGroup = null, messageId = null, messageThreadId = null, targetType = null }: any = {}) {
     const hasTransportContext = !!messageId || messageThreadId != null || !!targetType;
     if (!hasTransportContext) return null;
     return this._normalizeReplyContext({
@@ -1278,7 +1308,7 @@ export class BridgeManager {
 
   _normalizeReplyContext(context = null) {
     if (!context || typeof context !== "object") return null;
-    const normalized = {};
+    const normalized: any = {};
     if (context.messageId) normalized.messageId = String(context.messageId);
     if (context.messageThreadId != null && context.messageThreadId !== "") {
       normalized.messageThreadId = context.messageThreadId;
@@ -2176,7 +2206,7 @@ export class BridgeManager {
    * 发送单个媒体项到平台。
    * structured session_file 先解析身份，再由消费端能力决定发送方式。
    */
-  async _sendMediaItem(adapter, chatId, source, context = {}) {
+  async _sendMediaItem(adapter, chatId, source, context: any = {}) {
     this._refreshMediaAllowedRoots(context.agentId || null);
     return this._mediaDelivery.send({
       adapter,
@@ -2202,7 +2232,7 @@ export class BridgeManager {
   }
 
   /** 判断消息发送者是否为 owner（per-agent） */
-  _isOwner(platform, userId, agentId, opts = {}) {
+  _isOwner(platform, userId, agentId, opts: any = {}) {
     const agent = agentId ? this.engine.getAgent(agentId) : null;
     return isBridgeOwner({
       platform,
@@ -2235,7 +2265,7 @@ export class BridgeManager {
    * @param {{ contextPolicy?: "none"|"record_when_delivered", bridgePlatforms?: string[], idempotencyKey?: string }} [opts]
    * @returns {{ platform: string, chatId: string, sessionKey: string, recorded: boolean } | null} 发送成功返回平台信息，失败返回 null
    */
-  async sendProactive(text, targetAgentId, opts = {}) {
+  async sendProactive(text, targetAgentId, opts: any = {}) {
     const cleaned = this._cleanReplyForPlatform(text);
     if (!cleaned) return null;
     const idempotencyKey = normalizeIdempotencyKey(opts.idempotencyKey);
@@ -2263,7 +2293,7 @@ export class BridgeManager {
     }
   }
 
-  async _sendProactiveOnce(cleaned, targetAgentId, opts = {}, idempotencyKey = null) {
+  async _sendProactiveOnce(cleaned, targetAgentId, opts: any = {}, idempotencyKey = null) {
     const contextPolicy = opts.contextPolicy || "record_when_delivered";
     const { bridgePlatforms, invalidBridgePlatforms } = normalizeBridgePlatforms(opts.bridgePlatforms);
     if (invalidBridgePlatforms.length) {

@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * LLM Utilities — 轻量 LLM 调用（标题摘要、翻译、ID 生成等）
  *
@@ -61,7 +60,22 @@ async function callLlm({
   quirks,
   usageLedger,
   usageContext,
-}) {
+}: {
+  model: any;
+  api: any;
+  api_key: any;
+  base_url: any;
+  headers?: any;
+  messages: any;
+  temperature?: number;
+  max_tokens?: any;
+  outputBudgetSource?: string;
+  timeoutMs?: any;
+  signal?: any;
+  quirks?: any;
+  usageLedger?: any;
+  usageContext?: any;
+}): Promise<string> {
   return callText({
     api, model,
     apiKey: api_key,
@@ -74,7 +88,7 @@ async function callLlm({
     ...(quirks != null && { quirks }),
     ...(usageLedger != null && { usageLedger }),
     ...(usageContext != null && { usageContext }),
-  });
+  }) as Promise<string>;
 }
 
 function utilityUsageContext(utilConfig, operation, trigger = "tool") {
@@ -149,7 +163,7 @@ export function buildLocalSummary(assistantText, toolCalls) {
  * @param {string} assistantText
  * @param {{ timeoutMs?: number, signal?: AbortSignal }} [opts]
  */
-export async function summarizeTitle(utilConfig, userText, assistantText, opts = {}) {
+export async function summarizeTitle(utilConfig, userText, assistantText, opts: { timeoutMs?: number; signal?: AbortSignal } = {}) {
   try {
     const isZh = getLocale().startsWith("zh");
     const { utility: model, api_key, base_url, api } = utilConfig;
@@ -292,6 +306,8 @@ Rules:
       api, model,
       apiKey: api_key,
       baseUrl: base_url,
+      headers: undefined,
+      signal: undefined,
       messages: [
         { role: "system", content: systemContent },
         {
@@ -341,6 +357,8 @@ export async function summarizeActivityQuick(utilConfig, sessionPath) {
       api, model,
       apiKey: api_key,
       baseUrl: base_url,
+      headers: undefined,
+      signal: undefined,
       messages: [
         { role: "system", content: systemContent },
         {

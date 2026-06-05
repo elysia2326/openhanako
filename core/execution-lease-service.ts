@@ -1,4 +1,3 @@
-// @ts-nocheck
 import crypto from "crypto";
 import {
   consumeExecutionLease,
@@ -16,6 +15,16 @@ export function issueRemoteWriteLease({
   mountId = null,
   now = new Date().toISOString(),
   ttlMs = 5 * 60 * 1000,
+}: {
+  hanakoHome?: any;
+  requestContext?: any;
+  decision?: any;
+  agentId?: any;
+  sessionId?: string;
+  resourceIds?: any[];
+  mountId?: any;
+  now?: string;
+  ttlMs?: number;
 } = {}) {
   if (!hanakoHome || isLocalOwner(requestContext)) return null;
   const principal = requestContext?.authPrincipal;

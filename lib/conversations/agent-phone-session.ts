@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * Agent Phone session policy helpers.
  *
@@ -51,7 +50,7 @@ export function getAgentPhonePermissionMode(toolMode) {
 }
 
 export function shouldReuseAgentPhoneSession({
-  meta = {},
+  meta = {} as Record<string, any>,
   sessionExists = false,
   now = new Date(),
   activeWindowMs = AGENT_PHONE_SESSION_ACTIVE_WINDOW_MS,

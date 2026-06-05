@@ -1,4 +1,3 @@
-// @ts-nocheck
 const OBJECT_SCHEMA = Object.freeze({ type: "object", additionalProperties: true });
 
 export const EVENT_BUS_ERROR_CODES = Object.freeze({
@@ -496,6 +495,8 @@ export const BUILTIN_EVENT_BUS_CAPABILITIES = Object.freeze([
 ]);
 
 export class EventBusCapabilityDirectory {
+  declare _capabilities: Map<string, any>;
+
   constructor(capabilities = BUILTIN_EVENT_BUS_CAPABILITIES) {
     this._capabilities = new Map();
     for (const capability of capabilities) {
@@ -529,7 +530,7 @@ export class EventBusCapabilityDirectory {
   }
 }
 
-export function normalizeEventBusCapability(capability = {}) {
+export function normalizeEventBusCapability(capability: any = {}) {
   const type = typeof capability.type === "string" ? capability.type.trim() : "";
   if (!type) throw new Error("EventBus capability requires type");
   return {

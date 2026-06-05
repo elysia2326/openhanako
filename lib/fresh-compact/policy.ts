@@ -1,4 +1,3 @@
-// @ts-nocheck
 import crypto from "crypto";
 import { getLogicalDay } from "../time-utils.ts";
 
@@ -6,7 +5,7 @@ export function getFreshCompactDate(now = new Date()) {
   return getLogicalDay(now).logicalDate;
 }
 
-function stableStringify(value) {
+function stableStringify(value: any) {
   if (value === null || typeof value !== "object") return JSON.stringify(value);
   if (Array.isArray(value)) return `[${value.map(stableStringify).join(",")}]`;
   return `{${Object.keys(value).sort().map((key) =>
@@ -14,7 +13,7 @@ function stableStringify(value) {
   ).join(",")}}`;
 }
 
-export function hashFreshCompactValue(value) {
+export function hashFreshCompactValue(value: any) {
   return crypto
     .createHash("sha256")
     .update(typeof value === "string" ? value : stableStringify(value))
@@ -28,14 +27,14 @@ export function buildFreshCompactSnapshot({ systemPrompt = "", state = {} } = {}
   };
 }
 
-function getStoredFreshMeta(meta = {}) {
+function getStoredFreshMeta(meta: Record<string, any> = {}) {
   const nested = meta?.freshCompact && typeof meta.freshCompact === "object"
     ? meta.freshCompact
     : null;
   return nested || meta || {};
 }
 
-export function shouldRunFreshCompact({ meta = {}, now = new Date(), force = false } = {}) {
+export function shouldRunFreshCompact({ meta = {} as Record<string, any>, now = new Date(), force = false } = {}) {
   if (force) return { run: true, reason: "manual" };
   const stored = getStoredFreshMeta(meta);
   const today = getFreshCompactDate(now);
@@ -48,8 +47,8 @@ export function buildFreshCompactMetaPatch({
   snapshot,
   reason,
   now = new Date(),
-  usage = {},
-} = {}) {
+  usage = {} as Record<string, any>,
+}: { snapshot?: any; reason?: any; now?: Date; usage?: Record<string, any> } = {}) {
   const date = now instanceof Date ? now : new Date(now);
   return {
     lastFreshCompactDate: getFreshCompactDate(date),

@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * output-file-tool.js — 文件暂存工具（stage_files）
  *
@@ -15,7 +14,7 @@ import { t } from "../i18n.ts";
 import { getToolSessionPath } from "./tool-session.ts";
 
 /** 修正 LLM 常见的路径问题：转义空格、URL 编码、多余引号 */
-function sanitizePath(p) {
+function sanitizePath(p: any) {
   p = p.trim().replace(/^["']|["']$/g, "");
   p = p.replace(/\\ /g, " ");
   if (p.includes("%20")) {
@@ -24,7 +23,7 @@ function sanitizePath(p) {
   return p;
 }
 
-export function createStageFilesTool({ registerSessionFile, getSessionPath } = {}) {
+export function createStageFilesTool({ registerSessionFile, getSessionPath }: { registerSessionFile?: any; getSessionPath?: any } = {}) {
   return {
     name: "stage_files",
     label: "Stage Files",
@@ -116,7 +115,7 @@ export function createStageFilesTool({ registerSessionFile, getSessionPath } = {
   };
 }
 
-function toStageFileResult(sessionFile, legacy) {
+function toStageFileResult(sessionFile: any, legacy: any) {
   const fileId = sessionFile?.id || sessionFile?.fileId || null;
   return {
     ...(fileId ? { id: fileId, fileId } : {}),
@@ -135,7 +134,7 @@ function toStageFileResult(sessionFile, legacy) {
   };
 }
 
-function toMediaItem(file) {
+function toMediaItem(file: any) {
   if (!file?.fileId) return null;
   return {
     type: "session_file",

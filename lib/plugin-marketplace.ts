@@ -1,4 +1,3 @@
-// @ts-nocheck
 import fs from "fs";
 import path from "path";
 import {
@@ -11,7 +10,11 @@ const DEFAULT_EMPTY_MARKETPLACE = Object.freeze({ schemaVersion: 1, plugins: [] 
 export const DEFAULT_OFFICIAL_PLUGIN_MARKETPLACE_URL = "https://raw.githubusercontent.com/liliMozi/OH-Plugins/main/marketplace.json";
 
 export class PluginMarketplace {
-  constructor(options = {}) {
+  declare indexPath: string;
+  declare indexUrl: string;
+  declare fetchImpl: any;
+
+  constructor(options: any = {}) {
     this.indexPath = normalizeOptionalText(options.indexPath);
     this.indexUrl = normalizeOptionalText(options.indexUrl);
     this.fetchImpl = options.fetchImpl || globalThis.fetch;
@@ -95,7 +98,7 @@ export class PluginMarketplace {
   }
 }
 
-export function createDefaultPluginMarketplace({ hanakoHome, env = process.env, fetchImpl } = {}) {
+export function createDefaultPluginMarketplace({ hanakoHome, env = process.env, fetchImpl }: any = {}) {
   const envPath = normalizeOptionalText(env.HANA_PLUGIN_MARKETPLACE_FILE);
   const envUrl = normalizeOptionalText(env.HANA_PLUGIN_MARKETPLACE_URL);
   const localIndex = hanakoHome ? path.join(hanakoHome, "plugin-marketplace", "marketplace.json") : null;

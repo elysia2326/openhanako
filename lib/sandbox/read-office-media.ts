@@ -1,4 +1,3 @@
-// @ts-nocheck
 import crypto from "crypto";
 import fs from "fs/promises";
 import path from "path";
@@ -119,7 +118,7 @@ function appendOfficeMediaDetails(result, {
   warnings = [],
   visionAdapted,
   visionError,
-} = {}) {
+}: { entries?: any[]; warnings?: any[]; visionAdapted?: any; visionError?: any } = {}) {
   let details = {
     ...(result?.details || {}),
     ...(entries.length > 0 ? {
@@ -321,7 +320,7 @@ export function wrapReadOfficeMedia(tool, cwd, {
   isVisionAuxiliaryEnabled,
   getSessionPath,
   recordFileOperation,
-} = {}) {
+}: { hanakoHome?: any; getVisionBridge?: any; isVisionAuxiliaryEnabled?: any; getSessionPath?: any; recordFileOperation?: any } = {}) {
   if (!tool || tool.name !== "read" || typeof tool.execute !== "function") return tool;
 
   return {

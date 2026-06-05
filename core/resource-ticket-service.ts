@@ -1,4 +1,3 @@
-// @ts-nocheck
 import crypto from "crypto";
 import fs from "fs";
 import path from "path";
@@ -9,7 +8,10 @@ export const RESOURCE_TICKET_ACTION = "resources.content";
 export const DEFAULT_RESOURCE_TICKET_TTL_MS = 5 * 60 * 1000;
 
 export class ResourceTicketError extends Error {
-  constructor(message, { code = "resource_ticket_invalid", status = 403 } = {}) {
+  declare code: string;
+  declare status: number;
+
+  constructor(message: any, { code = "resource_ticket_invalid", status = 403 } = {}) {
     super(message);
     this.name = "ResourceTicketError";
     this.code = code;
@@ -24,7 +26,7 @@ export function issueResourceTicket({
   principalId,
   now = new Date().toISOString(),
   ttlMs = DEFAULT_RESOURCE_TICKET_TTL_MS,
-} = {}) {
+}: any = {}) {
   assertNonEmpty(hanakoHome, "hanakoHome");
   assertNonEmpty(resourceId, "resourceId");
   assertNonEmpty(studioId, "studioId");
@@ -55,7 +57,7 @@ export function verifyResourceTicket({
   ticket,
   resourceId,
   now = new Date().toISOString(),
-} = {}) {
+}: any = {}) {
   assertNonEmpty(hanakoHome, "hanakoHome");
   assertNonEmpty(resourceId, "resourceId");
   if (typeof ticket !== "string" || !ticket.trim()) {
@@ -102,19 +104,19 @@ export function verifyResourceTicket({
   });
 }
 
-export function resourceTicketKeyPath(hanakoHome) {
+export function resourceTicketKeyPath(hanakoHome: any) {
   assertNonEmpty(hanakoHome, "hanakoHome");
   return path.join(hanakoHome, "security", RESOURCE_TICKET_KEY_FILE);
 }
 
-function signBody(hanakoHome, body) {
+function signBody(hanakoHome: any, body: any) {
   return crypto
     .createHmac("sha256", readOrCreateTicketKey(hanakoHome))
     .update(body)
     .digest("base64url");
 }
 
-function readOrCreateTicketKey(hanakoHome) {
+function readOrCreateTicketKey(hanakoHome: any) {
   const filePath = resourceTicketKeyPath(hanakoHome);
   try {
     const existing = fs.readFileSync(filePath, "utf-8").trim();
@@ -128,20 +130,20 @@ function readOrCreateTicketKey(hanakoHome) {
   return key;
 }
 
-function base64UrlEncode(value) {
+function base64UrlEncode(value: any) {
   return Buffer.from(value, "utf-8").toString("base64url");
 }
 
-function base64UrlDecode(value) {
+function base64UrlDecode(value: any) {
   return Buffer.from(value, "base64url").toString("utf-8");
 }
 
-function timingSafeEqual(a, b) {
+function timingSafeEqual(a: any, b: any) {
   const left = Buffer.from(String(a));
   const right = Buffer.from(String(b));
   return left.length === right.length && crypto.timingSafeEqual(left, right);
 }
 
-function assertNonEmpty(value, label) {
+function assertNonEmpty(value: any, label: any) {
   if (typeof value !== "string" || !value.trim()) throw new Error(`${label} required`);
 }

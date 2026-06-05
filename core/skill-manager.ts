@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * SkillManager — Skill 加载、过滤、运行时同步
  *
@@ -75,6 +74,14 @@ function decorateLoadedSkill(skill, hiddenSkills) {
 }
 
 export class SkillManager {
+  declare _allSkills: any;
+  declare _externalPaths: any;
+  declare _externalWatchers: any;
+  declare _hiddenSkills: any;
+  declare _reloadDeps: any;
+  declare _reloadTimer: any;
+  declare _watcher: any;
+  declare skillsDir: any;
   /**
    * @param {object} opts
    * @param {string} opts.skillsDir - 全局 skills 目录
@@ -351,7 +358,7 @@ export class SkillManager {
           if (this._reloadTimer) clearTimeout(this._reloadTimer);
           this._reloadTimer = setTimeout(() => this._autoReload(), 1000);
         });
-        w.on("error", (err) => {
+        w.on("error", (err: any) => {
           log.error(`external watcher error (${dirPath}): ${err.message}`);
         });
         this._externalWatchers.set(dirPath, w);

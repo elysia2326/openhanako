@@ -1,4 +1,3 @@
-// @ts-nocheck
 import {
   hashCacheContractValue,
   stableSerialize,
@@ -140,6 +139,14 @@ export function buildSessionSnapshotRequestContract({
   tools = [],
   messages = [],
   prefixMessageCount = snapshot?.messageCount ?? 0,
+}: {
+  snapshot?: any;
+  model?: any;
+  cacheKeyParams?: any;
+  systemPrompt?: string;
+  tools?: any[];
+  messages?: any[];
+  prefixMessageCount?: number;
 } = {}) {
   const normalizedModel = normalizeModel(model);
   const normalizedParams = normalizeCacheKeyParams(cacheKeyParams);

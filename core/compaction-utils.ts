@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * 压缩相关共享纯函数。
  *
@@ -25,7 +24,7 @@ import { findCutPoint, estimateTokens } from "../lib/pi-sdk/index.ts";
  * @returns {null | { summary: string, firstKeptEntryId: string, tokensBefore: number, details: object }}
  *   返回 null 表示无法截断（消息太少 / 切点落在开头）
  */
-export function computeHardTruncation(pathEntries, keepRecentTokens, options = {}) {
+export function computeHardTruncation(pathEntries, keepRecentTokens, options: { summary?: string; reason?: string } = {}) {
   const {
     summary = "[由于上下文超限，早期对话历史已被截断]",
     reason = "hard-truncation",

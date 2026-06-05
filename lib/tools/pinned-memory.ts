@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * pinned-memory.js — pin_memory / unpin_memory 自定义工具
  *
@@ -23,7 +22,7 @@ const log = createModuleLogger("pin_memory");
  * @param {string} agentDir - agent 数据目录（pinned.md 在这里）
  * @returns {[import('../pi-sdk/index.ts').ToolDefinition, import('../pi-sdk/index.ts').ToolDefinition]}
  */
-export function createPinnedMemoryTools(agentDir) {
+export function createPinnedMemoryTools(agentDir: string) {
   const pinTool = {
     name: "pin_memory",
     label: "Pin Memory",

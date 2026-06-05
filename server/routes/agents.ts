@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * 助手管理 REST 路由
  *
@@ -125,7 +124,7 @@ function emitAgentConfigAppEvents(engine, agentId, { globalFields, agentPartial,
     emitAppEvent(engine, "models-changed", { agentId });
   }
 
-  const agentPayload = { agentId };
+  const agentPayload: Record<string, any> = { agentId };
   let agentUpdated = false;
   if (hasOwn(agentPartial?.agent, "name")) {
     agentPayload.agentName = agentPartial.agent.name;
@@ -422,7 +421,7 @@ export function createAgentsRoute(engine) {
       try {
         const rawProviders = engine.providerRegistry.getAllProvidersRaw();
         const providerEntries = {};
-        for (const [name, p] of Object.entries(rawProviders)) {
+        for (const [name, p] of Object.entries(rawProviders) as [string, any][]) {
           const entry = engine.providerRegistry.get(name);
           providerEntries[name] = {
             base_url: p.base_url || entry?.baseUrl || "",
@@ -487,7 +486,7 @@ export function createAgentsRoute(engine) {
         const providerDenied = denyWithoutScope(c, "providers.manage");
         if (providerDenied) return providerDenied;
       }
-      const secretFields = collectSecretPatchPaths(partial, ["api_key"]);
+      const secretFields = collectSecretPatchPaths(partial, ["api_key"] as any);
       const secretDenied = denySecretMutationWithoutScope(c, secretFields);
       if (secretDenied) return secretDenied;
 
@@ -514,7 +513,7 @@ export function createAgentsRoute(engine) {
       }
 
       // ── schema-driven 全局字段分流 ──
-      const { global: globalFields, agent: agentPartial } = splitByScope(partial);
+      const { global: globalFields, agent: agentPartial } = splitByScope(partial) as { global: any[], agent: Record<string, any> };
       for (const { setter, value } of globalFields) {
         engine[setter](value);
       }
@@ -530,7 +529,7 @@ export function createAgentsRoute(engine) {
             engine.providerRegistry.saveProvider(name, resolveSecretPatch({
               patch: data,
               existing: rawProviders[name] || {},
-              secretKeys: ["api_key"],
+              secretKeys: ["api_key"] as any,
             }));
           }
         }
@@ -561,7 +560,7 @@ export function createAgentsRoute(engine) {
       // providers 变更后确保运行时刷新
       if (providersChanged) {
         await engine.onProviderChanged();
-        clearConfigCache();
+        clearConfigCache(undefined as any);
       }
 
       // providers 是全局状态，变更后无论编辑的是哪个 agent，运行时都要刷新
@@ -576,7 +575,7 @@ export function createAgentsRoute(engine) {
           target: `agents.${id}.config`,
           secretFields,
           metadata: { agentId: id },
-        });
+        } as any);
         return c.json({ ok: true });
       }
 
@@ -607,7 +606,7 @@ export function createAgentsRoute(engine) {
         target: `agents.${id}.config`,
         secretFields,
         metadata: { agentId: id },
-      });
+      } as any);
       return c.json({ ok: true });
     } catch (err) {
       return c.json({ error: err.message }, err.statusCode || 500);

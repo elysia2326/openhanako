@@ -1,4 +1,3 @@
-// @ts-nocheck
 import fs from "fs";
 import path from "path";
 import { atomicWriteSync } from "../shared/safe-fs.ts";
@@ -239,7 +238,7 @@ export const PLUGIN_DEV_EVENT_BUS_CAPABILITIES = Object.freeze([
 ]);
 
 function createDevError(message, status = 400, code = "PLUGIN_DEV_ERROR") {
-  const err = new Error(message);
+  const err: any = new Error(message);
   err.status = status;
   err.code = code;
   return err;
@@ -334,6 +333,15 @@ function assertInsideDir(childPath, parentDir) {
 }
 
 export class PluginDevService {
+  declare _allowedSourceRoots: any;
+  declare _devPluginsDir: any;
+  declare _eventBusDisposers: any;
+  declare _logLimit: any;
+  declare _logs: any;
+  declare _pluginManager: any;
+  declare _runDataDir: any;
+  declare _slots: any;
+  declare _syncPluginExtensions: any;
   constructor({
     pluginManager,
     devPluginsDir,
@@ -450,7 +458,7 @@ export class PluginDevService {
     this._slots.delete(pluginId);
   }
 
-  _requireDevSlot(pluginId, options = {}) {
+  _requireDevSlot(pluginId, options: any = {}) {
     if (!pluginId) throw createDevError("pluginId is required", 400, "PLUGIN_DEV_PLUGIN_ID_REQUIRED");
     const slot = this._slots.get(pluginId);
     if (!slot) {
@@ -527,7 +535,7 @@ export class PluginDevService {
     };
   }
 
-  async installFromSource({ sourcePath, allowFullAccess = false, pluginId } = {}) {
+  async installFromSource({ sourcePath, allowFullAccess = false, pluginId }: any = {}) {
     const realSourcePath = this._resolveAllowedSourceDir(sourcePath);
     const desc = this._readAndValidateDescriptor(realSourcePath, pluginId);
     return this._installDescriptor({
@@ -537,7 +545,7 @@ export class PluginDevService {
     });
   }
 
-  async reloadPlugin(pluginId, options = {}) {
+  async reloadPlugin(pluginId, options: any = {}) {
     const { slot } = this._requireDevSlot(pluginId, options);
     const realSourcePath = this._resolveAllowedSourceDir(slot.sourcePath);
     const desc = this._readAndValidateDescriptor(realSourcePath, pluginId);
@@ -548,7 +556,7 @@ export class PluginDevService {
     });
   }
 
-  async disablePlugin(pluginId, options = {}) {
+  async disablePlugin(pluginId, options: any = {}) {
     this._requireDevSlot(pluginId, options);
     await this._pluginManager.disablePlugin(pluginId, { source: "dev", persist: false });
     await this._syncPluginExtensions();
@@ -560,7 +568,7 @@ export class PluginDevService {
     };
   }
 
-  async enablePlugin(pluginId, options = {}) {
+  async enablePlugin(pluginId, options: any = {}) {
     const { slot } = this._requireDevSlot(pluginId, options);
     await this._pluginManager.enablePlugin(pluginId, {
       source: "dev",
@@ -576,12 +584,12 @@ export class PluginDevService {
     };
   }
 
-  async resetPlugin(pluginId, options = {}) {
+  async resetPlugin(pluginId, options: any = {}) {
     this._requireDevSlot(pluginId, options);
     return this.reloadPlugin(pluginId, options);
   }
 
-  async uninstallPlugin(pluginId, options = {}) {
+  async uninstallPlugin(pluginId, options: any = {}) {
     const { slot } = this._requireDevSlot(pluginId, options);
     const pluginDir = await this._pluginManager.removePlugin(pluginId, { source: "dev", persist: false });
     const removeTarget = slot.targetDir || pluginDir;
@@ -597,7 +605,7 @@ export class PluginDevService {
     };
   }
 
-  async invokeTool({ pluginId, toolName, input = {}, sessionPath, agentId } = {}) {
+  async invokeTool({ pluginId, toolName, input = {}, sessionPath, agentId }: any = {}) {
     if (!pluginId) throw createDevError("pluginId is required", 400, "PLUGIN_DEV_PLUGIN_ID_REQUIRED");
     if (!toolName) throw createDevError("toolName is required", 400, "PLUGIN_DEV_TOOL_NAME_REQUIRED");
     const entry = this._pluginManager.getPlugin(pluginId, { source: "dev" });
@@ -656,7 +664,7 @@ export class PluginDevService {
     ];
   }
 
-  describeSurfaceDebug({ pluginId, kind, route } = {}) {
+  describeSurfaceDebug({ pluginId, kind, route }: any = {}) {
     const surfaces = this.listSurfaces(pluginId);
     const surface = surfaces.find((item) => (
       (!kind || item.kind === kind)
@@ -679,7 +687,7 @@ export class PluginDevService {
     };
   }
 
-  getScenarios({ pluginId } = {}) {
+  getScenarios({ pluginId }: any = {}) {
     if (!pluginId) throw createDevError("pluginId is required", 400, "PLUGIN_DEV_PLUGIN_ID_REQUIRED");
     const entry = this._pluginManager.getPlugin(pluginId, { source: "dev" });
     if (!entry) throw createDevError(`Plugin "${pluginId}" not found`, 404, "PLUGIN_DEV_PLUGIN_NOT_FOUND");
@@ -697,7 +705,7 @@ export class PluginDevService {
       }));
   }
 
-  async runScenario({ pluginId, scenarioId, allowDestructive = false } = {}) {
+  async runScenario({ pluginId, scenarioId, allowDestructive = false }: any = {}) {
     if (!scenarioId) throw createDevError("scenarioId is required", 400, "PLUGIN_DEV_SCENARIO_ID_REQUIRED");
     const scenario = this.getScenarios({ pluginId }).find((item) => item.id === scenarioId);
     if (!scenario) {
@@ -788,7 +796,7 @@ export class PluginDevService {
     return { pluginId, scenarioId, status: "passed", steps };
   }
 
-  recordLog(entry = {}) {
+  recordLog( entry: any = {}) {
     const args = Array.isArray(entry.args) ? entry.args : [];
     const log = {
       ts: entry.ts || new Date().toISOString(),
@@ -835,38 +843,38 @@ export class PluginDevService {
     }
     this.unregisterEventBusHandlers();
     const handlers = [
-      ["plugin.dev.install", (payload = {}) => this.installFromSource({
+      ["plugin.dev.install", ( payload: any = {}) => this.installFromSource({
         sourcePath: payload.sourcePath || payload.path,
         pluginId: payload.pluginId,
         allowFullAccess: !!payload.allowFullAccess,
       })],
-      ["plugin.dev.reload", (payload = {}) => this.reloadPlugin(payload.pluginId, {
+      ["plugin.dev.reload", ( payload: any = {}) => this.reloadPlugin(payload.pluginId, {
         devRunId: payload.devRunId,
         allowFullAccess: payload.allowFullAccess,
       })],
-      ["plugin.dev.disable", (payload = {}) => this.disablePlugin(payload.pluginId, {
+      ["plugin.dev.disable", ( payload: any = {}) => this.disablePlugin(payload.pluginId, {
         devRunId: payload.devRunId,
       })],
-      ["plugin.dev.enable", (payload = {}) => this.enablePlugin(payload.pluginId, {
-        devRunId: payload.devRunId,
-        allowFullAccess: payload.allowFullAccess,
-      })],
-      ["plugin.dev.reset", (payload = {}) => this.resetPlugin(payload.pluginId, {
+      ["plugin.dev.enable", ( payload: any = {}) => this.enablePlugin(payload.pluginId, {
         devRunId: payload.devRunId,
         allowFullAccess: payload.allowFullAccess,
       })],
-      ["plugin.dev.uninstall", (payload = {}) => this.uninstallPlugin(payload.pluginId, {
+      ["plugin.dev.reset", ( payload: any = {}) => this.resetPlugin(payload.pluginId, {
+        devRunId: payload.devRunId,
+        allowFullAccess: payload.allowFullAccess,
+      })],
+      ["plugin.dev.uninstall", ( payload: any = {}) => this.uninstallPlugin(payload.pluginId, {
         devRunId: payload.devRunId,
       })],
-      ["plugin.dev.invokeTool", (payload = {}) => this.invokeTool(payload)],
-      ["plugin.dev.diagnostics", (payload = {}) => this.getDiagnostics(payload.pluginId)],
-      ["plugin.dev.listSurfaces", (payload = {}) => this.listSurfaces(payload.pluginId)],
-      ["plugin.dev.describeSurfaceDebug", (payload = {}) => this.describeSurfaceDebug(payload)],
-      ["plugin.dev.getScenarios", (payload = {}) => this.getScenarios(payload)],
-      ["plugin.dev.runScenario", (payload = {}) => this.runScenario(payload)],
+      ["plugin.dev.invokeTool", ( payload: any = {}) => this.invokeTool(payload)],
+      ["plugin.dev.diagnostics", ( payload: any = {}) => this.getDiagnostics(payload.pluginId)],
+      ["plugin.dev.listSurfaces", ( payload: any = {}) => this.listSurfaces(payload.pluginId)],
+      ["plugin.dev.describeSurfaceDebug", ( payload: any = {}) => this.describeSurfaceDebug(payload)],
+      ["plugin.dev.getScenarios", ( payload: any = {}) => this.getScenarios(payload)],
+      ["plugin.dev.runScenario", ( payload: any = {}) => this.runScenario(payload)],
     ];
     const capabilityByType = new Map(PLUGIN_DEV_EVENT_BUS_CAPABILITIES.map((capability) => [capability.type, capability]));
-    this._eventBusDisposers = handlers.map(([type, handler]) => (
+    this._eventBusDisposers = handlers.map(([type, handler]: any) => (
       bus.handle(type, handler, { capability: capabilityByType.get(type) })
     ));
     return () => this.unregisterEventBusHandlers();

@@ -1,4 +1,3 @@
-// @ts-nocheck
 import crypto from "crypto";
 import fs from "fs";
 import path from "path";
@@ -21,6 +20,9 @@ const SEARCH_SKIP_DIRS = new Set([
 const SEARCH_LIMIT = 80;
 
 export class MountAwareFileError extends Error {
+  declare code: string;
+  declare status: number;
+
   constructor(message, { code = "file_action_failed", status = 400 } = {}) {
     super(message);
     this.name = "MountAwareFileError";
@@ -30,12 +32,17 @@ export class MountAwareFileError extends Error {
 }
 
 export class MountAwareFileService {
+  declare _hanakoHome: string;
+  declare _defaultRoot: string;
+  declare _studioId: string;
+  declare _createCheckpoint: any;
+
   constructor({
     hanakoHome,
     defaultRoot,
     studioId,
     createCheckpoint,
-  } = {}) {
+  }: Record<string, any> = {}) {
     if (!hanakoHome) throw new Error("hanakoHome required");
     this._hanakoHome = hanakoHome;
     this._defaultRoot = defaultRoot || null;
@@ -91,7 +98,7 @@ export class MountAwareFileService {
     return { root, filePath, filename };
   }
 
-  async mkdir(rootId, subdir, body = {}) {
+  async mkdir(rootId, subdir, body: Record<string, any> = {}) {
     const { root, dir } = this._writeDir(rootId, subdir);
     const name = normalizePlainNameOrThrow(body.name);
     const target = resolveFileTarget(root.path, dir, name);
@@ -100,7 +107,7 @@ export class MountAwareFileService {
     return { ok: true, action: "mkdir", rootId: root.id, files: await listFiles(dir) };
   }
 
-  async writeText(rootId, subdir, body = {}) {
+  async writeText(rootId, subdir, body: Record<string, any> = {}) {
     const { root, dir } = this._writeDir(rootId, subdir);
     const name = normalizePlainNameOrThrow(body.name);
     const target = resolveFileTarget(root.path, dir, name);
@@ -132,7 +139,7 @@ export class MountAwareFileService {
     };
   }
 
-  async rename(rootId, subdir, body = {}) {
+  async rename(rootId, subdir, body: Record<string, any> = {}) {
     const { root, dir } = this._writeDir(rootId, subdir);
     const oldName = normalizePlainNameOrThrow(body.oldName);
     const newName = normalizePlainNameOrThrow(body.newName);
@@ -143,7 +150,7 @@ export class MountAwareFileService {
     return { ok: true, action: "rename", rootId: root.id, files: await listFiles(dir) };
   }
 
-  async move(rootId, subdir, body = {}) {
+  async move(rootId, subdir, body: Record<string, any> = {}) {
     const { root, dir } = this._writeDir(rootId, subdir);
     const name = normalizePlainNameOrThrow(body.name);
     const destSubdir = normalizeSubdirOrThrow(body.destSubdir || "");
@@ -155,7 +162,7 @@ export class MountAwareFileService {
     return { ok: true, action: "move", rootId: root.id, files: await listFiles(dir) };
   }
 
-  async safeDelete(rootId, subdir, body = {}) {
+  async safeDelete(rootId, subdir, body: Record<string, any> = {}) {
     const { root, dir, normalizedSubdir } = this._writeDir(rootId, subdir);
     const name = normalizePlainNameOrThrow(body.name);
     const source = resolveFileTarget(root.path, dir, name);

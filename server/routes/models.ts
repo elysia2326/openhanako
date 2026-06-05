@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * 模型管理 REST 路由
  */
@@ -227,6 +226,9 @@ export function createModelsRoute(engine) {
         apiKey: resolved.api_key,
         baseUrl: resolved.base_url,
         model: resolved.model,
+        headers: undefined as any,
+        temperature: undefined as any,
+        signal: undefined as any,
         messages: [{ role: "user", content: HEALTH_CHECK_PROMPT }],
         maxTokens: HEALTH_CHECK_MAX_TOKENS,
         timeoutMs: 15_000,
@@ -303,7 +305,7 @@ export function createModelsRoute(engine) {
       return c.json({ ok: true, model: modelInfo, adaptations: result.adaptations, thinkingLevel: result.thinkingLevel });
     } catch (err) {
       const classified = classifyModelSwitchError(err);
-      return c.json({ error: classified.message, code: classified.code }, classified.status);
+      return c.json({ error: classified.message, code: classified.code }, classified.status as any);
     }
   });
 

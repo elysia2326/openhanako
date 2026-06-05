@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * 数据迁移 runner
  *
@@ -354,7 +353,7 @@ function migrateBridgeToPerAgent(ctx) {
   }
 
   // 清理旧的 platform / owner 键，只保留新的全局偏好键
-  const nextBridgePrefs = {};
+  const nextBridgePrefs: any = {};
   if (readOnly) nextBridgePrefs.readOnly = true;
   if (receiptEnabled === false) nextBridgePrefs.receiptEnabled = false;
   if (Object.keys(nextBridgePrefs).length > 0) preferences.bridge = nextBridgePrefs;
@@ -528,7 +527,7 @@ function migrateSubagentExecutorMetadata(ctx) {
     if (!fs.existsSync(deferredTasksPath)) return;
     const deferredTasks = JSON.parse(fs.readFileSync(deferredTasksPath, "utf-8"));
     let changed = false;
-    for (const task of Object.values(deferredTasks)) {
+    for (const task of Object.values(deferredTasks) as any[]) {
       if (task?.meta?.type !== "subagent") continue;
       const sessionPath = task.meta.sessionPath || null;
       const candidate =
@@ -576,7 +575,7 @@ function normalizeCompositeModelRefs(ctx, { migrationId }) {
   // ── 构建 id → provider 查找表（多 provider 同 id 取首个） ──
   const idToProvider = new Map();
   const rawProviders = providerRegistry.getAllProvidersRaw?.() || {};
-  for (const [providerId, p] of Object.entries(rawProviders || {})) {
+  for (const [providerId, p] of Object.entries(rawProviders || {}) as [string, any][]) {
     for (const m of p.models || []) {
       const id = typeof m === "object" ? m.id : m;
       if (id && !idToProvider.has(id)) idToProvider.set(id, providerId);
@@ -1077,7 +1076,7 @@ function migrateVisionToImage(ctx) {
   const raw = safeReadYAMLSync(ymlPath, null, YAML);
   if (raw?.providers && typeof raw.providers === "object") {
     let changed = false;
-    for (const prov of Object.values(raw.providers)) {
+    for (const prov of Object.values(raw.providers) as any[]) {
       if (!prov || !Array.isArray(prov.models)) continue;
       for (const m of prov.models) {
         if (!m || typeof m !== "object") continue;
@@ -1119,7 +1118,7 @@ function migrateVisionToImage(ctx) {
     if (!cfg?.models?.overrides || typeof cfg.models.overrides !== "object") continue;
 
     let changed = false;
-    for (const ov of Object.values(cfg.models.overrides)) {
+    for (const ov of Object.values(cfg.models.overrides) as any[]) {
       if (!ov || typeof ov !== "object") continue;
       if (!Object.prototype.hasOwnProperty.call(ov, "vision")) continue;
       if (ov.image === undefined) ov.image = ov.vision;
@@ -1146,7 +1145,7 @@ function buildModelProviderIndex(providerRegistry) {
   const providerModelIds = new Map();
   const rawProviders = providerRegistry.getAllProvidersRaw?.() || {};
 
-  for (const [providerId, provider] of Object.entries(rawProviders || {})) {
+  for (const [providerId, provider] of Object.entries(rawProviders || {}) as [string, any][]) {
     const ids = new Set();
     for (const m of provider?.models || []) {
       const id = typeof m === "object" ? m.id : m;
@@ -1571,7 +1570,7 @@ function migrateAgentPhoneRuntimeOutOfProjection(ctx) {
       const runtimePath = path.join(runtimeDir, `${safeConversationStem(conversationId)}.json`);
       fs.mkdirSync(runtimeDir, { recursive: true });
 
-      let existing = {};
+      let existing: any = {};
       try {
         const parsed = fs.existsSync(runtimePath)
           ? JSON.parse(fs.readFileSync(runtimePath, "utf-8"))
@@ -1591,7 +1590,7 @@ function migrateAgentPhoneRuntimeOutOfProjection(ctx) {
         ...runtimePatch,
         updatedAt: existing.updatedAt || new Date().toISOString(),
       };
-      delete nextRuntime.toolNames;
+      delete (nextRuntime as any).toolNames;
       atomicWriteSync(runtimePath, JSON.stringify(nextRuntime, null, 2) + "\n");
       moved += 1;
     }
@@ -1779,7 +1778,7 @@ function migrateGeminiOpenAICompatToNative(ctx) {
   }
 
   let patched = 0;
-  for (const [providerId, provider] of Object.entries(raw.providers)) {
+  for (const [providerId, provider] of Object.entries(raw.providers) as [string, any][]) {
     if (!provider || typeof provider !== "object") continue;
 
     const baseKind = classifyOfficialGeminiBaseUrl(provider.base_url);
@@ -2027,7 +2026,7 @@ function repairModelsJsonPiInputSchema(ctx) {
   if (!raw?.providers || typeof raw.providers !== "object") return 0;
 
   let patched = 0;
-  for (const [providerId, provider] of Object.entries(raw.providers)) {
+  for (const [providerId, provider] of Object.entries(raw.providers) as [string, any][]) {
     if (!provider || typeof provider !== "object") continue;
     if (Array.isArray(provider.models)) {
       for (const model of provider.models) {
@@ -2129,7 +2128,7 @@ function promoteAgentVideoOverrides(ctx) {
     if (!cfg?.models?.overrides || typeof cfg.models.overrides !== "object") continue;
 
     let cfgChanged = false;
-    for (const [modelId, override] of Object.entries(cfg.models.overrides)) {
+    for (const [modelId, override] of Object.entries(cfg.models.overrides) as [string, any][]) {
       if (!override || typeof override !== "object") continue;
       if (!Object.prototype.hasOwnProperty.call(override, "video")) continue;
 
@@ -2184,7 +2183,7 @@ function promoteAgentVideoOverrides(ctx) {
 }
 
 function promoteVideoOverrideIntoAddedModels(providers, modelId, video) {
-  for (const provider of Object.values(providers)) {
+  for (const provider of Object.values(providers) as any[]) {
     if (!provider || !Array.isArray(provider.models)) continue;
     const idx = provider.models.findIndex((entry) => {
       if (typeof entry === "string") return entry === modelId;
@@ -2239,7 +2238,7 @@ function repairSessionMetaThinkingLevels(metaPath, log) {
   if (!meta || typeof meta !== "object" || Array.isArray(meta)) return 0;
 
   let patched = 0;
-  for (const [sessionFile, entry] of Object.entries(meta)) {
+  for (const [sessionFile, entry] of Object.entries(meta) as [string, any][]) {
     if (!shouldRepairLegacyPromptSnapshotThinkingLevel(entry)) continue;
     const nextThinkingLevel = normalizeThinkingLevelForModel(entry.thinkingLevel, legacySessionMetaModelRef(entry));
     if (nextThinkingLevel === entry.thinkingLevel) continue;
@@ -2329,7 +2328,7 @@ function repairLegacyDeepSeekProviderModelIds(ctx) {
   if (!raw?.providers || typeof raw.providers !== "object") return 0;
 
   let patched = 0;
-  for (const [providerId, provider] of Object.entries(raw.providers)) {
+  for (const [providerId, provider] of Object.entries(raw.providers) as [string, any][]) {
     if (!provider || !Array.isArray(provider.models)) continue;
 
     const invalid = new Set(
@@ -2551,7 +2550,7 @@ function legacySessionFileRefs(msg) {
   return refs;
 }
 
-function pushLegacyFileRef(refs, candidate, defaults = {}) {
+function pushLegacyFileRef(refs, candidate, defaults: any = {}) {
   if (!candidate || typeof candidate !== "object") return;
   const filePath = candidate.filePath || candidate.path || candidate.realPath || candidate.localPath;
   if (!filePath) return;
@@ -2688,7 +2687,7 @@ function migrateDurableSubagentRunRegistry(ctx) {
   try {
     if (fs.existsSync(deferredTasksPath)) {
       const deferredTasks = JSON.parse(fs.readFileSync(deferredTasksPath, "utf-8"));
-      for (const [taskId, task] of Object.entries(deferredTasks || {})) {
+      for (const [taskId, task] of Object.entries(deferredTasks || {}) as [string, any][]) {
         if (task?.meta?.type !== "subagent") continue;
         const childSessionPath = typeof task.meta.sessionPath === "string" && task.meta.sessionPath
           ? task.meta.sessionPath
@@ -2769,7 +2768,7 @@ function migrateSubagentThreadRegistry(ctx) {
   const instances = reusableRaw?.instances && typeof reusableRaw.instances === "object"
     ? reusableRaw.instances
     : {};
-  for (const [reuseKey, rec] of Object.entries(instances)) {
+  for (const [reuseKey, rec] of Object.entries(instances) as [string, any][]) {
     if (!reuseKey || !rec || typeof rec !== "object") continue;
     const threadId = `reusable::${reuseKey}`;
     threadStore.upsert(threadId, {
@@ -2812,7 +2811,7 @@ function migrateSubagentDirectThreadSemantics(ctx) {
   const rawThreads = readJsonForMigration(threadsPath);
   const threads = rawThreads?.threads && typeof rawThreads.threads === "object" ? rawThreads.threads : null;
   if (threads) {
-    for (const rec of Object.values(threads)) {
+    for (const rec of Object.values(threads) as any[]) {
       if (!rec || typeof rec !== "object") continue;
       if (rec.kind === "ephemeral" || rec.kind === "reusable") {
         rec.kind = "direct";
@@ -2838,7 +2837,7 @@ function migrateSubagentDirectThreadSemantics(ctx) {
   const rawRuns = readJsonForMigration(runsPath);
   const runs = rawRuns?.runs && typeof rawRuns.runs === "object" ? rawRuns.runs : null;
   if (runs) {
-    for (const rec of Object.values(runs)) {
+    for (const rec of Object.values(runs) as any[]) {
       if (!rec || typeof rec !== "object") continue;
       if (rec.threadKind === "ephemeral" || rec.threadKind === "reusable") {
         rec.threadKind = "direct";
@@ -3013,7 +3012,7 @@ function parseAgentPhoneProjectionFrontmatter(raw) {
 }
 
 function agentPhoneRuntimePatchFromMeta(meta) {
-  const patch = {};
+  const patch: any = {};
   for (const key of AGENT_PHONE_RUNTIME_KEYS) {
     if (!meta.has(key)) continue;
     const value = meta.get(key);

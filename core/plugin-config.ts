@@ -1,4 +1,3 @@
-// @ts-nocheck
 import fs from "fs";
 import path from "path";
 import { atomicWriteSync } from "../shared/safe-fs.ts";
@@ -11,6 +10,9 @@ const SCOPES = new Set(["global", "per-agent", "per-session"]);
 const REDACTED_VALUE = "********";
 
 export class PluginConfigValidationError extends Error {
+  declare code: string;
+  declare errors: any;
+
   constructor(errors) {
     super("Plugin config validation failed");
     this.name = "PluginConfigValidationError";
@@ -19,7 +21,7 @@ export class PluginConfigValidationError extends Error {
   }
 }
 
-export function normalizePluginConfigSchema(pluginId, rawSchema = {}) {
+export function normalizePluginConfigSchema(pluginId, rawSchema: Record<string, any> = {}) {
   const rawProperties = rawSchema?.properties && typeof rawSchema.properties === "object"
     ? rawSchema.properties
     : {};
@@ -58,7 +60,7 @@ export function createPluginConfigStore({ dataDir, schema }) {
     atomicWriteSync(configPath, `${JSON.stringify(next, null, 2)}\n`);
   }
 
-  function resolveBucket(state, options = {}, create = false) {
+  function resolveBucket(state, options: Record<string, any> = {}, create = false) {
     const scope = normalizeScope(options.scope);
     if (scope === "global") return state.global;
     if (scope === "per-agent") {
@@ -78,7 +80,7 @@ export function createPluginConfigStore({ dataDir, schema }) {
       if (!key) return structuredClone(bucket);
       return bucket[key];
     },
-    getAll(options = {}) {
+    getAll(options: Record<string, any> = {}) {
       const state = readState();
       const values = resolveBucket(state, options);
       return options.redacted ? redactConfigValues(normalizedSchema, values) : structuredClone(values);
@@ -111,7 +113,7 @@ export function createPluginConfigStore({ dataDir, schema }) {
     getSchema() {
       return structuredClone(normalizedSchema);
     },
-    getState(options = {}) {
+    getState(options: Record<string, any> = {}) {
       const state = readState();
       return options.redacted
         ? {
@@ -126,7 +128,7 @@ export function createPluginConfigStore({ dataDir, schema }) {
 
 }
 
-export function validatePluginConfigPatch(schema, values, options = {}) {
+export function validatePluginConfigPatch(schema, values, options: Record<string, any> = {}) {
   const errors = [];
   const scope = normalizeScope(options.scope);
   const properties = schema.properties || {};
@@ -154,7 +156,7 @@ export function validatePluginConfigPatch(schema, values, options = {}) {
 
 export function redactConfigValues(schema, values = {}) {
   const output = structuredClone(values || {});
-  for (const [key, property] of Object.entries(schema.properties || {})) {
+  for (const [key, property] of Object.entries(schema.properties || {}) as [string, any][]) {
     if (property.sensitive && output[key] !== undefined && output[key] !== null && output[key] !== "") {
       output[key] = REDACTED_VALUE;
     }
@@ -162,7 +164,7 @@ export function redactConfigValues(schema, values = {}) {
   return output;
 }
 
-function normalizeProperty(key, raw = {}) {
+function normalizeProperty(key, raw: Record<string, any> = {}) {
   const type = SUPPORTED_TYPES.has(raw.type) ? raw.type : inferType(raw.default);
   const scope = SCOPES.has(raw.scope) ? raw.scope : "global";
   return {
@@ -210,7 +212,7 @@ function typeError(key, type) {
 
 function applyDefaults(schema, values = {}) {
   const next = { ...(values || {}) };
-  for (const [key, property] of Object.entries(schema.properties || {})) {
+  for (const [key, property] of Object.entries(schema.properties || {}) as [string, any][]) {
     if (property.scope !== "global") continue;
     if (next[key] === undefined && property.default !== undefined) {
       next[key] = structuredClone(property.default);

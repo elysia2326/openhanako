@@ -1,4 +1,3 @@
-// @ts-nocheck
 import fs from "fs";
 import path from "path";
 
@@ -32,7 +31,7 @@ function isInside(targetPath, rootPath) {
   return rel === "" || (!!rel && !rel.startsWith("..") && !path.isAbsolute(rel));
 }
 
-export function isManagedAgentConfigPath(filePath, { hanakoHome } = {}) {
+export function isManagedAgentConfigPath(filePath, { hanakoHome }: { hanakoHome?: string } = {}) {
   if (!filePath || !hanakoHome) return false;
 
   const target = resolveExistingOrNearest(filePath);
@@ -45,7 +44,7 @@ export function isManagedAgentConfigPath(filePath, { hanakoHome } = {}) {
   return parts.length === 2 && parts[1].toLowerCase() === "config.yaml";
 }
 
-export function createManagedConfigWriteGuard({ hanakoHome } = {}) {
+export function createManagedConfigWriteGuard({ hanakoHome }: { hanakoHome?: string } = {}) {
   return (absolutePath, operation) => {
     if (operation !== "write" && operation !== "delete") return { allowed: true };
     if (!isManagedAgentConfigPath(absolutePath, { hanakoHome })) return { allowed: true };

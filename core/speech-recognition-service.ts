@@ -1,4 +1,3 @@
-// @ts-nocheck
 import { MediaAdapterRegistry } from "./media-adapter-registry.ts";
 import { builtinSpeechRecognitionAdapters } from "./speech-recognition/adapters.ts";
 import { createModuleLogger } from "../lib/debug-log.ts";
@@ -7,6 +6,13 @@ const CAPABILITY = "speech_recognition";
 const log = createModuleLogger("speech-recognition");
 
 export class SpeechRecognitionService {
+  declare _emitEvent: any;
+  declare _fetch: any;
+  declare _logger: any;
+  declare _prefs: any;
+  declare _providers: any;
+  declare _registry: any;
+  declare _sessionFiles: any;
   constructor({
     providerRegistry,
     preferences,
@@ -15,7 +21,7 @@ export class SpeechRecognitionService {
     fetch,
     logger = log,
     adapters = builtinSpeechRecognitionAdapters,
-  } = {}) {
+  }: any = {}) {
     if (!providerRegistry) throw new Error("SpeechRecognitionService requires providerRegistry");
     if (!preferences) throw new Error("SpeechRecognitionService requires preferences");
     if (!sessionFiles) throw new Error("SpeechRecognitionService requires sessionFiles");
@@ -43,7 +49,7 @@ export class SpeechRecognitionService {
   }
 
   listProviders() {
-    const next = {};
+    const next: any = {};
     for (const provider of this._providers.getMediaProviders(CAPABILITY) || []) {
       const providerId = provider.providerId;
       const models = (provider.models || [])
@@ -86,7 +92,7 @@ export class SpeechRecognitionService {
     return this._prefs.setSpeechRecognitionConfig?.(next) || next;
   }
 
-  async queueVoiceTranscription({ sessionPath, fileId, language } = {}) {
+  async queueVoiceTranscription({ sessionPath, fileId, language }: any = {}) {
     Promise.resolve()
       .then(() => this.transcribeVoiceAttachment({ sessionPath, fileId, language }))
       .catch((err) => {
@@ -94,7 +100,7 @@ export class SpeechRecognitionService {
       });
   }
 
-  async transcribeVoiceAttachment({ sessionPath, fileId, language } = {}) {
+  async transcribeVoiceAttachment({ sessionPath, fileId, language }: any = {}) {
     const config = this.getConfig();
     if (!config.enabled || !config.defaultModel) return { status: "skipped", reason: "disabled" };
     if (!sessionPath || !fileId) throw new Error("sessionPath and fileId are required for voice transcription");
@@ -170,7 +176,7 @@ export class SpeechRecognitionService {
   }
 }
 
-function normalizeSpeechRecognitionConfigPatch(patch, current = {}) {
+function normalizeSpeechRecognitionConfigPatch(patch, current: any = {}) {
   const body = patch && typeof patch === "object" && !Array.isArray(patch) ? patch : {};
   const next = { ...current };
   if (Object.prototype.hasOwnProperty.call(body, "enabled")) {

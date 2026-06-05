@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * browser-transport.js — BrowserManager 通信传输层
  *
@@ -12,6 +11,8 @@
 
 /** 基于 Node IPC 的传输（fork 模式，现有行为） */
 export class IpcTransport {
+  declare _boundListener: any;
+
   constructor() {
     this._boundListener = null;
   }
@@ -20,11 +21,11 @@ export class IpcTransport {
     return typeof process.send === "function";
   }
 
-  send(msg) {
+  send(msg: any) {
     process.send(msg);
   }
 
-  onMessage(handler) {
+  onMessage(handler: (msg: any) => void) {
     // 清理旧 listener（防止重复注册）
     if (this._boundListener) {
       process.off("message", this._boundListener);
@@ -36,6 +37,10 @@ export class IpcTransport {
 
 /** 基于 WebSocket 的传输（spawn 模式） */
 export class WsTransport {
+  declare _ws: any;
+  declare _handler: any;
+  declare _boundListener: any;
+
   constructor() {
     this._ws = null;
     this._handler = null;
@@ -47,7 +52,7 @@ export class WsTransport {
   }
 
   /** 由 server 启动时注入 ws 实例 */
-  attach(ws) {
+  attach(ws: any) {
     // 先清理旧 listener
     if (this._ws && this._boundListener) {
       this._ws.off("message", this._boundListener);
@@ -71,12 +76,12 @@ export class WsTransport {
     this._boundListener = null;
   }
 
-  send(msg) {
+  send(msg: any) {
     if (!this.connected) throw new Error("Browser WS transport not connected");
     this._ws.send(JSON.stringify(msg));
   }
 
-  onMessage(handler) {
+  onMessage(handler: (msg: any) => void) {
     this._handler = handler;
     // 如果 ws 已存在，立即绑定
     if (this._ws) {

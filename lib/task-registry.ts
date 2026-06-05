@@ -1,4 +1,3 @@
-// @ts-nocheck
 import fs from "fs";
 import path from "path";
 import { atomicWriteSync } from "../shared/safe-fs.ts";
@@ -20,7 +19,12 @@ const KNOWN_STATUSES = new Set([...ACTIVE_STATUSES, ...FINAL_STATUSES]);
 const MAX_TIMER_DELAY = 2_147_483_647;
 
 export class TaskRegistry {
-  constructor(options = {}) {
+  declare _handlers: any;
+  declare _persistencePath: any;
+  declare _scheduleTimers: any;
+  declare _schedules: any;
+  declare _tasks: any;
+  constructor( options: any = {}) {
     this._persistencePath = typeof options.persistencePath === "string" ? options.persistencePath : null;
     /** @type {Map<string, { abort: (taskId: string) => void, run?: Function }>} */
     this._handlers = new Map();
@@ -53,7 +57,7 @@ export class TaskRegistry {
 
   // ── 任务实例生命周期 ──
 
-  register(taskId, { type, parentSessionPath = null, meta = {}, pluginId = null, agentId = null, persist = true } = {}) {
+  register(taskId, { type, parentSessionPath = null, meta = {} as any, pluginId = null, agentId = null, persist = true }: any = {}) {
     const id = assertText(taskId, "taskId");
     const taskType = assertText(type, "task type");
     if (!this._handlers.has(taskType)) {
@@ -79,16 +83,16 @@ export class TaskRegistry {
     if (FINAL_STATUSES.has(task.status)) {
       task.status = "running";
       task.aborted = false;
-      delete task.completedAt;
-      delete task.error;
-      delete task.result;
+      delete (task as any).completedAt;
+      delete (task as any).error;
+      delete (task as any).result;
     }
     this._tasks.set(id, task);
     this._persist();
     return clone(task);
   }
 
-  update(taskId, patch = {}) {
+  update(taskId, patch: any = {}) {
     const task = this._requireTask(taskId);
     const now = Date.now();
     const next = {
@@ -236,7 +240,7 @@ export class TaskRegistry {
     return result;
   }
 
-  listAll(filter = {}) {
+  listAll( filter: any = {}) {
     const tasks = [...this._tasks.values()].filter((task) => {
       if (filter.type && task.type !== filter.type) return false;
       if (filter.status && task.status !== filter.status) return false;
@@ -249,7 +253,7 @@ export class TaskRegistry {
 
   // ── 计划任务 ──
 
-  schedule(scheduleId, input = {}) {
+  schedule(scheduleId, input: any = {}) {
     const id = assertText(scheduleId, "scheduleId");
     const type = assertText(input.type, "schedule type");
     const existing = this._schedules.get(id);
@@ -299,7 +303,7 @@ export class TaskRegistry {
     return schedule ? clone(schedule) : null;
   }
 
-  listSchedules(filter = {}) {
+  listSchedules( filter: any = {}) {
     return [...this._schedules.values()]
       .filter((schedule) => {
         if (filter.type && schedule.type !== filter.type) return false;

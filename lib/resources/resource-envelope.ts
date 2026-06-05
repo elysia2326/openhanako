@@ -1,4 +1,3 @@
-// @ts-nocheck
 export const RESOURCE_ENVELOPE_SCHEMA_VERSION = 1;
 export const SESSION_FILE_RESOURCE_PREFIX = "res_";
 
@@ -16,7 +15,7 @@ export function fileIdFromSessionFileResourceId(resourceId) {
   return isStableSessionFileId(fileId) ? fileId : null;
 }
 
-export function createSessionFileResourceEnvelope(file, { studioId } = {}) {
+export function createSessionFileResourceEnvelope(file, { studioId }: { studioId?: string } = {}) {
   const source = file && typeof file === "object" ? file : {};
   if (typeof studioId !== "string" || !studioId.trim()) return null;
 

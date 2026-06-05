@@ -1,4 +1,3 @@
-// @ts-nocheck
 export const DEFAULT_COMPUTER_PROVIDER_BY_PLATFORM = Object.freeze({
   darwin: "macos:cua",
   win32: "windows:uia",
@@ -21,7 +20,7 @@ export const COMPUTER_PROVIDER_CAPABILITY_DEFAULTS = Object.freeze({
   isolated: false,
 });
 
-export function normalizeComputerProviderCapabilities(capabilities = {}) {
+export function normalizeComputerProviderCapabilities(capabilities: Record<string, any> = {}) {
   return {
     ...COMPUTER_PROVIDER_CAPABILITY_DEFAULTS,
     ...capabilities,
@@ -31,7 +30,7 @@ export function normalizeComputerProviderCapabilities(capabilities = {}) {
   };
 }
 
-export function normalizeComputerProvider(provider) {
+export function normalizeComputerProvider(provider: any) {
   if (!provider?.providerId) {
     throw new Error("Computer provider must declare providerId");
   }
@@ -44,7 +43,13 @@ export function resolveComputerProviderId({
   settings = {},
   platform = process.platform,
   defaultProviderId = "mock",
-  hasProvider = () => false,
+  hasProvider = (_id: string) => false,
+}: {
+  explicitProviderId?: string;
+  settings?: Record<string, any>;
+  platform?: NodeJS.Platform;
+  defaultProviderId?: string;
+  hasProvider?: (id: string) => boolean;
 } = {}) {
   if (explicitProviderId) return explicitProviderId;
 

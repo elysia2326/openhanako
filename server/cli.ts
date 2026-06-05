@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * cli.js — 终端交互界面
  *
@@ -36,7 +35,7 @@ export function startCLI({ port, token, agentName, userName }) {
   let sessionPath = null;
 
   // ── HTTP 工具 ──
-  async function api(path, opts = {}) {
+  async function api(path, opts: any = {}) {
     const headers = { "Authorization": `Bearer ${token}`, ...opts.headers };
     if (opts.body && typeof opts.body === "object") {
       headers["Content-Type"] = "application/json";

@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * web-reader.js — HTML → Markdown reader for LLM-friendly web_fetch output.
  *
@@ -56,7 +55,7 @@ function absoluteUrl(raw, baseUrl) {
 }
 
 function removePageChrome(document) {
-  for (const el of Array.from(document.querySelectorAll(CHROME_SELECTOR))) {
+  for (const el of Array.from(document.querySelectorAll(CHROME_SELECTOR)) as Element[]) {
     el.remove();
   }
 }
@@ -67,7 +66,7 @@ function textLength(el) {
 
 function linkDensity(el) {
   const textLen = Math.max(1, textLength(el));
-  const linkText = Array.from(el.querySelectorAll("a"))
+  const linkText = (Array.from(el.querySelectorAll("a")) as Element[])
     .map((a) => cleanWhitespace(a.textContent))
     .join(" ");
   return linkText.length / textLen;
@@ -79,7 +78,7 @@ function chooseContentRoot(document) {
     || document.querySelector("[role='main']");
   if (direct && textLength(direct) > 80) return direct;
 
-  const candidates = Array.from(document.querySelectorAll("article, main, [role='main'], section, div"))
+  const candidates = (Array.from(document.querySelectorAll("article, main, [role='main'], section, div")) as Element[])
     .filter((el) => textLength(el) > 80)
     .map((el) => {
       const headings = el.querySelectorAll("h1,h2,h3").length;
@@ -112,7 +111,7 @@ function titleFrom(document, root) {
   );
 }
 
-function renderChildren(node, baseUrl, opts = {}) {
+function renderChildren(node, baseUrl, opts: { inline?: boolean } = {}) {
   return Array.from(node.childNodes)
     .map((child) => renderNode(child, baseUrl, opts))
     .filter(Boolean)
@@ -125,7 +124,7 @@ function block(text) {
 }
 
 function renderListItems(node, baseUrl, ordered) {
-  return Array.from(node.children)
+  return (Array.from(node.children) as Element[])
     .filter((child) => child.tagName === "LI")
     .map((li, index) => {
       const marker = ordered ? `${index + 1}.` : "-";
@@ -136,7 +135,7 @@ function renderListItems(node, baseUrl, ordered) {
     .join("\n") + "\n\n";
 }
 
-function renderNode(node, baseUrl, opts = {}) {
+function renderNode(node, baseUrl, opts: { inline?: boolean } = {}) {
   if (node.nodeType === 3) {
     const text = cleanWhitespace(node.nodeValue);
     if (!text) return "";

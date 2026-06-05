@@ -1,5 +1,5 @@
-// @ts-nocheck
-import { AssistantMessageEventStream } from "@mariozechner/pi-ai";
+import type { AssistantMessageEventStream } from "@mariozechner/pi-ai";
+import { createAssistantMessageEventStream } from "@mariozechner/pi-ai";
 
 const STREAM_GUARD_FLAG = Symbol.for("hana.piSdk.streamGuardInstalled");
 
@@ -15,7 +15,7 @@ export function installAssistantStreamGuard(session) {
 }
 
 export function guardAssistantMessageStream(inner) {
-  const outer = new AssistantMessageEventStream();
+  const outer: AssistantMessageEventStream = createAssistantMessageEventStream();
   const state = createGuardState();
 
   void (async () => {
@@ -234,8 +234,8 @@ function parseJsonLike(raw) {
 
 function createErrorMessage(error) {
   return {
-    role: "assistant",
-    content: [],
+    role: "assistant" as const,
+    content: [] as any[],
     api: "unknown",
     provider: "unknown",
     model: "unknown",
@@ -247,7 +247,7 @@ function createErrorMessage(error) {
       totalTokens: 0,
       cost: { input: 0, output: 0, cacheRead: 0, cacheWrite: 0, total: 0 },
     },
-    stopReason: "error",
+    stopReason: "error" as const,
     errorMessage: error instanceof Error ? error.message : String(error),
     timestamp: Date.now(),
   };

@@ -1,4 +1,4 @@
-// @ts-nocheck
+
 /**
  * channel-ticker.js — 频道手机调度器（中断恢复 + 主动提醒）
  *
@@ -31,7 +31,7 @@ const log = createModuleLogger("channel-ticker");
 
 const DEFAULT_UNREAD_DELIVERY_WINDOW = 20;
 
-function normalizeBookmarkState(bookmark) {
+function normalizeBookmarkState(bookmark: any) {
   if (bookmark === undefined || bookmark === null || bookmark === "") {
     return { value: null, state: "missing" };
   }
@@ -134,8 +134,8 @@ export function createChannelTicker({
       }));
   }
 
-  function readReminderIntervalMs(channelFile) {
-    const meta = getChannelMeta(channelFile);
+  function readReminderIntervalMs(channelFile: string) {
+    const meta: Record<string, any> = getChannelMeta(channelFile);
     const minutes = Number(meta.agentPhoneReminderIntervalMinutes);
     const normalized = Number.isFinite(minutes) && minutes > 0
       ? Math.floor(minutes)
@@ -143,8 +143,8 @@ export function createChannelTicker({
     return normalized * 60 * 1000;
   }
 
-  function isProactiveEnabled(channelFile) {
-    const meta = getChannelMeta(channelFile);
+  function isProactiveEnabled(channelFile: string) {
+    const meta: Record<string, any> = getChannelMeta(channelFile);
     return meta.agentPhoneProactiveEnabled === undefined
       ? true
       : readBoolean(meta.agentPhoneProactiveEnabled);
@@ -205,8 +205,8 @@ export function createChannelTicker({
     };
   }
 
-  function readGuardLimit(channelFile, memberCount) {
-    const meta = getChannelMeta(channelFile);
+  function readGuardLimit(channelFile: string, memberCount: number) {
+    const meta: Record<string, any> = getChannelMeta(channelFile);
     return resolveAgentPhoneGuardLimit(meta.agentPhoneGuardLimit, memberCount);
   }
 
@@ -399,7 +399,7 @@ export function createChannelTicker({
    * @param {string} channelName
    * @param {{ mentionedAgents?: string[] }} [opts]
    */
-  function triggerImmediate(channelName, { mentionedAgents } = {}) {
+  function triggerImmediate(channelName: string, { mentionedAgents }: { mentionedAgents?: string[] } = {}) {
     if (_stopped || !isTickerEnabled()) return Promise.resolve();
     if (_deliveryAbortCtrl && !_deliveryAbortCtrl.signal.aborted) {
       log.log(`新消息到达，abort 当前送达并重新开始`);
@@ -449,7 +449,7 @@ export function createChannelTicker({
   /**
    * 实际执行手机消息送达的内部方法（可被 abort）
    */
-  async function _doDelivery(channelName, { mentionedAgents, proactiveAgentId = null } = {}) {
+  async function _doDelivery(channelName: string, { mentionedAgents, proactiveAgentId = null }: { mentionedAgents?: string[]; proactiveAgentId?: string | null } = {}) {
     if (!isTickerEnabled()) return;
     // ── 1. 中断正在运行的 cycle ──
     _interruptPending = true;
@@ -646,7 +646,7 @@ export function createChannelTicker({
   // ── 定时调度 ──
 
   /** 调度下一个 cycle */
-  function _scheduleNext(_delayMs) {
+  function _scheduleNext(_delayMs?: number) {
     if (_stopped || !isTickerEnabled()) return;
     if (_timer) clearTimeout(_timer);
     refreshReminderSchedule();

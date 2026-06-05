@@ -1,4 +1,3 @@
-// @ts-nocheck
 import fs from "fs";
 import path from "path";
 import { atomicWriteSync } from "../shared/safe-fs.ts";
@@ -94,7 +93,23 @@ export function validateStudioMount(value) {
   if (!STATUSES.includes(value.status)) throw new Error(`status must be one of ${STATUSES.join(", ")}`);
   assertNonEmptyString(value.label, "label");
 
-  const normalized = {
+  const normalized: {
+    schemaVersion: number;
+    mountId: any;
+    hostStudioId: any;
+    sourceKind: any;
+    label: any;
+    presentation: any;
+    capabilities: string[];
+    grantId: any;
+    status: any;
+    createdAt: any;
+    updatedAt: any;
+    provider?: any;
+    rootLocator?: any;
+    sourceStudioId?: any;
+    sourceResourceId?: any;
+  } = {
     schemaVersion: SCHEMA_VERSION,
     mountId: value.mountId,
     hostStudioId: value.hostStudioId,

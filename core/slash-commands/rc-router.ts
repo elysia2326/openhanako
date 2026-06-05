@@ -1,4 +1,3 @@
-// @ts-nocheck
 import { collectMediaItems } from "../../lib/tools/media-details.ts";
 import { formatSettingsUpdateText } from "../../lib/tools/settings-update-result.ts";
 import { modelSupportsDirectImageInput } from "../../shared/model-capabilities.ts";
@@ -32,7 +31,7 @@ import { modelSupportsDirectImageInput } from "../../shared/model-capabilities.t
  * @param {Array<{type:'image', data:string, mimeType:string}>} [opts.images]
  * @returns {Promise<{ text: string | null, toolMedia: string[] }>}  最终 assistant 文本（trim 后）+ 工具产出的 media URL 列表
  */
-export async function promptAttachedDesktopSession(engine, sessionPath, text, opts = {}) {
+export async function promptAttachedDesktopSession(engine, sessionPath, text, opts: { onDelta?: (delta: string, accumulated: string) => void; images?: Array<{type: string, data: string, mimeType: string}> } = {}) {
   if (!engine || typeof engine.ensureSessionLoaded !== "function") {
     throw new Error("rc-router: engine.ensureSessionLoaded unavailable");
   }

@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * activity-store.js — 助手活动元数据存储
  *
@@ -16,11 +15,15 @@ import { atomicWriteSync } from "../../shared/safe-fs.ts";
 const MAX_ENTRIES = 100;
 
 export class ActivityStore {
+  declare _filePath: string;
+  declare _activityDir: string;
+  declare _entries: any[];
+
   /**
    * @param {string} filePath - activities.json 路径
    * @param {string} activityDir - session 文件所在目录
    */
-  constructor(filePath, activityDir) {
+  constructor(filePath: string, activityDir: string) {
     this._filePath = filePath;
     this._activityDir = activityDir;
     this._entries = [];
@@ -50,7 +53,7 @@ export class ActivityStore {
    * @param {object} entry
    * @returns {object} 添加的记录
    */
-  add(entry) {
+  add(entry: any) {
     this._entries.unshift(entry);
     this._cleanup();
     this._save();
@@ -63,12 +66,12 @@ export class ActivityStore {
   }
 
   /** 按 ID 查找 */
-  get(id) {
+  get(id: any) {
     return this._entries.find(e => e.id === id) || null;
   }
 
   /** 按 ID 更新条目的部分字段（不触发 cleanup） */
-  update(id, partial) {
+  update(id: any, partial: any) {
     const entry = this._entries.find(e => e.id === id);
     if (!entry) return null;
     const { id: _, ...safePartial } = partial;
@@ -78,7 +81,7 @@ export class ActivityStore {
   }
 
   /** 按 ID 移除（升格后清理用） */
-  remove(id) {
+  remove(id: any) {
     const idx = this._entries.findIndex(e => e.id === id);
     if (idx === -1) return false;
     this._entries.splice(idx, 1);

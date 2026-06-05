@@ -1,4 +1,3 @@
-// @ts-nocheck
 import {
   normalizeSessionSearchText,
   tokenizeSessionSearchQuery,
@@ -7,7 +6,7 @@ import {
 const DEFAULT_LIMIT = 30;
 const MAX_LIMIT = 50;
 
-export function searchSessions(sessions, query, options = {}) {
+export function searchSessions(sessions, query, options: { phase?: string; limit?: number } = {}) {
   const phase = options.phase === "content" ? "content" : "title";
   const limit = normalizeLimit(options.limit);
   const normalizedQuery = normalizeSessionSearchText(query);

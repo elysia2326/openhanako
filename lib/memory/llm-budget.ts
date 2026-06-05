@@ -1,4 +1,3 @@
-// @ts-nocheck
 const DEFAULT_REASONING_BUFFER_TOKENS = 1024;
 
 function positiveInteger(value) {
@@ -18,7 +17,7 @@ function isReasoningModel(model) {
     || !!model?.compat?.reasoningProfile;
 }
 
-export function withMemoryReasoningBuffer(visibleMaxTokens, resolvedModel, opts = {}) {
+export function withMemoryReasoningBuffer(visibleMaxTokens, resolvedModel, opts: Record<string, any> = {}) {
   const visible = positiveInteger(visibleMaxTokens);
   if (!visible) return visibleMaxTokens;
 

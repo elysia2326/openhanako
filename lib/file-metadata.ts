@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * file-metadata.js — shared file metadata helpers.
  *
@@ -40,7 +39,7 @@ export function extOfName(name) {
   return value.slice(dot + 1).toLowerCase();
 }
 
-export function detectMime(buffer, fallback, filename) {
+export function detectMime(buffer, fallback, filename?) {
   for (const entry of MAGIC_TABLE) {
     if (buffer.length < (entry.minLen || entry.bytes.length)) continue;
     const match = entry.bytes.every((b, i) => buffer[i] === b);
@@ -58,7 +57,7 @@ export function detectMime(buffer, fallback, filename) {
   return fallback || "application/octet-stream";
 }
 
-export function inferFileKind({ mime, ext, isDirectory = false } = {}) {
+export function inferFileKind({ mime, ext, isDirectory = false }: { mime?: string; ext?: string; isDirectory?: boolean } = {}) {
   if (isDirectory) return "directory";
   const lowerMime = String(mime || "").toLowerCase();
   if (lowerMime.startsWith("image/")) return "image";

@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * model-sync.js — added-models.yaml → models.json 单向投影
  *
@@ -91,7 +90,7 @@ function buildModelOverride(modelEntry, modelDefaults = {}) {
       : null;
   }
 
-  const override = {};
+  const override: Record<string, any> = {};
   if (modelEntry.name !== undefined) override.name = modelEntry.name;
   if (modelEntry.context !== undefined) override.contextWindow = modelEntry.context;
   if (modelEntry.contextWindow !== undefined) override.contextWindow = modelEntry.contextWindow;
@@ -138,7 +137,7 @@ function buildModelEntry(modelEntry, provider, baseUrl = "", api = "openai-compl
   const userAudio = isObj ? modelEntry.audio : undefined;
   const knownAudio = known?.audio;
   const audio = userAudio !== undefined ? userAudio : (knownAudio === true);
-  const entry = {
+  const entry: Record<string, any> = {
     id,
     name: (isObj && modelEntry.name) || known?.name || humanizeName(id),
     input: buildPiInputModalities({ image: image === true }),
@@ -215,7 +214,7 @@ function filterChatModelEntries(provider, models) {
  * @param {Record<string, string>} [opts.oauthKeyMap] - providerId → auth.json key 映射
  * @returns {boolean} 内容是否有变化
  */
-export function syncModels(providers, opts = {}) {
+export function syncModels(providers, opts: Record<string, any> = {}) {
   const modelsJsonPath = opts.modelsJsonPath;
   const authJsonPath = opts.authJsonPath;
   const oauthKeyMap = opts.oauthKeyMap || {};
@@ -237,7 +236,7 @@ export function syncModels(providers, opts = {}) {
   // 构建新的 providers 块
   const newProviders = {};
 
-  for (const [name, p] of Object.entries(providers || {})) {
+  for (const [name, p] of Object.entries(providers || {}) as [string, Record<string, any>][]) {
     const projection = chatProjectionMap[name] || "models-json";
     if (projection === "sdk-auth-alias" || projection === "none") continue;
     if (!p.base_url) continue;
@@ -284,7 +283,7 @@ export function syncModels(providers, opts = {}) {
       customModels.push(buildModelEntry(modelEntry, name, effectiveBaseUrl, effectiveApi, modelDefaults));
     }
 
-    const providerConfig = {
+    const providerConfig: Record<string, any> = {
       baseUrl: effectiveBaseUrl,
       api: effectiveApi,
       apiKey: hasLiteralApiKey ? buildRuntimeApiKeyRef(name) : effectiveApiKey,

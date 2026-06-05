@@ -1,4 +1,3 @@
-// @ts-nocheck
 import crypto from "crypto";
 import fs from "fs";
 import path from "path";
@@ -28,7 +27,7 @@ export function loadGrantRegistry(hanakoHome) {
   return validateGrantRegistry(readJsonRequired(grantRegistryPath(hanakoHome), GRANTS_FILE), GRANTS_FILE);
 }
 
-export function createGrant(hanakoHome, input = {}) {
+export function createGrant(hanakoHome, input: Record<string, any> = {}) {
   const now = input.now || new Date().toISOString();
   const registry = loadGrantRegistry(hanakoHome);
   const grant = normalizeGrantRecord({
@@ -146,7 +145,7 @@ function normalizeGrantRecord(value, label) {
 }
 
 function sanitizeScope(scope) {
-  const out = {};
+  const out: Record<string, any> = {};
   for (const key of ["studioId", "agentId", "sessionId", "sessionPath", "resourceId", "mountId", "serverNodeId"]) {
     if (isNonEmptyString(scope[key])) out[key] = scope[key].trim();
   }
@@ -154,7 +153,7 @@ function sanitizeScope(scope) {
 }
 
 function sanitizeConstraints(constraints) {
-  const out = {};
+  const out: Record<string, any> = {};
   if (Array.isArray(constraints.transportKinds)) {
     out.transportKinds = normalizeStringArray(constraints.transportKinds, "transportKinds");
   }

@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * OAuth 认证路由
  *
@@ -133,7 +132,7 @@ export function createAuthRoute(engine) {
       }, 5 * 60 * 1000);
       timer.unref();
 
-      const resp = { sessionId, url };
+      const resp: Record<string, any> = { sessionId, url };
       if (authInstructions) resp.instructions = authInstructions;
       if (usesCallbackServer) resp.polling = true;
       return c.json(resp);

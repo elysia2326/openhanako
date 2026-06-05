@@ -1,4 +1,3 @@
-// @ts-nocheck
 import { Type, StringEnum } from "../pi-sdk/index.ts";
 import { toolOk } from "./tool-result.ts";
 import { getToolSessionPath } from "./tool-session.ts";
@@ -39,7 +38,7 @@ function modelVisibleAllowedActions(actions = []) {
   return (Array.isArray(actions) ? actions : []).filter((action) => MODEL_VISIBLE_COMPUTER_ACTION_SET.has(action));
 }
 
-function modelVisibleActionCapabilities(capabilities = {}) {
+function modelVisibleActionCapabilities(capabilities: Record<string, any> = {}) {
   return {
     backgroundControl: capabilities?.backgroundControl,
     elementActions: capabilities?.elementActions,
@@ -51,7 +50,7 @@ function modelVisibleActionCapabilities(capabilities = {}) {
 
 function errorResult(err) {
   const serialized = serializeComputerUseError(err);
-  const details = {
+  const details: Record<string, any> = {
     error: serialized.message,
     errorCode: serialized.code,
     ...serialized.details,
@@ -220,7 +219,7 @@ function toConfirmationStatus(action) {
   return "rejected";
 }
 
-function buildComputerAppGatewayRequest(approval, toolCtx, params = {}) {
+function buildComputerAppGatewayRequest(approval, toolCtx, params: Record<string, any> = {}) {
   const appName = approval.appName || approval.appId;
   return {
     id: `${toolCtx.sessionPath || "session"}:computer_app_approval:${Date.now()}`,
@@ -385,7 +384,7 @@ async function withActionOverlay(options, toolCtx, params, fn) {
   }
 }
 
-function resolveCurrentLeaseParams(host, toolCtx, params = {}) {
+function resolveCurrentLeaseParams(host, toolCtx, params: Record<string, any> = {}) {
   const activeLease = params.leaseId ? null : host.getActiveLease?.(toolCtx);
   return {
     leaseId: params.leaseId || activeLease?.leaseId,
@@ -393,7 +392,7 @@ function resolveCurrentLeaseParams(host, toolCtx, params = {}) {
   };
 }
 
-function elementText(element = {}) {
+function elementText(element: Record<string, any> = {}) {
   return [
     element.label,
     element.value,
@@ -457,7 +456,7 @@ function buildAppStateText(snapshot) {
   ].join("\n");
 }
 
-export function createComputerUseTool(options = {}) {
+export function createComputerUseTool(options: Record<string, any> = {}) {
   return {
     name: "computer",
     label: "Computer Use",

@@ -1,4 +1,3 @@
-// @ts-nocheck
 import { adaptVisualContextMessages } from "./visual-context-pipeline.ts";
 import {
   VISION_CONTEXT_END,
@@ -78,6 +77,15 @@ export async function runVisionContextInjection({
   isVisionAuxiliaryEnabled,
   resolveSessionFile,
   warn,
+}: {
+  path?: any;
+  event?: any;
+  sessionPathRef?: any;
+  targetModelRef?: any;
+  getVisionBridge?: any;
+  isVisionAuxiliaryEnabled?: any;
+  resolveSessionFile?: any;
+  warn?: any;
 } = {}) {
   const messages = event?.messages;
   let sessionPath = null;
@@ -123,6 +131,14 @@ export function createVisionContextInjectionExtension({
   isVisionAuxiliaryEnabled,
   resolveSessionFile,
   warn,
+}: {
+  path?: string;
+  sessionPathRef?: any;
+  targetModelRef?: any;
+  getVisionBridge?: any;
+  isVisionAuxiliaryEnabled?: any;
+  resolveSessionFile?: any;
+  warn?: any;
 } = {}) {
   return {
     path,

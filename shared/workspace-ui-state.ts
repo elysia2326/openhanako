@@ -1,4 +1,3 @@
-// @ts-nocheck
 import { normalizeWorkspacePath } from "./workspace-history.ts";
 
 const MAX_WORKSPACES = 50;
@@ -71,7 +70,7 @@ function normalizeRightWorkspaceTab(value) {
   return "workspace";
 }
 
-export function normalizeWorkspaceUiEntry(raw = {}, { now = () => Date.now() } = {}) {
+export function normalizeWorkspaceUiEntry(raw: Record<string, any> = {}, { now = () => Date.now() }: Record<string, any> = {}) {
   const previewTabs = [];
   const seenTabs = new Set();
   for (const item of Array.isArray(raw.previewTabs) ? raw.previewTabs : []) {
@@ -114,9 +113,9 @@ export function normalizeWorkspaceUiEntry(raw = {}, { now = () => Date.now() } =
   };
 }
 
-function normalizeWorkspaceUiRecord(rawEntry = {}, opts = {}) {
-  const source = rawEntry && typeof rawEntry === "object" ? rawEntry : {};
-  const surfaces = {};
+function normalizeWorkspaceUiRecord(rawEntry: Record<string, any> = {}, opts: Record<string, any> = {}) {
+  const source: Record<string, any> = rawEntry && typeof rawEntry === "object" ? rawEntry : {};
+  const surfaces: Record<string, any> = {};
 
   if (source.surfaces && typeof source.surfaces === "object") {
     for (const surface of WORKSPACE_UI_SURFACES) {
@@ -139,21 +138,21 @@ function normalizeWorkspaceUiRecord(rawEntry = {}, opts = {}) {
     }
   }
 
-  const surfaceEntries = Object.values(surfaces);
-  const updatedAt = surfaceEntries.reduce((max, entry) => Math.max(max, entry.updatedAt || 0), 0);
+  const surfaceEntries: any[] = Object.values(surfaces);
+  const updatedAt = surfaceEntries.reduce((max: number, entry: any) => Math.max(max, entry.updatedAt || 0), 0);
   return {
     updatedAt: updatedAt || (Number.isFinite(source.updatedAt) ? source.updatedAt : opts.now?.() || Date.now()),
     surfaces,
   };
 }
 
-export function normalizeWorkspaceUiState(raw = {}, opts = {}) {
-  const source = raw && typeof raw === "object" ? raw : {};
+export function normalizeWorkspaceUiState(raw: Record<string, any> = {}, opts: Record<string, any> = {}) {
+  const source: Record<string, any> = raw && typeof raw === "object" ? raw : {};
   const entries = Object.entries(source.workspaces || {})
     .map(([workspace, entry]) => [normalizeWorkspacePath(workspace), entry])
     .filter(([workspace]) => !!workspace)
     .map(([workspace, entry]) => [workspace, normalizeWorkspaceUiRecord(entry, opts)])
-    .sort((a, b) => (b[1].updatedAt || 0) - (a[1].updatedAt || 0))
+    .sort((a: any, b: any) => (b[1].updatedAt || 0) - (a[1].updatedAt || 0))
     .slice(0, MAX_WORKSPACES);
   return {
     version: WORKSPACE_UI_STATE_VERSION,
@@ -161,7 +160,7 @@ export function normalizeWorkspaceUiState(raw = {}, opts = {}) {
   };
 }
 
-export function getWorkspaceUiStateEntry(raw, workspaceRoot, opts = {}) {
+export function getWorkspaceUiStateEntry(raw, workspaceRoot, opts: Record<string, any> = {}) {
   const workspace = normalizeWorkspacePath(workspaceRoot);
   const surface = normalizeWorkspaceUiSurface(opts.surface);
   if (!workspace || !surface) return null;
@@ -170,7 +169,7 @@ export function getWorkspaceUiStateEntry(raw, workspaceRoot, opts = {}) {
   return entry ? structuredClone(entry) : null;
 }
 
-export function upsertWorkspaceUiState(raw, workspaceRoot, entry, opts = {}) {
+export function upsertWorkspaceUiState(raw, workspaceRoot, entry, opts: Record<string, any> = {}) {
   const workspace = normalizeWorkspacePath(workspaceRoot);
   if (!workspace) return normalizeWorkspaceUiState(raw, opts);
   const surface = normalizeWorkspaceUiSurface(opts.surface);
@@ -181,7 +180,7 @@ export function upsertWorkspaceUiState(raw, workspaceRoot, entry, opts = {}) {
   record.surfaces = { ...(record.surfaces || {}), [surface]: normalizedEntry };
   record.updatedAt = Math.max(
     normalizedEntry.updatedAt || 0,
-    ...Object.values(record.surfaces).map(item => item?.updatedAt || 0),
+    ...Object.values(record.surfaces).map((item: any) => item?.updatedAt || 0),
   );
   state.workspaces[workspace] = record;
   return normalizeWorkspaceUiState(state, opts);

@@ -1,4 +1,3 @@
-// @ts-nocheck
 import crypto from "crypto";
 import {
   normalizePrincipal,
@@ -12,7 +11,7 @@ export function authorizeCapability({
   target,
   connectionKind,
   now = new Date().toISOString(),
-} = {}) {
+}: { principal?: any; grants?: any[]; capability?: any; target?: any; connectionKind?: any; now?: string } = {}) {
   const normalizedTarget = normalizeTarget(target);
   const normalizedCapability = typeof capability === "string" ? capability.trim() : "";
   if (!normalizedCapability) {
@@ -127,7 +126,7 @@ function decision({ allowed, reason, capability, principalId, target, grantId = 
 
 function normalizeTarget(target) {
   const source = target && typeof target === "object" ? target : {};
-  const out = {
+  const out: Record<string, any> = {
     kind: stringOrNull(source.kind) || "unknown",
   };
   for (const key of ["studioId", "agentId", "sessionId", "sessionPath", "resourceId", "mountId", "serverNodeId"]) {

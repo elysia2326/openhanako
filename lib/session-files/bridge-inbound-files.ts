@@ -1,4 +1,3 @@
-// @ts-nocheck
 import crypto from "crypto";
 import fs from "fs/promises";
 import path from "path";
@@ -26,7 +25,7 @@ export async function materializeBridgeInboundFiles({
   sessionPath,
   files,
   registerSessionFile,
-} = {}) {
+}: { hanakoHome?: any; sessionPath?: any; files?: any[]; registerSessionFile?: any } = {}) {
   if (!files?.length) {
     return { sessionFiles: [], imageAttachmentPaths: [], displayAttachments: [] };
   }
@@ -92,8 +91,8 @@ function safeFilename(name, mimeType, type) {
   return `${base}.${extensionFor(mimeType, type)}`;
 }
 
-function removeUnsafeFilenameChars(value) {
-  return Array.from(value, (char) => {
+function removeUnsafeFilenameChars(value: string) {
+  return Array.from(value, (char: string) => {
     const code = char.charCodeAt(0);
     return code <= 0x1F || char === "/" || char === "\\" ? "" : char;
   }).join("");

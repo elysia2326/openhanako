@@ -1,4 +1,3 @@
-// @ts-nocheck
 import { submitDesktopSessionMessage } from "./desktop-session-submit.ts";
 import fsp from "fs/promises";
 import { detectMime } from "../lib/file-metadata.ts";
@@ -6,7 +5,7 @@ import { detectMime } from "../lib/file-metadata.ts";
 const ATTACHMENT_MARKER_RE = /^\[(attached_(?:image|video):[^\]]+)\]\s*$/;
 const ATTACHED_IMAGE_MARKER_RE = /\[attached_image:\s*([^\]]+)\]/g;
 
-export async function replayLatestUserTurn(engine, opts = {}, deps = {}) {
+export async function replayLatestUserTurn(engine, opts: Record<string, any> = {}, deps: Record<string, any> = {}) {
   const submit = deps.submit || submitDesktopSessionMessage;
   const {
     sessionPath,
@@ -80,7 +79,7 @@ export async function replayLatestUserTurn(engine, opts = {}, deps = {}) {
   });
 }
 
-async function imagePayloadsFromPaths(paths, deps = {}) {
+async function imagePayloadsFromPaths(paths, deps: Record<string, any> = {}) {
   const readFile = deps.readFile || fsp.readFile;
   const images = [];
   for (const filePath of paths) {

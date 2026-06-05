@@ -1,4 +1,5 @@
-// @ts-nocheck
+
+
 import crypto from "crypto";
 import fs from "fs";
 import path from "path";
@@ -27,7 +28,7 @@ export function updateLocalAccountProfile(hanakoHome, {
   username,
   displayName,
   now = new Date().toISOString(),
-} = {}) {
+}: { username?: string; displayName?: string; now?: string } = {}) {
   const users = loadUsers(hanakoHome);
   const user = getDefaultUser(users);
   const nextUsername = normalizeUsername(username, user.username || user.displayName);
@@ -45,7 +46,7 @@ export function updateLocalAccountProfile(hanakoHome, {
 export function setLocalAccountPassword(hanakoHome, {
   password,
   now = new Date().toISOString(),
-} = {}) {
+}: { password?: string; now?: string } = {}) {
   const { user } = loadDefaultUser(hanakoHome);
   const normalizedPassword = normalizePassword(password);
   const auth = loadLocalUserAuth(hanakoHome);
@@ -84,7 +85,7 @@ export function clearLocalAccountPassword(hanakoHome, {
   return sanitizeAccount(user, { passwordSet: false });
 }
 
-export function verifyLocalAccountPassword(hanakoHome, { username, password } = {}) {
+export function verifyLocalAccountPassword(hanakoHome, { username, password }: { username?: string; password?: string } = {}) {
   if (!isNonEmptyString(username) || !isNonEmptyString(password)) {
     return { ok: false, reason: "invalid_credentials" };
   }

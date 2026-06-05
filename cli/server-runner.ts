@@ -1,4 +1,3 @@
-// @ts-nocheck
 import fs from "fs";
 import path from "path";
 import { spawn } from "child_process";
@@ -8,7 +7,7 @@ export function resolveServerSpawnSpec({
   projectRoot,
   env = process.env,
   extraArgs = [],
-} = {}) {
+}: { projectRoot?: string; env?: NodeJS.ProcessEnv; extraArgs?: string[] } = {}) {
   const root = projectRoot || path.resolve(import.meta.dirname, "..");
   const explicitRoot = env.HANA_ROOT && fs.existsSync(path.join(env.HANA_ROOT, "bootstrap.js"))
     ? env.HANA_ROOT
@@ -41,7 +40,7 @@ export function resolveServerSpawnSpec({
   };
 }
 
-export function spawnServerForeground({ projectRoot, extraArgs = [], env = process.env } = {}) {
+export function spawnServerForeground({ projectRoot, extraArgs = [], env = process.env }: { projectRoot?: string; extraArgs?: string[]; env?: NodeJS.ProcessEnv } = {}) {
   const spec = resolveServerSpawnSpec({ projectRoot, env, extraArgs });
   const child = spawn(spec.command, spec.args, {
     stdio: "inherit",
@@ -56,7 +55,7 @@ export async function startLocalServerAndWait({
   env = process.env,
   timeoutMs = 30000,
   intervalMs = 250,
-} = {}) {
+}: { projectRoot?: string; env?: NodeJS.ProcessEnv; timeoutMs?: number; intervalMs?: number } = {}) {
   const hanaHome = resolveCliHanaHome(env);
   const existing = readLocalServerInfo({ hanaHome });
   if (existing.ok) return existing;
@@ -79,6 +78,6 @@ export async function startLocalServerAndWait({
   throw new Error(`HanaAgent Server did not become ready within ${Math.round(timeoutMs / 1000)}s`);
 }
 
-function delay(ms) {
+function delay(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }

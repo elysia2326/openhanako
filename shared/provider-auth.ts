@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * Provider auth policy helpers.
  *
@@ -31,7 +30,7 @@ export function providerAuthTypeAllowsMissingApiKey(authType) {
   return AUTH_TYPES_ALLOWING_MISSING_API_KEY.has(normalizeProviderAuthType(authType));
 }
 
-export function providerCredentialAllowsMissingApiKey({ authType, baseUrl } = {}) {
+export function providerCredentialAllowsMissingApiKey({ authType, baseUrl }: { authType?: string; baseUrl?: string } = {}) {
   return providerAuthTypeAllowsMissingApiKey(authType) || isLocalBaseUrl(baseUrl);
 }
 
@@ -79,7 +78,7 @@ export function maskProviderHeaders(headers) {
   return masked;
 }
 
-export function resolveProviderHeadersPatch({ patch, existing = {} } = {}) {
+export function resolveProviderHeadersPatch({ patch, existing = {} }: { patch?: Record<string, any>; existing?: Record<string, any> } = {}) {
   if (!isPlainObject(patch)) return {};
   const resolved = {};
   const saved = normalizeProviderHeaders(existing);
@@ -112,7 +111,7 @@ export function collectProviderHeaderSecretPatchPathsFromConfig(partial) {
   for (const [providerId, patch] of Object.entries(providers)) {
     if (!isPlainObject(patch) || !Object.prototype.hasOwnProperty.call(patch, "headers")) continue;
     paths.push(...collectProviderHeaderSecretPatchPaths(
-      patch.headers,
+      (patch as Record<string, any>).headers,
       `providers.${providerId}.headers`,
     ));
   }

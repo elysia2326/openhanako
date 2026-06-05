@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * Session 健康度评估（#521）
  *
@@ -31,7 +30,7 @@ const DEFAULT_ERROR_THRESHOLD = 3;
  * @param {number} [opts.errorThreshold=3] - >= 此值视为 unhealthy
  * @returns {{ healthy: boolean, recentErrors: number, totalChecked: number, exists: boolean }}
  */
-export function evaluateSessionHealth(sessionPath, opts = {}) {
+export function evaluateSessionHealth(sessionPath, opts: { lookback?: number; errorThreshold?: number } = {}) {
   const lookback = opts.lookback ?? DEFAULT_LOOKBACK;
   const errorThreshold = opts.errorThreshold ?? DEFAULT_ERROR_THRESHOLD;
 

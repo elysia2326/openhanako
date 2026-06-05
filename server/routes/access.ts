@@ -1,4 +1,3 @@
-// @ts-nocheck
 import os from "os";
 import QRCode from "qrcode";
 import { Hono } from "hono";
@@ -39,9 +38,14 @@ const ACCESS_PROFILES = Object.freeze({
 
 export function createAccessRoute({
   engine,
-  runtimeState = {},
+  runtimeState = {} as Record<string, any>,
   listLanAddresses = getLanAddresses,
   now = () => new Date().toISOString(),
+}: {
+  engine?: any;
+  runtimeState?: Record<string, any>;
+  listLanAddresses?: () => string[];
+  now?: () => string;
 } = {}) {
   if (!engine?.hanakoHome) throw new Error("engine.hanakoHome required");
   const route = new Hono();
@@ -92,7 +96,7 @@ export function createAccessRoute({
         action: "access.network.update",
         target: "server-network",
         metadata: { mode: network.mode, listenPort: network.listenPort },
-      });
+      } as any);
       return c.json({
         ok: true,
         network: createNetworkSummary(network, runtimeState, listLanAddresses),
@@ -137,7 +141,7 @@ export function createAccessRoute({
           credentialId: issued.credential.credentialId,
           scopes: issued.credential.scopes,
         },
-      });
+      } as any);
       return c.json({
         ok: true,
         secret: issued.secret,
@@ -159,11 +163,11 @@ export function createAccessRoute({
         username: body?.username,
         displayName: body?.displayName,
         now: now(),
-      });
+      } as any);
       recordSecurityAuditEvent(c, engine, {
         action: "access.account.profile.update",
         target: account.userId,
-      });
+      } as any);
       return c.json({ ok: true, account });
     } catch (err) {
       return c.json({ error: err.message }, 400);
@@ -178,12 +182,12 @@ export function createAccessRoute({
       const account = setLocalAccountPassword(engine.hanakoHome, {
         password: body?.password,
         now: now(),
-      });
+      } as any);
       recordSecurityAuditEvent(c, engine, {
         action: "access.account.password.update",
         target: account.userId,
         secretFields: ["password"],
-      });
+      } as any);
       return c.json({ ok: true, account });
     } catch (err) {
       return c.json({ error: err.message }, 400);
@@ -198,7 +202,7 @@ export function createAccessRoute({
       recordSecurityAuditEvent(c, engine, {
         action: "access.account.password.clear",
         target: account.userId,
-      });
+      } as any);
       return c.json({ ok: true, account });
     } catch (err) {
       return c.json({ error: err.message }, 400);

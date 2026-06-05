@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * Skills 管理路由
  *
@@ -110,7 +109,7 @@ export function createSkillsRoute(engine) {
     const agentId = c.req.query("agentId") || engine.currentAgentId || "";
     if (agentId) {
       if (!validateId(agentId) || !agentExists(engine, agentId)) {
-        const err = new Error("agent not found");
+        const err: any = new Error("agent not found");
         err.status = 404;
         throw err;
       }
@@ -139,7 +138,7 @@ export function createSkillsRoute(engine) {
     for (const name of names) {
       const normalized = typeof name === "string" ? name.trim() : "";
       if (normalized && !skillByName.has(normalized)) {
-        const err = new Error(`unknown skill in bundle: ${normalized}`);
+        const err: any = new Error(`unknown skill in bundle: ${normalized}`);
         err.status = 400;
         throw err;
       }
@@ -216,7 +215,7 @@ export function createSkillsRoute(engine) {
       const bundle = createSkillBundle(engine, {
         name: body.name,
         skillNames: body.skillNames,
-      });
+      } as any);
       emitAppEvent(engine, "skills-changed", { agentId: null });
       return c.json({ ok: true, bundle: bundleForResponse(bundle, skillByName) });
     } catch (err) {
@@ -388,7 +387,7 @@ export function createSkillsRoute(engine) {
         label: path.basename(srcPath),
         origin: "skill_install_source",
         storageKind: "install_source",
-      });
+      } as any);
 
       const userDir = engine.userSkillsDir;
       let installed;

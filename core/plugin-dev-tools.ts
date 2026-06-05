@@ -1,4 +1,3 @@
-// @ts-nocheck
 function toolOk(message, details = {}) {
   return {
     content: [{ type: "text", text: message }],
@@ -69,7 +68,7 @@ function createPluginDevTool({ name, description, parameters, service, handler }
   };
 }
 
-export function createPluginDevTools({ pluginDevService, getAgentId } = {}) {
+export function createPluginDevTools({ pluginDevService, getAgentId }: { pluginDevService?: any; getAgentId?: any } = {}) {
   if (!pluginDevService) return [];
   return [
     createPluginDevTool({

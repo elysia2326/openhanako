@@ -1,4 +1,3 @@
-// @ts-nocheck
 import path from "path";
 
 function cleanPath(value) {
@@ -8,7 +7,7 @@ function cleanPath(value) {
   return path.resolve(trimmed);
 }
 
-export function normalizeWorkspaceScope({ primaryCwd, workspaceFolders } = {}) {
+export function normalizeWorkspaceScope({ primaryCwd, workspaceFolders }: { primaryCwd?: string; workspaceFolders?: string[] } = {}) {
   const primary = cleanPath(primaryCwd);
   const seen = new Set(primary ? [primary] : []);
   const folders = [];
@@ -31,7 +30,7 @@ export function workspaceRootsForSandbox(primaryCwd, workspaceFolders, authorize
   return scope.sandboxFolders;
 }
 
-export function normalizeSessionFolderScope({ primaryCwd, workspaceFolders, authorizedFolders } = {}) {
+export function normalizeSessionFolderScope({ primaryCwd, workspaceFolders, authorizedFolders }: { primaryCwd?: string; workspaceFolders?: string[]; authorizedFolders?: string[] } = {}) {
   const workspaceScope = normalizeWorkspaceScope({ primaryCwd, workspaceFolders });
   const seen = new Set([
     workspaceScope.primaryCwd,
@@ -57,7 +56,7 @@ export function normalizeSessionFolderScope({ primaryCwd, workspaceFolders, auth
   };
 }
 
-export function formatWorkspaceScopePrompt({ primaryCwd, workspaceFolders, locale } = {}) {
+export function formatWorkspaceScopePrompt({ primaryCwd, workspaceFolders, locale }: { primaryCwd?: string; workspaceFolders?: string[]; locale?: string } = {}) {
   const scope = normalizeWorkspaceScope({ primaryCwd, workspaceFolders });
   if (!scope.primaryCwd && scope.workspaceFolders.length === 0) return "";
   const isZh = String(locale || "").startsWith("zh");

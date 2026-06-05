@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * PreferencesManager — 全局 preferences.json 读写
  *
@@ -43,6 +42,10 @@ import { normalizeSessionThinkingLevel } from "./session-thinking-level.ts";
 const log = createModuleLogger("preferences");
 
 export class PreferencesManager {
+  declare _agentsDir: any;
+  declare _cache: any;
+  declare _path: any;
+  declare _userDir: any;
   /**
    * @param {object} opts
    * @param {string} opts.userDir  - 用户数据目录（preferences.json 所在）
@@ -433,7 +436,7 @@ export class PreferencesManager {
   }
 
   /** 清理已确定不存在的 workspace UI state 根目录；权限错误等未知状态会保留。 */
-  gcWorkspaceUiState(options = {}) {
+  gcWorkspaceUiState( options: any = {}) {
     const prefs = this._mutableCopy();
     const { state, changed } = pruneMissingWorkspaceUiState(prefs.workspace_ui_state || {}, options);
     if (changed || prefs.workspace_ui_state) {
@@ -498,7 +501,7 @@ export class PreferencesManager {
   getOAuthCustomModels() {
     const src = this._cache.oauth_custom_models;
     if (!src) return {};
-    const copy = {};
+    const copy: any = {};
     for (const [k, v] of Object.entries(src)) {
       copy[k] = Array.isArray(v) ? [...v] : v;
     }
@@ -713,7 +716,7 @@ function normalizeBridgeMediaPublicBaseUrl(value) {
 
 function normalizeAppearance(value) {
   const src = value && typeof value === "object" ? value : {};
-  const out = {};
+  const out: any = {};
   if (typeof src.theme === "string" && src.theme.trim()) out.theme = src.theme.trim();
   if (typeof src.serif === "boolean") out.serif = src.serif;
   if (typeof src.paperTexture === "boolean") out.paperTexture = src.paperTexture;

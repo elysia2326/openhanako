@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * Generic output budget normalization.
  *
@@ -90,7 +89,7 @@ function isImplicitSdkOutputCap(value, model) {
   return positiveInteger(value) === Math.min(modelLimit, SDK_IMPLICIT_MAX_TOKENS_CAP);
 }
 
-function resolveOutputBudgetSource(options = {}) {
+function resolveOutputBudgetSource(options: Record<string, any> = {}) {
   const outputBudgetSource = lower(options.outputBudgetSource);
   if (outputBudgetSource) return outputBudgetSource;
   const maxTokensSource = lower(options.maxTokensSource);
@@ -99,7 +98,7 @@ function resolveOutputBudgetSource(options = {}) {
   return OUTPUT_BUDGET_SOURCE_UNSPECIFIED;
 }
 
-export function resolveOutputBudgetPolicy(model, options = {}) {
+export function resolveOutputBudgetPolicy(model, options: Record<string, any> = {}) {
   const mode = options.mode || "chat";
   const source = resolveOutputBudgetSource(options);
   const capability = resolveOutputCapCapability(model);
@@ -123,7 +122,7 @@ export function resolveOutputBudgetPolicy(model, options = {}) {
  * optional. This preserves provider-native defaults while keeping required
  * providers and official DeepSeek thinking handling intact.
  */
-export function normalizeImplicitOutputBudget(payload, model, options = {}) {
+export function normalizeImplicitOutputBudget(payload, model, options: Record<string, any> = {}) {
   if (!payload || typeof payload !== "object") return payload;
   const policy = resolveOutputBudgetPolicy(model, options);
   if (!policy.removeImplicitSdkDefault) return payload;

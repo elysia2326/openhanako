@@ -1,4 +1,3 @@
-// @ts-nocheck
 import crypto from "crypto";
 import fs from "fs";
 import path from "path";
@@ -29,7 +28,7 @@ export function loadWebSessionRegistry(hanakoHome) {
   return validateWebSessionRegistry(registry, WEB_SESSIONS_FILE);
 }
 
-export function createWebSession(hanakoHome, input = {}) {
+export function createWebSession(hanakoHome, input: { principal?: any; now?: string; ttlMs?: number; userAgent?: string } = {}) {
   assertNonEmptyString(hanakoHome, "hanakoHome");
   if (!isPlainObject(input.principal)) throw new Error("principal required");
 

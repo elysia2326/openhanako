@@ -1,9 +1,8 @@
-// @ts-nocheck
 const INPUT_MODES = new Set(["buffer", "local_file", "remote_url", "public_url"]);
 const FILE_KINDS = new Set(["image", "video", "audio", "document"]);
 const DELIVERY_MODES = new Set(["native_image", "native_video", "native_audio", "native_document", "native_file"]);
 
-export function createMediaCapabilities(def = {}) {
+export function createMediaCapabilities(def: any = {}) {
   if (!def.platform || typeof def.platform !== "string") {
     throw new Error("mediaCapabilities.platform is required");
   }
@@ -33,7 +32,7 @@ export function createMediaCapabilities(def = {}) {
   });
 }
 
-function validateArray(name, values, allowed) {
+function validateArray(name: any, values: any, allowed: any) {
   if (!Array.isArray(values) || values.length === 0) {
     throw new Error(`mediaCapabilities.${name} must be a non-empty array`);
   }
@@ -44,11 +43,11 @@ function validateArray(name, values, allowed) {
   }
 }
 
-function freezeMaxBytes(maxBytes) {
+function freezeMaxBytes(maxBytes: any) {
   if (!maxBytes) return Object.freeze({});
-  const out = {};
+  const out: Record<string, any> = {};
   for (const [mode, limits] of Object.entries(maxBytes)) {
-    out[mode] = Object.freeze({ ...limits });
+    out[mode] = Object.freeze({ ...(limits as any) });
   }
   return Object.freeze(out);
 }

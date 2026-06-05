@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * Generic registry for provider-side media adapters.
  *
@@ -7,13 +6,17 @@
  */
 
 export class MediaAdapterRegistry {
+  declare _adapters: Map<string, any>;
+  declare _protocolAdapters: Map<string, any>;
+  declare _adapterKeys: Map<string, any>;
+
   constructor() {
     this._adapters = new Map();
     this._protocolAdapters = new Map();
     this._adapterKeys = new Map();
   }
 
-  register(adapter) {
+  register(adapter: any) {
     if (!adapter?.id) throw new Error("media adapter requires id");
     this._adapters.set(adapter.id, adapter);
     const aliases = Array.isArray(adapter.aliases) ? adapter.aliases.filter(Boolean) : [];
@@ -26,7 +29,7 @@ export class MediaAdapterRegistry {
     this._adapterKeys.set(adapter.id, { aliases, protocolIds });
   }
 
-  unregister(adapterId) {
+  unregister(adapterId: any) {
     const adapter = this._adapters.get(adapterId);
     const canonicalId = adapter?.id || adapterId;
     const keys = this._adapterKeys.get(canonicalId);
@@ -36,15 +39,15 @@ export class MediaAdapterRegistry {
     this._adapterKeys.delete(canonicalId);
   }
 
-  get(adapterId) {
+  get(adapterId: any) {
     return this._adapters.get(adapterId) || null;
   }
 
-  getProtocol(protocolId) {
+  getProtocol(protocolId: any) {
     return this._protocolAdapters.get(protocolId) || null;
   }
 
-  getByType(type) {
+  getByType(type: any) {
     const result = [];
     const seen = new Set();
     for (const adapter of this._adapters.values()) {
@@ -55,7 +58,7 @@ export class MediaAdapterRegistry {
     return result;
   }
 
-  getDefault(type) {
+  getDefault(type: any) {
     for (const adapter of this._adapters.values()) {
       if (Array.isArray(adapter.types) && adapter.types.includes(type)) return adapter;
     }

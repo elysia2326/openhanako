@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * compile.js — 记忆编译器（v3 四块独立编译 + assemble）
  *
@@ -52,7 +51,7 @@ const COMPILE_PROMPT_BUILDERS = {
  * @param {{ model: string, api: string, api_key: string, base_url: string }} resolvedModel
  * @returns {Promise<"compiled"|"skipped">}
  */
-export async function compileToday(summaryManager, outputPath, resolvedModel, opts = {}) {
+export async function compileToday(summaryManager, outputPath, resolvedModel, opts: { since?: any } = {}) {
   fs.mkdirSync(path.dirname(outputPath), { recursive: true });
 
   const { rangeStart } = getLogicalDay();
@@ -136,7 +135,7 @@ Output 3-5 coarse events, 1-2 sentences each. Max 180 words. Keep it short on qu
  * 编译过去 7 天滑动窗口的摘要 → week.md
  * @param {object} resolvedModel
  */
-export async function compileWeek(summaryManager, outputPath, resolvedModel, opts = {}) {
+export async function compileWeek(summaryManager, outputPath, resolvedModel, opts: { since?: any } = {}) {
   fs.mkdirSync(path.dirname(outputPath), { recursive: true });
 
   const now = new Date();
@@ -297,7 +296,7 @@ Max 240 words. Do not output Markdown headings. Do not start with #, ##, or ###;
  * 从近期 session 摘要的 重要事实 / Key Facts 段编译 facts.md
  * @param {object} resolvedModel
  */
-export async function compileFacts(summaryManager, outputPath, resolvedModel, opts = {}) {
+export async function compileFacts(summaryManager, outputPath, resolvedModel, opts: { since?: any } = {}) {
   fs.mkdirSync(path.dirname(outputPath), { recursive: true });
 
   // 读取上一版 facts.md 作为继承基础（避免 30 天外的稳定属性丢失）
@@ -461,11 +460,13 @@ async function _compactLLM(input, systemPrompt, resolvedModel, maxTokens, operat
     api, model,
     apiKey: api_key,
     baseUrl: base_url,
+    headers: undefined,
     messages: layout.messages,
     systemPrompt: layout.systemPrompt,
     temperature: 0.3,
     maxTokens: withMemoryReasoningBuffer(maxTokens, resolvedModel),
     timeoutMs: 60_000,
+    signal: undefined,
     usageLedger: resolvedModel.usageLedger,
     usageContext,
   });

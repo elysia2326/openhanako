@@ -1,4 +1,3 @@
-// @ts-nocheck
 import { normalizeBridgePlatforms } from "../bridge/bridge-context.ts";
 
 const CHANNEL_DESKTOP = "desktop";
@@ -18,14 +17,14 @@ const VALID_DESKTOP_FOCUS_POLICIES = new Set([
   DESKTOP_FOCUS_WHEN_SESSION_UNFOCUSED,
 ]);
 
-export function formatNotificationText(title, body) {
+export function formatNotificationText(title: any, body: any) {
   const safeTitle = typeof title === "string" ? title.trim() : "";
   const safeBody = typeof body === "string" ? body.trim() : "";
   if (safeTitle && safeBody) return `${safeTitle}\n\n${safeBody}`;
   return safeBody || safeTitle;
 }
 
-export function normalizeNotificationPayload(payload = {}) {
+export function normalizeNotificationPayload(payload: any = {}) {
   const title = typeof payload.title === "string" ? payload.title : "";
   const body = typeof payload.body === "string" ? payload.body : "";
   const audience = payload.audience || AUDIENCE_OWNER;
@@ -48,15 +47,15 @@ export function normalizeNotificationPayload(payload = {}) {
   };
 }
 
-function normalizeDesktopFocusPolicy(value) {
+function normalizeDesktopFocusPolicy(value: any) {
   return VALID_DESKTOP_FOCUS_POLICIES.has(value) ? value : DESKTOP_FOCUS_ALWAYS;
 }
 
-function normalizeIdempotencyKey(value) {
+function normalizeIdempotencyKey(value: any) {
   return typeof value === "string" && value.trim() ? value.trim() : null;
 }
 
-function normalizeChannels(value) {
+function normalizeChannels(value: any) {
   const hasExplicitChannels = Array.isArray(value) || (typeof value === "string" && value);
   const raw = Array.isArray(value) ? value : hasExplicitChannels ? [value] : [CHANNEL_DESKTOP];
   const normalized = [];
@@ -79,18 +78,22 @@ function normalizeChannels(value) {
 }
 
 export class NotificationService {
+  declare _emitDesktop: any;
+  declare _getBridgeManager: any;
+  declare _idempotency: Map<string, any>;
+
   /**
    * @param {object} deps
    * @param {(event: {title: string, body: string, agentId?: string|null, desktopFocusPolicy?: string}) => void|Promise<void>} deps.emitDesktop
    * @param {() => import('../bridge/bridge-manager.ts').BridgeManager|null} deps.getBridgeManager
    */
-  constructor({ emitDesktop, getBridgeManager } = {}) {
+  constructor({ emitDesktop, getBridgeManager }: any = {}) {
     this._emitDesktop = emitDesktop;
     this._getBridgeManager = getBridgeManager;
     this._idempotency = new Map();
   }
 
-  async notify(payload, context = {}) {
+  async notify(payload: any, context: any = {}) {
     const normalized = normalizeNotificationPayload(payload);
     const idempotencyKey = normalized.idempotencyKey || normalizeIdempotencyKey(context.idempotencyKey);
     if (idempotencyKey) {
@@ -104,7 +107,7 @@ export class NotificationService {
     return this._notifyOnce(normalized, context, null);
   }
 
-  _getIdempotentDelivery(idempotencyKey) {
+  _getIdempotentDelivery(idempotencyKey: any) {
     this._pruneIdempotency();
     const existing = this._idempotency.get(idempotencyKey);
     if (!existing) return null;
@@ -128,7 +131,7 @@ export class NotificationService {
     }
   }
 
-  async _notifyOnce(normalized, context = {}, idempotencyKey = null) {
+  async _notifyOnce(normalized: any, context: any = {}, idempotencyKey: any = null) {
     const deliveries = [];
 
     for (const channel of normalized.invalidChannels) {
@@ -178,7 +181,7 @@ export class NotificationService {
     return result;
   }
 
-  async _deliverDesktop(payload, context) {
+  async _deliverDesktop(payload: any, context: any) {
     try {
       const sessionPath = normalizeSessionPath(payload.sessionPath) || normalizeSessionPath(context.sessionPath);
       await this._emitDesktop?.({
@@ -194,7 +197,7 @@ export class NotificationService {
     }
   }
 
-  async _deliverBridgeOwner(payload, context) {
+  async _deliverBridgeOwner(payload: any, context: any) {
     if (payload.audience !== AUDIENCE_OWNER) {
       return {
         channel: CHANNEL_BRIDGE_OWNER,
@@ -214,7 +217,7 @@ export class NotificationService {
     }
 
     try {
-      const proactiveOpts = {
+      const proactiveOpts: Record<string, any> = {
         contextPolicy: payload.contextPolicy,
       };
       if (payload.bridgePlatforms.length) proactiveOpts.bridgePlatforms = payload.bridgePlatforms;
@@ -237,6 +240,6 @@ export class NotificationService {
   }
 }
 
-function normalizeSessionPath(value) {
+function normalizeSessionPath(value: any) {
   return typeof value === "string" && value.trim() ? value.trim() : null;
 }

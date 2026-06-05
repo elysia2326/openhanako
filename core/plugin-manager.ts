@@ -1,4 +1,3 @@
-// @ts-nocheck
 import fs from "fs";
 import path from "path";
 import { createPluginContext } from "./plugin-context.ts";
@@ -71,6 +70,9 @@ function hasConfigProperties(schema) {
 }
 
 class PluginLoadTimeoutError extends Error {
+  declare pluginId: any;
+  declare stage: any;
+  declare timeoutMs: any;
   constructor(pluginId, stage, ms) {
     super(`Plugin "${pluginId}" ${stage} timed out after ${ms}ms`);
     this.name = "PluginLoadTimeoutError";
@@ -105,7 +107,7 @@ function normalizeActivationEvents(raw, hasLifecycle) {
   return hasLifecycle ? ["onStartup"] : [];
 }
 
-function activationMatches(events = [], reason = {}) {
+function activationMatches(events = [], reason: any = {}) {
   const event = reason.event || "";
   if (!event) return false;
   if (events.includes("*") || events.includes(event)) return true;
@@ -129,12 +131,38 @@ function normalizePluginToolResult(raw, pluginId) {
   return result;
 }
 
-function getDynamicToolInvocationStyle(toolDef = {}) {
+function getDynamicToolInvocationStyle( toolDef: any = {}) {
   const style = toolDef.invocationStyle || toolDef.metadata?.hanaInvocationStyle;
   return style === "pi_tool" ? "pi_tool" : "sdk_tool";
 }
 
 export class PluginManager {
+  declare _agentTemplates: any;
+  declare _appVersion: any;
+  declare _bus: any;
+  declare _commands: any;
+  declare _configSchemas: any;
+  declare _dataDir: any;
+  declare _extensionFactories: any;
+  declare _getSessionPath: any;
+  declare _loadTimeoutMs: any;
+  declare _logSink: any;
+  declare _opQueue: any;
+  declare _pages: any;
+  declare _plugins: any;
+  declare _pluginsDirs: any;
+  declare _preferencesManager: any;
+  declare _providerPlugins: any;
+  declare _registerSessionFile: any;
+  declare _routeApps: any;
+  declare _runtimeContext: any;
+  declare _scanned: any;
+  declare _settingsTabs: any;
+  declare _skillPaths: any;
+  declare _slashRegistry: any;
+  declare _tools: any;
+  declare _widgets: any;
+  declare routeRegistry: any;
   /**
    * @param {{ pluginsDirs: string[], dataDir: string, bus: object }} opts
    * pluginsDirs: 多个扫描目录，先内嵌后用户（靠前的优先）
@@ -191,7 +219,7 @@ export class PluginManager {
       : DEFAULT_PLUGIN_LOAD_TIMEOUT_MS;
   }
 
-  _entryFromDescriptor(desc, overrides = {}) {
+  _entryFromDescriptor(desc, overrides: any = {}) {
     const source = normalizePluginSource(overrides.source || desc.source);
     const entry = {
       ...desc,
@@ -213,7 +241,7 @@ export class PluginManager {
     return [...this._plugins.values()].filter((entry) => entry.id === pluginId);
   }
 
-  findPluginEntry({ id, source, pluginKey, pluginDir } = {}) {
+  findPluginEntry({ id, source, pluginKey, pluginDir }: any = {}) {
     if (pluginKey && this._plugins.has(pluginKey)) return this._plugins.get(pluginKey);
     const normalizedSource = source ? normalizePluginSource(source) : null;
     if (id && normalizedSource) return this._plugins.get(createPluginKey(normalizedSource, id)) || null;
@@ -225,7 +253,7 @@ export class PluginManager {
     )) || null;
   }
 
-  _resolvePluginEntry(pluginId, options = {}) {
+  _resolvePluginEntry(pluginId, options: any = {}) {
     if (!pluginId) return null;
     if (options.pluginKey) return this.findPluginEntry({ pluginKey: options.pluginKey });
     if (options.source) return this.findPluginEntry({ id: pluginId, source: options.source });
@@ -345,7 +373,7 @@ export class PluginManager {
     const trust = manifest?.trust === "full-access" ? "full-access" : "restricted";
     const hidden = !!manifest?.hidden;
     const activationEvents = normalizeActivationEvents(manifest?.activationEvents, hasLifecycle);
-    return { id, name, version, description, pluginDir, manifest, contributions, trust, hidden, uiHostCapabilities, configSchema, activationEvents, hasLifecycle, formatIssue };
+    return { id, name, version, description, pluginDir, manifest, contributions, trust, hidden, uiHostCapabilities, configSchema, activationEvents, hasLifecycle, formatIssue, source: undefined as any, pluginKey: undefined as any };
   }
 
   async loadAll() {
@@ -530,7 +558,7 @@ export class PluginManager {
     }
   }
 
-  async _activatePluginEntry(entry, reason = {}, loadToken = entry._loadToken) {
+  async _activatePluginEntry(entry, reason: any = {}, loadToken = entry._loadToken) {
     if (!entry.hasLifecycle || entry.activationState === "activated") return entry;
     if (entry._activationPromise) return entry._activationPromise;
 
@@ -586,7 +614,7 @@ export class PluginManager {
     return entry._activationPromise;
   }
 
-  async activatePlugin(pluginId, reason = {}, options = {}) {
+  async activatePlugin(pluginId, reason: any = {}, options = {}) {
     const entry = this._resolvePluginEntry(pluginId, options);
     if (!entry) throw new Error(`Plugin "${pluginId}" not found`);
     if (!activationMatches(entry.activationEvents, reason)) return entry;
@@ -654,12 +682,12 @@ export class PluginManager {
    * @param {{ pluginKey?: string, source?: string }} [options]
    * @returns {Function} 清理函数（调用即移除该工具）
    */
-  addTool(pluginId, toolDef, options = {}) {
+  addTool(pluginId, toolDef, options: any = {}) {
     const source = options.source ? normalizePluginSource(options.source) : null;
     const pluginKey = options.pluginKey || null;
     const invocationStyle = getDynamicToolInvocationStyle(toolDef);
     const origExecute = toolDef.execute;
-    const tool = {
+    const tool: any = {
       name: `${pluginId}_${toolDef.name}`,
       description: toolDef.description || "",
       parameters: toolDef.parameters || { type: "object", properties: {} },
@@ -694,7 +722,7 @@ export class PluginManager {
     };
   }
 
-  getPluginTool(pluginId, toolName, options = {}) {
+  getPluginTool(pluginId, toolName, options: any = {}) {
     const entry = options.entry || this._resolvePluginEntry(pluginId, options);
     if (!entry || !toolName) return null;
     const requestedToolName = String(toolName).trim();
@@ -706,7 +734,7 @@ export class PluginManager {
     )) || null;
   }
 
-  async executePluginTool(tool, { toolCallId, input = {}, runtimeCtx = {} } = {}) {
+  async executePluginTool(tool, { toolCallId, input = {}, runtimeCtx = {} }: any = {}) {
     if (!tool || typeof tool.execute !== "function") {
       throw new Error("plugin tool is not executable");
     }
@@ -715,7 +743,7 @@ export class PluginManager {
     return normalizePluginToolResult(raw, tool._pluginId);
   }
 
-  getAllTools(options = {}) {
+  getAllTools( options: any = {}) {
     const includeShadowed = options.includeShadowed === true;
     return this._tools.filter((tool) => (
       includeShadowed || !tool._pluginKey || this._isPluginKeyRuntimeActive(tool._pluginKey)
@@ -737,7 +765,7 @@ export class PluginManager {
     });
   }
 
-  getSkillPaths(options = {}) {
+  getSkillPaths( options: any = {}) {
     const includeShadowed = options.includeShadowed === true;
     return this._skillPaths.filter((skillPath) => (
       includeShadowed || this._isPluginKeyRuntimeActive(skillPath.pluginKey)
@@ -800,7 +828,7 @@ export class PluginManager {
     }
   }
 
-  getAllCommands(options = {}) {
+  getAllCommands( options: any = {}) {
     const includeShadowed = options.includeShadowed === true;
     return this._commands.filter((command) => (
       includeShadowed || this._isPluginKeyRuntimeActive(command._pluginKey)
@@ -824,9 +852,9 @@ export class PluginManager {
 
     // Middleware: inject ctx + agentId (from proxy header)
     app.use("*", async (c, next) => {
-      c.set("pluginCtx", ctx);
+      (c as any).set("pluginCtx", ctx);
       const agentId = c.req.header("X-Hana-Agent-Id") || null;
-      c.set("agentId", agentId);
+      (c as any).set("agentId", agentId);
       await next();
     });
 
@@ -902,13 +930,13 @@ export class PluginManager {
     this._configSchemas.push({ pluginId: entry.id, pluginKey: entry.pluginKey, source: entry.source, schema });
   }
 
-  _resolveConfigEntry(pluginId, options = {}) {
+  _resolveConfigEntry(pluginId, options: any = {}) {
     if (options.source || options.pluginKey) return this._resolvePluginEntry(pluginId, options);
     return this.findPluginEntry({ id: pluginId, source: "community" })
       || this._resolvePluginEntry(pluginId, options);
   }
 
-  getConfigSchema(pluginId, options = {}) {
+  getConfigSchema(pluginId, options: any = {}) {
     const entry = this._resolveConfigEntry(pluginId, options);
     if (!entry) return null;
     return this._configSchemas.find((s) => s.pluginKey === entry.pluginKey)?.schema ?? null;
@@ -918,7 +946,7 @@ export class PluginManager {
     return [...this._configSchemas];
   }
 
-  getConfig(pluginId, options = {}) {
+  getConfig(pluginId, options: any = {}) {
     const entry = this._resolveConfigEntry(pluginId, options);
     if (!entry?.ctx?.config) return null;
     return {
@@ -930,7 +958,7 @@ export class PluginManager {
     };
   }
 
-  setConfig(pluginId, values, options = {}) {
+  setConfig(pluginId, values, options: any = {}) {
     const entry = this._resolveConfigEntry(pluginId, options);
     if (!entry?.ctx?.config) throw new Error(`Plugin "${pluginId}" not found`);
     const nextValues = entry.ctx.config.setMany(values, options);
@@ -1039,7 +1067,7 @@ export class PluginManager {
     }
   }
 
-  getAgentTemplates(options = {}) {
+  getAgentTemplates( options: any = {}) {
     const includeShadowed = options.includeShadowed === true;
     return this._agentTemplates.filter((template) => (
       includeShadowed || this._isPluginKeyRuntimeActive(template._pluginKey)
@@ -1062,7 +1090,7 @@ export class PluginManager {
     }
   }
 
-  getProviderPlugins(options = {}) {
+  getProviderPlugins( options: any = {}) {
     const includeShadowed = options.includeShadowed === true;
     return this._providerPlugins.filter((provider) => (
       includeShadowed || this._isPluginKeyRuntimeActive(provider._pluginKey)
@@ -1083,7 +1111,7 @@ export class PluginManager {
     return this._readPluginDescriptor(pluginDir, dirName);
   }
 
-  _isFullAccessAllowed(entryOrDesc, options = {}) {
+  _isFullAccessAllowed(entryOrDesc, options: any = {}) {
     if (entryOrDesc.source === "builtin") return true;
     if (entryOrDesc.source === "dev") return options.allowFullAccess === true;
     return this._preferencesManager?.getAllowFullAccessPlugins() || false;
@@ -1091,7 +1119,7 @@ export class PluginManager {
 
   // ── Hot operations ───────────────────────────────────────────────────────
 
-  async installPlugin(pluginDir, options = {}) {
+  async installPlugin(pluginDir, options: any = {}) {
     return this._enqueue(async () => {
       const dirName = path.basename(pluginDir);
       const source = normalizePluginSource(options.source);
@@ -1158,7 +1186,7 @@ export class PluginManager {
     });
   }
 
-  async removePlugin(pluginId, options = {}) {
+  async removePlugin(pluginId, options: any = {}) {
     return this._enqueue(async () => {
       const entry = this._resolvePluginEntry(pluginId, options);
       if (!entry) throw new Error(`Plugin "${pluginId}" not found`);
@@ -1184,7 +1212,7 @@ export class PluginManager {
     });
   }
 
-  async disablePlugin(pluginId, options = {}) {
+  async disablePlugin(pluginId, options: any = {}) {
     return this._enqueue(async () => {
       const entry = this._resolvePluginEntry(pluginId, options);
       if (!entry) throw new Error(`Plugin "${pluginId}" not found`);
@@ -1209,7 +1237,7 @@ export class PluginManager {
     });
   }
 
-  async enablePlugin(pluginId, options = {}) {
+  async enablePlugin(pluginId, options: any = {}) {
     return this._enqueue(async () => {
       const entry = this._resolvePluginEntry(pluginId, options);
       if (!entry) throw new Error(`Plugin "${pluginId}" not found`);
@@ -1320,7 +1348,7 @@ export class PluginManager {
     this._refreshRouteRegistryForId(pluginId);
   }
 
-  async unloadPlugin(pluginId, options = {}) {
+  async unloadPlugin(pluginId, options: any = {}) {
     const entry = this._resolvePluginEntry(pluginId, options);
     if (!entry) return;
 
@@ -1368,15 +1396,15 @@ export class PluginManager {
       .map(e => e.factory);
   }
 
-  getPages(options = {}) {
+  getPages( options: any = {}) {
     const includeShadowed = options.includeShadowed === true;
     return this._pages.filter((page) => includeShadowed || this._isPluginKeyRuntimeActive(page.pluginKey));
   }
-  getWidgets(options = {}) {
+  getWidgets( options: any = {}) {
     const includeShadowed = options.includeShadowed === true;
     return this._widgets.filter((widget) => includeShadowed || this._isPluginKeyRuntimeActive(widget.pluginKey));
   }
-  getSettingsTabs(options = {}) {
+  getSettingsTabs( options: any = {}) {
     const includeShadowed = options.includeShadowed === true;
     return this._settingsTabs.filter((tab) => includeShadowed || this._isPluginKeyRuntimeActive(tab.pluginKey));
   }
@@ -1442,11 +1470,11 @@ export class PluginManager {
       }));
   }
 
-  getPlugin(id, options = {}) {
+  getPlugin(id, options: any = {}) {
     this._annotateShadowing();
     return this._resolvePluginEntry(id, options) || null;
   }
-  listPlugins(options = {}) {
+  listPlugins( options: any = {}) {
     this._annotateShadowing();
     let entries = [...this._plugins.values()];
     if (options.source) {

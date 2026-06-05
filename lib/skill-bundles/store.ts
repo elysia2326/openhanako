@@ -1,4 +1,3 @@
-// @ts-nocheck
 import crypto from "crypto";
 import fs from "fs";
 import path from "path";
@@ -109,7 +108,7 @@ export function recordSkillBundle(engine, {
   source = "user",
   agentId = null,
   sourcePackage = null,
-} = {}) {
+}: Record<string, any> = {}) {
   const normalizedSkillNames = uniqueStrings(skillNames);
   if (normalizedSkillNames.length === 0) return null;
   const store = loadSkillBundleStore(engine);
@@ -134,7 +133,7 @@ export function createSkillBundle(engine, {
   source = "user",
   agentId = null,
   sourcePackage = null,
-} = {}) {
+}: Record<string, any> = {}) {
   const store = loadSkillBundleStore(engine);
   const record = normalizeBundle({
     id: allocateBundleId(store, name),
@@ -151,7 +150,7 @@ export function createSkillBundle(engine, {
   return record;
 }
 
-export function updateSkillBundle(engine, id, patch = {}) {
+export function updateSkillBundle(engine, id, patch: Record<string, any> = {}) {
   const bundleId = typeof id === "string" ? id.trim() : "";
   if (!bundleId) throw new Error("bundle id is required");
   const store = loadSkillBundleStore(engine);
@@ -179,7 +178,7 @@ export function reorderSkillBundles(engine, bundleIds) {
   const byId = new Map(store.bundles.map(bundle => [bundle.id, bundle]));
   const now = nowIso();
   const bundles = orderedIds.map((id) => {
-    const bundle = byId.get(id);
+    const bundle: Record<string, any> | undefined = byId.get(id);
     if (!bundle) throw new Error(`unknown skill bundle: ${id}`);
     return { ...bundle, updatedAt: now };
   });

@@ -1,4 +1,3 @@
-// @ts-nocheck
 const OFFICIAL_DEEPSEEK_PROVIDER_ID = "deepseek";
 const OFFICIAL_DEEPSEEK_HOST = "api.deepseek.com";
 const OFFICIAL_DEEPSEEK_RESERVED_MODEL_IDS = new Set(["deepseek"]);
@@ -29,12 +28,15 @@ function isOfficialDeepSeekProvider(providerId, baseUrl = "") {
   return hostnameOf(baseUrl) === OFFICIAL_DEEPSEEK_HOST;
 }
 
-function isReservedOfficialDeepSeekModelId(providerId, modelEntry, options = {}) {
+function isReservedOfficialDeepSeekModelId(providerId, modelEntry, options: Record<string, any> = {}) {
   if (!isOfficialDeepSeekProvider(providerId, options.baseUrl)) return false;
   return OFFICIAL_DEEPSEEK_RESERVED_MODEL_IDS.has(normalizedModelId(modelEntry));
 }
 
 export class ProviderModelValidationError extends Error {
+  declare code: string;
+  declare statusCode: number;
+
   constructor(providerId, modelId) {
     super(
       `Invalid model id "${modelId}" for provider "${providerId}": ` +

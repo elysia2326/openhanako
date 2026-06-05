@@ -1,4 +1,3 @@
-// @ts-nocheck
 // shared/tool-categories.js
 //
 // Single source of truth for built-in tool categorization.
@@ -107,7 +106,7 @@ export function uniqueToolNames(names) {
  * @param {{ pluginTools?: Array<{ _pluginId?: string }> }} [options]
  * @returns {string[]}
  */
-export function computeSettingsAvailableToolNames(runtimeToolNames, options = {}) {
+export function computeSettingsAvailableToolNames(runtimeToolNames, options: { pluginTools?: Array<{ _pluginId?: string }> } = {}) {
   const result = new Set(uniqueToolNames(runtimeToolNames));
   const pluginTools = Array.isArray(options.pluginTools) ? options.pluginTools : [];
   for (const name of OPTIONAL_TOOL_NAMES) {
@@ -157,7 +156,7 @@ export function assertAllToolsCategorized(actualToolNames) {
  * @param {{ extraDisabled?: string[] }} [options]
  * @returns {string[]} filtered tool names, order preserved from allNames
  */
-export function computeToolSnapshot(allNames, disabled, options = {}) {
+export function computeToolSnapshot(allNames, disabled, options: { extraDisabled?: string[] } = {}) {
   const effectivelyDisabled = new Set(
     (disabled || []).filter((n) => OPTIONAL_TOOL_NAMES_SET.has(n))
   );

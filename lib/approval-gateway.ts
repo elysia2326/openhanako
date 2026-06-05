@@ -1,4 +1,3 @@
-// @ts-nocheck
 const GIT_PUSH_RULES = {
   force: {
     id: "force-push-blocked",
@@ -27,7 +26,7 @@ Rules:
 - Use deny_and_continue when the agent should choose a safer path without asking.
 - The small reviewer should escalate high-risk or broad-blast-radius actions.`;
 
-function commandFromRequest(request = {}) {
+function commandFromRequest(request: any = {}) {
   const command = request.params?.command || request.params?.cmd || request.target?.label;
   return typeof command === "string" ? command : "";
 }
@@ -109,7 +108,7 @@ function detectGitPush(command) {
   return null;
 }
 
-function deterministicDecision(request = {}) {
+function deterministicDecision(request: any = {}) {
   const command = commandFromRequest(request);
   if (command) {
     const gitPush = detectGitPush(command);
@@ -177,7 +176,7 @@ function fallbackAskUser(reason = "auto approval reviewer unavailable") {
   };
 }
 
-function buildReviewerInput(request, context = {}) {
+function buildReviewerInput(request: any, context: any = {}) {
   return {
     request,
     userIntentSummary: context.userIntentSummary || "",
@@ -247,7 +246,7 @@ export function createModelApprovalReviewer({
   callText,
   timeoutMs = 15_000,
   maxTokens = 220,
-} = {}) {
+}: any = {}) {
   return async (input) => {
     if (typeof resolveUtilityConfig !== "function") {
       throw new Error("approval reviewer requires resolveUtilityConfig");

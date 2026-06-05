@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * migrate-providers.js — 一次性迁移旧数据到 added-models.yaml
  *
@@ -24,8 +23,8 @@ const _defaultModels = JSON.parse(
 );
 
 /** 反查 default-models.json：模型 ID → provider name */
-function resolveProviderForModel(modelId) {
-  for (const [provider, models] of Object.entries(_defaultModels)) {
+function resolveProviderForModel(modelId: any) {
+  for (const [provider, models] of Object.entries(_defaultModels) as [string, any][]) {
     if (models.includes(modelId)) return provider;
   }
   return null;
@@ -33,7 +32,7 @@ function resolveProviderForModel(modelId) {
 
 // ── 原子写入工具 ──────────────────────────────────────────────────────────────
 
-function atomicWriteYAML(filePath, data, header = "") {
+function atomicWriteYAML(filePath: string, data: any, header = "") {
   const yamlStr = header + YAML.dump(data, {
     indent: 2,
     lineWidth: -1,
@@ -46,7 +45,7 @@ function atomicWriteYAML(filePath, data, header = "") {
   fs.renameSync(tmp, filePath);
 }
 
-function atomicWriteJSON(filePath, data) {
+function atomicWriteJSON(filePath: string, data: any) {
   const tmp = filePath + ".tmp";
   fs.writeFileSync(tmp, JSON.stringify(data, null, 2) + "\n", "utf-8");
   fs.renameSync(tmp, filePath);
@@ -61,7 +60,7 @@ function atomicWriteJSON(filePath, data) {
  * @param {string} agentsDir  - agents 目录
  * @param {(msg: string) => void} log - 日志回调
  */
-export function migrateToProvidersYaml(hanakoHome, agentsDir, log = () => {}) {
+export function migrateToProvidersYaml(hanakoHome: string, agentsDir: string, log: (msg: string) => void = () => {}) {
   const providersPath = path.join(hanakoHome, "added-models.yaml");
   const prefsPath = path.join(hanakoHome, "user", "preferences.json");
 
@@ -108,7 +107,7 @@ export function migrateToProvidersYaml(hanakoHome, agentsDir, log = () => {}) {
     const agentProviders = ac.config.providers;
     if (!agentProviders || typeof agentProviders !== "object") continue;
 
-    for (const [name, block] of Object.entries(agentProviders)) {
+    for (const [name, block] of Object.entries(agentProviders) as [string, any][]) {
       if (!block || typeof block !== "object") continue;
       if (!providers[name]) providers[name] = {};
 
@@ -157,7 +156,7 @@ export function migrateToProvidersYaml(hanakoHome, agentsDir, log = () => {}) {
 
       // 尝试从 added-models.yaml 中已有的模型列表找 provider
       if (!provider) {
-        for (const [pName, pConf] of Object.entries(providers)) {
+        for (const [pName, pConf] of Object.entries(providers) as [string, any][]) {
           if (Array.isArray(pConf.models) && pConf.models.some(
             m => (typeof m === "object" ? m.id : m) === modelId
           )) {
@@ -247,7 +246,7 @@ export function migrateToProvidersYaml(hanakoHome, agentsDir, log = () => {}) {
  * 收集所有 agent 的 config.yaml
  * @returns {Array<{id: string, path: string, config: object}>}
  */
-function _collectAgentConfigs(agentsDir) {
+function _collectAgentConfigs(agentsDir: string) {
   const result = [];
   try {
     const entries = fs.readdirSync(agentsDir, { withFileTypes: true });
@@ -266,7 +265,7 @@ function _collectAgentConfigs(agentsDir) {
 }
 
 /** 安全读取 preferences.json */
-function _readPrefs(prefsPath) {
+function _readPrefs(prefsPath: string) {
   try {
     return JSON.parse(fs.readFileSync(prefsPath, "utf-8")) || {};
   } catch {
@@ -275,7 +274,7 @@ function _readPrefs(prefsPath) {
 }
 
 /** 向 provider 的 models 列表添加模型（去重） */
-function _addModelToProvider(providers, providerName, modelId) {
+function _addModelToProvider(providers: Record<string, any>, providerName: string, modelId: any) {
   if (!providers[providerName]) providers[providerName] = {};
   if (!Array.isArray(providers[providerName].models)) {
     providers[providerName].models = [];

@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * Agent — 一个助手实例
  *
@@ -60,6 +59,76 @@ import {
 const moduleLog = createModuleLogger("agent");
 
 export class Agent {
+  declare _artifactTool: any;
+  declare _automationTool: any;
+  declare _browserTool: any;
+  declare _cb: any;
+  declare _channelPostHandler: any;
+  declare _channelTool: any;
+  declare _checkDeferredTool: any;
+  declare _computerUseTool: any;
+  declare _config: any;
+  declare _cronStore: any;
+  declare _cronTool: any;
+  declare _currentStatusTool: any;
+  declare _descriptionRefreshHandler: any;
+  declare _deskManager: any;
+  declare _disposing: any;
+  declare _dmSentHandler: any;
+  declare _dmTool: any;
+  declare _enabledSkills: any;
+  declare _experienceEnabled: any;
+  declare _experienceTools: any;
+  declare _factStore: any;
+  declare _getOwnerIds: any;
+  declare _installSkillTool: any;
+  declare _listAgents: any;
+  declare _memoryMasterEnabled: any;
+  declare _memoryModel: any;
+  declare _memorySearchTool: any;
+  declare _memorySessionEnabled: any;
+  declare _memoryTicker: any;
+  declare _notifyHandler: any;
+  declare _notifyTool: any;
+  declare _onInstallCallback: any;
+  declare _pinnedMemoryTools: any;
+  declare _repairState: any;
+  declare _resolveModel: any;
+  declare _runtimeInitialized: any;
+  declare _searchConfigResolver: any;
+  declare _sessionFoldersTool: any;
+  declare _stageFilesTool: any;
+  declare _stopTaskTool: any;
+  declare _subagentCloseTool: any;
+  declare _subagentReplyTool: any;
+  declare _subagentTool: any;
+  declare _summaryManager: any;
+  declare _systemPrompt: any;
+  declare _terminalTool: any;
+  declare _todoTool: any;
+  declare _updateSettingsTool: any;
+  declare _utilityModel: any;
+  declare _webFetchTool: any;
+  declare _webSearchTool: any;
+  declare _workflowTool: any;
+  declare agentDir: any;
+  declare agentName: any;
+  declare agentsDir: any;
+  declare channelsDir: any;
+  declare configPath: any;
+  declare deskDir: any;
+  declare factsDbPath: any;
+  declare factsMdPath: any;
+  declare id: any;
+  declare longtermMdPath: any;
+  declare memoryMdPath: any;
+  declare productDir: any;
+  declare sessionDir: any;
+  declare summariesDir: any;
+  declare todayMdPath: any;
+  declare userDir: any;
+  declare userName: any;
+  declare weekMdPath: any;
   /**
    * @param {object} opts
    * @param {string} opts.id         - 助手 ID（唯一信源，等于数据目录名）
@@ -172,7 +241,7 @@ export class Agent {
     this._refreshRepairState();
   }
 
-  async init(log = () => {}, sharedModels = {}, resolveModel = null) {
+  async init(log: (msg?: string) => void = () => {}, sharedModels: any = {}, resolveModel = null) {
     if (this._runtimeInitialized) return;
 
     // 0. 兼容性检查（目录、数据库、配置文件）
@@ -686,7 +755,7 @@ export class Agent {
   }
   get summaryManager() { return this._summaryManager; }
   get memoryTicker() { return this._memoryTicker; }
-  getToolsSnapshot(options = {}) {
+  getToolsSnapshot( options: any = {}) {
     const forceMemoryEnabled = Object.prototype.hasOwnProperty.call(options, "forceMemoryEnabled")
       ? options.forceMemoryEnabled
       : null;
@@ -825,7 +894,7 @@ export class Agent {
    * 更新配置（写入 config.yaml 并刷新受影响的模块）
    * @param {object} partial - 要合并的配置片段
    */
-  updateConfig(partial, options = {}) {
+  updateConfig(partial, options: any = {}) {
     assertAgentConfigPatchYuan(this.productDir, partial);
     // 写入磁盘 + 重新加载
     saveConfig(this.configPath, partial);
@@ -947,7 +1016,7 @@ export class Agent {
     return fill(raw);
   }
 
-  _formatTeamRoster(isZh, options = {}) {
+  _formatTeamRoster(isZh, options: any = {}) {
     const includeSelf = options.includeSelf !== false;
     if (!this._listAgents) return "";
     const allAgents = this._listAgents();
@@ -963,7 +1032,7 @@ export class Agent {
     }).join("\n");
   }
 
-  buildMemoryReflectionSnapshot(options = {}) {
+  buildMemoryReflectionSnapshot( options: any = {}) {
     const forceMemoryEnabled = Object.prototype.hasOwnProperty.call(options, "forceMemoryEnabled")
       ? options.forceMemoryEnabled
       : null;
@@ -1009,7 +1078,7 @@ export class Agent {
    * @param {string} [options.cwdOverride] - 覆盖 prompt 中“工作台”章节展示的 cwd。
    *   用于新建隔离 session 时，让 prompt 快照和实际执行目录保持一致。
    */
-  buildSystemPrompt(options = {}) {
+  buildSystemPrompt( options: any = {}) {
     const forSubagent = !!options.forSubagent;
     const forceMemoryEnabled = Object.prototype.hasOwnProperty.call(options, "forceMemoryEnabled")
       ? options.forceMemoryEnabled
@@ -1323,7 +1392,7 @@ export class Agent {
       hourCycle: "h23",
       ...(tz ? { timeZone: tz } : {}),
     };
-    const dateTime = new Intl.DateTimeFormat("en-US", fmtOpts).format(now);
+    const dateTime = new Intl.DateTimeFormat("en-US", fmtOpts as any).format(now);
     parts.push(`\nCurrent date and time: ${dateTime}`);
     parts.push(isZh
       ? "你的一天从 04:00 开始。04:00 之前的对话属于前一天。"

@@ -1,4 +1,3 @@
-// @ts-nocheck
 import fs from "fs";
 import path from "path";
 
@@ -41,7 +40,7 @@ export function listSessionFiles(sessionDir) {
  * 从 session JSONL 文件提取消息列表（带时间戳）。
  * 大文件只读尾部，保持和 memory ticker 的历史行为一致。
  */
-export function readSessionMessages(filePath, opts = {}) {
+export function readSessionMessages(filePath, opts: { since?: any } = {}) {
   const since = opts.since && !Number.isNaN(Date.parse(opts.since))
     ? Date.parse(opts.since)
     : null;

@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * EventBus — 统一事件总线
  *
@@ -12,6 +11,7 @@ import { createModuleLogger } from "../lib/debug-log.ts";
 const log = createModuleLogger("event-bus");
 
 export class BusNoHandlerError extends Error {
+  declare type: any;
   constructor(type) {
     super(`No handler registered for "${type}"`);
     this.name = "BusNoHandlerError";
@@ -20,6 +20,7 @@ export class BusNoHandlerError extends Error {
 }
 
 export class BusTimeoutError extends Error {
+  declare type: any;
   constructor(type, ms) {
     super(`Request "${type}" timeout after ${ms}ms`);
     this.name = "BusTimeoutError";
@@ -28,6 +29,12 @@ export class BusTimeoutError extends Error {
 }
 
 export class EventBus {
+  declare _capabilities: any;
+  declare _globalSubs: any;
+  declare _handlers: any;
+  declare _nextId: any;
+  declare _sessionIndex: any;
+  declare _subscribers: any;
   constructor() {
     /** @type {Map<number, {callback: Function, filter: object}>} 全量订阅者表 */
     this._subscribers = new Map();
@@ -53,7 +60,7 @@ export class EventBus {
    * @param {string[]} [filter.types]      只接收这些 event.type（内部转 Set）
    * @returns {Function} unsubscribe
    */
-  subscribe(callback, filter = {}) {
+  subscribe(callback, filter: any = {}) {
     const id = ++this._nextId;
     // types 数组 → Set，加速 emit 时的类型匹配（O(1) vs O(n)）
     const normalizedFilter = { ...filter };
@@ -124,7 +131,7 @@ export class EventBus {
    * @param {Function} handler      async (payload) => result | EventBus.SKIP
    * @returns {Function} unhandle
    */
-  handle(type, handler, options = {}) {
+  handle(type, handler, options: any = {}) {
     if (!this._handlers.has(type)) this._handlers.set(type, []);
     this._handlers.get(type).push(handler);
     if (options.capability) {
@@ -150,7 +157,7 @@ export class EventBus {
    * @param {number} [options.timeout=30000]
    * @returns {Promise<any>}
    */
-  async request(type, payload, options = {}) {
+  async request(type, payload, options: any = {}) {
     const handlers = this._handlers.get(type);
     if (!handlers || handlers.length === 0) throw new BusNoHandlerError(type);
     const timeout = options.timeout ?? 30000;

@@ -1,4 +1,3 @@
-// @ts-nocheck
 import { getPiModel } from "../lib/pi-sdk/index.ts";
 import { lookupKnown } from "../shared/known-models.ts";
 import { normalizeVisionCapabilities, withThinkingFormatCompat } from "../shared/model-capabilities.ts";
@@ -35,7 +34,7 @@ export function enrichModelFromKnownMetadata(model) {
 
   const known = lookupKnown(model.provider, model.id);
   const piBuiltin = getPiBuiltinModel(model.provider, model.id);
-  const patch = {};
+  const patch: Record<string, any> = {};
 
   if (!model.headers && piBuiltin?.headers) {
     patch.headers = { ...piBuiltin.headers };

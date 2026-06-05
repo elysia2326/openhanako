@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * automation-tool.js — Agent-created scheduled direct actions
  *
@@ -31,6 +30,12 @@ function contextForTool(ctx, {
   getSessionCwd,
   getSessionWorkspaceFolders,
   getHomeCwd,
+}: {
+  getSessionPath?: any;
+  getAgentId?: any;
+  getSessionCwd?: any;
+  getSessionWorkspaceFolders?: any;
+  getHomeCwd?: any;
 } = {}) {
   const sessionPath = getToolSessionPath(ctx) || getSessionPath?.() || null;
   const actorAgentId = getAgentId?.() || null;
@@ -108,6 +113,16 @@ export function createAutomationTool(cronStore, {
   getSessionCwd,
   getSessionWorkspaceFolders,
   getHomeCwd,
+}: {
+  getAutoApprove?: any;
+  autoApprove?: boolean;
+  confirmStore?: any;
+  emitEvent?: any;
+  getSessionPath?: any;
+  getAgentId?: any;
+  getSessionCwd?: any;
+  getSessionWorkspaceFolders?: any;
+  getHomeCwd?: any;
 } = {}) {
   return {
     name: "automation",

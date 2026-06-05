@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * seatbelt.js — macOS Seatbelt (sandbox-exec) 沙盒
  *
@@ -17,7 +16,7 @@ import { writeScript, writeProfile, cleanup } from "./script.ts";
  * @param {() => boolean} [options.getSandboxNetworkEnabled]
  * @returns {(command, cwd, opts) => Promise<{exitCode}>}
  */
-export function createSeatbeltExec(policy, { getSandboxNetworkEnabled } = {}) {
+export function createSeatbeltExec(policy, { getSandboxNetworkEnabled }: { getSandboxNetworkEnabled?: () => boolean } = {}) {
   return async (command, cwd, { onData, signal, timeout, env }) => {
     const { scriptPath } = writeScript(command, cwd);
     const profile = generateProfile(policy, {

@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * channels.js — 频道 REST API
  *
@@ -55,7 +54,7 @@ import { createModuleLogger } from "../../lib/debug-log.ts";
 
 const log = createModuleLogger("channel");
 
-function normalizeOptionalPositiveInt(value, fieldName) {
+function normalizeOptionalPositiveInt(value: any, fieldName: any) {
   if (value === undefined || value === null || value === "") return null;
   const num = Number(value);
   if (!Number.isFinite(num) || num <= 0) {
@@ -64,19 +63,19 @@ function normalizeOptionalPositiveInt(value, fieldName) {
   return Math.floor(num);
 }
 
-function readOptionalPositiveInt(value) {
+function readOptionalPositiveInt(value: any) {
   if (value === undefined || value === null || value === "") return null;
   const num = Number(value);
   if (!Number.isFinite(num) || num <= 0) return null;
   return Math.floor(num);
 }
 
-function requestedAgentId(c) {
+function requestedAgentId(c: any) {
   const value = c.req.query("agentId");
   return typeof value === "string" && value.trim() ? value.trim() : null;
 }
 
-function resolveConversationOwnerAgent(engine, c) {
+function resolveConversationOwnerAgent(engine: any, c: any) {
   if (requestedAgentId(c)) {
     return resolveAgent(engine, c);
   }
@@ -93,7 +92,7 @@ function resolveConversationOwnerAgent(engine, c) {
   return agent;
 }
 
-function normalizePhoneSettingsPayload(body = {}) {
+function normalizePhoneSettingsPayload(body: any = {}) {
   const replyMinChars = normalizeOptionalPositiveInt(body.replyMinChars, "replyMinChars");
   const replyMaxChars = normalizeOptionalPositiveInt(body.replyMaxChars, "replyMaxChars");
   if (replyMinChars && replyMaxChars && replyMinChars > replyMaxChars) {
@@ -124,7 +123,7 @@ function normalizePhoneSettingsPayload(body = {}) {
   };
 }
 
-function readChannelPhoneSettingsFromMeta(meta) {
+function readChannelPhoneSettingsFromMeta(meta: any) {
   const memberCount = Array.isArray(meta.members) ? meta.members.length : 3;
   const override = normalizeAgentPhoneModelOverride({
     enabled: meta.agentPhoneModelOverrideEnabled,
@@ -148,7 +147,7 @@ function readChannelPhoneSettingsFromMeta(meta) {
   };
 }
 
-function assertAvailableModelOverride(engine, settings) {
+function assertAvailableModelOverride(engine: any, settings: any) {
   if (!settings.modelOverrideEnabled || !settings.modelOverrideModel) return;
   const { id, provider } = settings.modelOverrideModel;
   try {
@@ -157,12 +156,12 @@ function assertAvailableModelOverride(engine, settings) {
   } catch {
     // Fall through to the explicit 400 below.
   }
-  const err = new Error(`Model override not available: ${provider}/${id}`);
+  const err: any = new Error(`Model override not available: ${provider}/${id}`);
   err.status = 400;
   throw err;
 }
 
-export function createChannelsRoute(engine, hub) {
+export function createChannelsRoute(engine: any, hub: any) {
   const route = new Hono();
 
   function isPhoneEnabled() {
@@ -213,14 +212,15 @@ export function createChannelsRoute(engine, hub) {
     });
   });
 
-  async function readConversationPhoneSettings(id, c) {
+  async function readConversationPhoneSettings(id: any, c: any) {
     if (id.startsWith("dm:")) {
       const agent = resolveConversationOwnerAgent(engine, c);
       const projection = readAgentPhoneProjection(getAgentPhoneProjectionPath(agent.agentDir, id));
+      const projMeta: any = projection.meta;
       return {
-        mode: normalizeAgentPhoneToolMode(projection.meta.toolMode),
-        replyMinChars: readOptionalPositiveInt(projection.meta.replyMinChars),
-        replyMaxChars: readOptionalPositiveInt(projection.meta.replyMaxChars),
+        mode: normalizeAgentPhoneToolMode(projMeta.toolMode),
+        replyMinChars: readOptionalPositiveInt(projMeta.replyMinChars),
+        replyMaxChars: readOptionalPositiveInt(projMeta.replyMaxChars),
         proactiveEnabled: DEFAULT_AGENT_PHONE_SETTINGS.proactiveEnabled,
         reminderIntervalMinutes: DEFAULT_AGENT_PHONE_SETTINGS.reminderIntervalMinutes,
         guardLimit: DEFAULT_AGENT_PHONE_SETTINGS.guardLimit,
@@ -230,23 +230,23 @@ export function createChannelsRoute(engine, hub) {
     }
     const filePath = safeChannelPath(id);
     if (!filePath) {
-      const err = new Error("Invalid conversation id");
+      const err: any = new Error("Invalid conversation id");
       err.status = 400;
       throw err;
     }
     if (!fs.existsSync(filePath)) {
-      const err = new Error("Channel not found");
+      const err: any = new Error("Channel not found");
       err.status = 404;
       throw err;
     }
     return readChannelPhoneSettingsFromMeta(getChannelMeta(filePath));
   }
 
-  async function writeConversationPhoneSettings(id, settings, c) {
+  async function writeConversationPhoneSettings(id: any, settings: any, c: any) {
     if (id.startsWith("dm:")) {
       const peerId = id.slice(3);
       if (!peerId || /[/\\]|\.\./.test(peerId)) {
-        const err = new Error("Invalid DM peer id");
+        const err: any = new Error("Invalid DM peer id");
         err.status = 400;
         throw err;
       }
@@ -270,12 +270,12 @@ export function createChannelsRoute(engine, hub) {
     }
     const filePath = safeChannelPath(id);
     if (!filePath) {
-      const err = new Error("Invalid conversation id");
+      const err: any = new Error("Invalid conversation id");
       err.status = 400;
       throw err;
     }
     if (!fs.existsSync(filePath)) {
-      const err = new Error("Channel not found");
+      const err: any = new Error("Channel not found");
       err.status = 404;
       throw err;
     }
@@ -373,7 +373,9 @@ export function createChannelsRoute(engine, hub) {
         const channelId = f.replace(".md", "");
         const filePath = path.join(channelsDir, f);
         const content = fs.readFileSync(filePath, "utf-8");
-        const { meta, messages } = parseChannel(content);
+        const parsed = parseChannel(content);
+        const meta: any = parsed.meta;
+        const messages: any[] = parsed.messages;
         const members = Array.isArray(meta.members) ? meta.members : [];
 
         const lastMsg = messages[messages.length - 1];
@@ -467,7 +469,9 @@ export function createChannelsRoute(engine, hub) {
       }
 
       const content = fs.readFileSync(filePath, "utf-8");
-      const { meta, messages } = parseChannel(content);
+      const parsed = parseChannel(content);
+      const meta: any = parsed.meta;
+      const messages = parsed.messages;
       const members = Array.isArray(meta.members) ? meta.members : [];
 
       return c.json({

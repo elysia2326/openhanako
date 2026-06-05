@@ -1,4 +1,3 @@
-// @ts-nocheck
 import fs from 'fs';
 import path from 'path';
 import { AppError } from './errors.ts';
@@ -59,7 +58,7 @@ export function safeReadYAMLSync(filePath, fallback = null, yaml) {
  * @param {object} [opts]
  * @param {number} [opts.mode] - file permission bits (e.g. 0o600 for sensitive credentials)
  */
-export function atomicWriteSync(filePath, content, { mode } = {}) {
+export function atomicWriteSync(filePath, content, { mode }: { mode?: number } = {}) {
   const tmp = filePath + ".tmp";
   fs.writeFileSync(tmp, content, mode !== undefined ? { encoding: "utf-8", mode } : "utf-8");
   if (mode !== undefined) {

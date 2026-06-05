@@ -81,7 +81,7 @@ function get(p) {
  * @param {object} [vars]  占位符变量
  * @returns {string}
  */
-export function t(path, vars) {
+export function t(path, vars?) {
   let val = get(path);
   if (val === undefined || val === null) return path;
   if (typeof val !== "string") return val;

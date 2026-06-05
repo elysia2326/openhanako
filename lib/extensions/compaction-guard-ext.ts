@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * Hana cache-preserving compaction Pi SDK Extension
  *
@@ -57,7 +56,7 @@ const log = createModuleLogger("compaction-guard");
 const DEFAULT_MAX_TOOL_RESULT_BYTES = 32 * 1024; // 32KB ≈ 8K token
 const DEFAULT_HARD_TRUNCATE_THRESHOLD = 0.85;    // messagesToSummarize 超 85% 窗口 → 硬截断
 
-function needsToolCallReasoningReplay(model) {
+function needsToolCallReasoningReplay(model: any) {
   const provider = typeof model?.provider === "string" ? model.provider.toLowerCase() : "";
   const baseUrl = typeof model?.baseUrl === "string"
     ? model.baseUrl.toLowerCase()
@@ -65,7 +64,7 @@ function needsToolCallReasoningReplay(model) {
   return provider === "zhipu" || baseUrl.includes("open.bigmodel.cn");
 }
 
-function hardTruncateFromPreparation(event, ctx, preparation) {
+function hardTruncateFromPreparation(event: any, ctx: any, preparation: any) {
   const sm = ctx.sessionManager;
   const pathEntries = event.branchEntries || sm?.getBranch?.() || [];
   const keepRecentTokens = preparation.settings?.keepRecentTokens ?? 20_000;
@@ -80,7 +79,7 @@ function hardTruncateFromPreparation(event, ctx, preparation) {
   };
 }
 
-function readThinkingLevel(ctx) {
+function readThinkingLevel(ctx: any) {
   try {
     const level = ctx?.getThinkingLevel?.();
     if (typeof level === "string") return level;
@@ -95,7 +94,7 @@ function readThinkingLevel(ctx) {
   }
 }
 
-function snapshotCacheKeyParams(snapshot, fallbackThinkingLevel) {
+function snapshotCacheKeyParams(snapshot: any, fallbackThinkingLevel: any) {
   const fallback = normalizeRequestThinkingLevel(fallbackThinkingLevel, "off");
   const normalizeParams = (params) => {
     const out = { ...(params || {}) };
@@ -118,7 +117,7 @@ function snapshotCacheKeyParams(snapshot, fallbackThinkingLevel) {
  * @param {number} [opts.hardTruncateThreshold=0.85] - L3 触发硬截断的窗口占比
  * @returns {(pi: object) => void}
  */
-export function createCompactionGuardExtension(opts = {}) {
+export function createCompactionGuardExtension(opts: Record<string, any> = {}) {
   const maxToolResultBytes = opts.maxToolResultBytes ?? DEFAULT_MAX_TOOL_RESULT_BYTES;
   const hardTruncateThreshold = opts.hardTruncateThreshold ?? DEFAULT_HARD_TRUNCATE_THRESHOLD;
   const cacheCompactor = opts.cacheCompactor ?? createCachePreservingCompactionResult;
@@ -131,7 +130,7 @@ export function createCompactionGuardExtension(opts = {}) {
     ? opts.buildSessionCacheSnapshot
     : null;
 
-  function readCompactionMode(event, ctx) {
+  function readCompactionMode(event: any, ctx: any) {
     try {
       return normalizeCompactionMode(getCompactionMode({ event, ctx }));
     } catch (err) {
@@ -238,7 +237,7 @@ export function createCompactionGuardExtension(opts = {}) {
             templateVersion: "v1",
             strict: false,
             degradeReason: "reasoning_replay_unavailable",
-          });
+          } as any);
           messages = normalizeProviderContextMessages(rawMessages, model, {
             mode: "chat",
             reasoningLevel,
@@ -326,7 +325,7 @@ export function createCompactionGuardExtension(opts = {}) {
           usageContext: buildUsageContext?.({ event, ctx, model }) || null,
         });
 
-        async function retryWithClearedReasoningReplay(originalError) {
+        async function retryWithClearedReasoningReplay(originalError: any) {
           if (!isReasoningReplayUnavailable(originalError) || reasoningReplay === "clear") {
             throw originalError;
           }
@@ -336,7 +335,7 @@ export function createCompactionGuardExtension(opts = {}) {
             templateVersion: "v1",
             strict: false,
             degradeReason: "reasoning_replay_unavailable",
-          });
+          } as any);
           const recoveryMessages = normalizeProviderContextMessages(rawMessages, model, {
             mode: "chat",
             reasoningLevel,

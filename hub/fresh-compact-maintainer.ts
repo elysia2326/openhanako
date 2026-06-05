@@ -1,19 +1,22 @@
-// @ts-nocheck
 import { createModuleLogger } from "../lib/debug-log.ts";
 
 const log = createModuleLogger("fresh-compact");
 
-function sleep(ms) {
+function sleep(ms: any) {
   if (!ms) return Promise.resolve();
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
 export class FreshCompactMaintainer {
+  declare _hub: any;
+  declare _delayBetweenJobsMs: number;
+  declare _running: boolean;
+
   /**
    * @param {object} opts
    * @param {import('./index.ts').Hub} opts.hub
    */
-  constructor({ hub, delayBetweenJobsMs = 5_000 } = {}) {
+  constructor({ hub, delayBetweenJobsMs = 5_000 }: { hub?: any; delayBetweenJobsMs?: number } = {}) {
     this._hub = hub;
     this._delayBetweenJobsMs = delayBetweenJobsMs;
     this._running = false;

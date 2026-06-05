@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * notify-tool.js — 用户通知工具
  *

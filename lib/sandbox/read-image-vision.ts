@@ -1,4 +1,4 @@
-// @ts-nocheck
+
 import crypto from "crypto";
 import path from "path";
 import { normalizeWin32ShellPath } from "./win32-path.ts";
@@ -126,6 +126,13 @@ function appendSourceDetails(result, {
   warning,
   visionAdapted,
   visionError,
+}: {
+  sessionFile?: any;
+  mediaItem?: any;
+  resourceKey?: any;
+  warning?: any;
+  visionAdapted?: any;
+  visionError?: any;
 } = {}) {
   let details = {
     ...(result?.details || {}),
@@ -147,7 +154,12 @@ function isVisionConfigError(err) {
   return CONFIG_ERROR_PATTERNS.some((pattern) => message.includes(pattern));
 }
 
-function visionFailureResult(result, errorMessage, { sessionFile, mediaItem, resourceKey, warning } = {}) {
+function visionFailureResult(result, errorMessage, { sessionFile, mediaItem, resourceKey, warning }: {
+  sessionFile?: any;
+  mediaItem?: any;
+  resourceKey?: any;
+  warning?: any;
+} = {}) {
   return {
     ...appendSourceDetails(result, {
       sessionFile,
@@ -169,6 +181,11 @@ export function wrapReadImageWithVisionBridge(tool, cwd, {
   isVisionAuxiliaryEnabled,
   getSessionPath,
   recordFileOperation,
+}: {
+  getVisionBridge?: any;
+  isVisionAuxiliaryEnabled?: any;
+  getSessionPath?: any;
+  recordFileOperation?: any;
 } = {}) {
   if (!tool || tool.name !== "read" || typeof tool.execute !== "function") return tool;
 

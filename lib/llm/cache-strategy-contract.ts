@@ -1,13 +1,12 @@
-// @ts-nocheck
 export const CACHE_STRATEGIES = Object.freeze({
   SESSION_SNAPSHOT: "session_snapshot",
   UTILITY_TEMPLATE: "utility_template",
   CACHE_RECOVERY: "cache_recovery",
 });
 
-const KNOWN_STRATEGIES = new Set(Object.values(CACHE_STRATEGIES));
+const KNOWN_STRATEGIES: Set<string> = new Set(Object.values(CACHE_STRATEGIES));
 
-export function normalizeCacheStrategy(value) {
+export function normalizeCacheStrategy(value: any) {
   const strategy = String(value || "");
   if (!KNOWN_STRATEGIES.has(strategy)) {
     throw new Error(`unknown cache strategy: ${strategy || "(empty)"}`);
@@ -15,11 +14,11 @@ export function normalizeCacheStrategy(value) {
   return strategy;
 }
 
-function normalizeString(value) {
+function normalizeString(value: any) {
   return typeof value === "string" ? value : String(value ?? "");
 }
 
-function normalizeDiffs(value) {
+function normalizeDiffs(value: any) {
   return Array.isArray(value) ? value : [];
 }
 
@@ -32,7 +31,7 @@ export function buildCacheStrategyMetadata({
   strict,
   degradeReason = "",
   contractDiffs = [],
-} = {}) {
+}: Record<string, any> = {}) {
   const strategy = normalizeCacheStrategy(cacheStrategy);
   return {
     cacheStrategy: strategy,

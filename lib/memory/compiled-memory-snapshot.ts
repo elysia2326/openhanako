@@ -1,4 +1,3 @@
-// @ts-nocheck
 import fs from "fs";
 import path from "path";
 import { assemble } from "./compile.ts";
@@ -73,7 +72,7 @@ export function writeCompiledMemorySnapshot(memoryDir, compiled, opts = {}) {
   return true;
 }
 
-function writeImportedSummarySeed(memoryDir, compiled, opts = {}) {
+function writeImportedSummarySeed(memoryDir, compiled, opts: Record<string, any> = {}) {
   const summary = buildImportedSummary(compiled);
   if (!summary) return;
 

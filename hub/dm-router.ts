@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * DmRouter — 私信路由
  *
@@ -45,6 +44,10 @@ const MAX_ROUNDS = 3;
 const COOLDOWN_MS = 10_000;
 
 export class DmRouter {
+  declare _hub: any;
+  declare _cooldowns: Map<string, any>;
+  declare _processing: Map<string, any>;
+
   constructor({ hub }) {
     this._hub = hub;
     this._cooldowns = new Map();
@@ -88,10 +91,11 @@ export class DmRouter {
       const agent = this._engine.getAgent(agentId);
       const agentDir = agent?.agentDir || path.join(this._engine.agentsDir, agentId);
       const projection = readAgentPhoneProjection(getAgentPhoneProjectionPath(agentDir, `dm:${peerId}`));
+      const meta = projection.meta as any;
       return {
-        toolMode: normalizeAgentPhoneToolMode(projection.meta.toolMode),
-        replyMinChars: positiveIntegerOrNull(projection.meta.replyMinChars),
-        replyMaxChars: positiveIntegerOrNull(projection.meta.replyMaxChars),
+        toolMode: normalizeAgentPhoneToolMode(meta.toolMode),
+        replyMinChars: positiveIntegerOrNull(meta.replyMinChars),
+        replyMaxChars: positiveIntegerOrNull(meta.replyMaxChars),
       };
     } catch {
       return DEFAULT_AGENT_PHONE_SETTINGS;
@@ -163,7 +167,7 @@ export class DmRouter {
       const dmFile = path.join(agentsDir, toId, "dm", `${fromId}.md`);
       if (!fs.existsSync(dmFile)) break;
 
-      const recentMsgs = getRecentMessages(dmFile, 20);
+      const recentMsgs = getRecentMessages(dmFile, 20, undefined);
       if (recentMsgs.length === 0) break;
 
       // 最后一条不是对方发的，说明已经回复过了，不需要再回
@@ -260,7 +264,7 @@ export class DmRouter {
         },
       );
 
-      if (!replyText || replyText.includes("[NO_REPLY]")) {
+      if (!replyText || (replyText as string).includes("[NO_REPLY]")) {
         debugLog()?.log("dm-router", `${toName} chose not to reply to ${fromName}`);
         await this._recordPhoneActivity(
           toId,
@@ -277,8 +281,8 @@ export class DmRouter {
         break;
       }
 
-      const isDone = /<done\s*\/?>/i.test(replyText);
-      const cleanReply = replyText.replace(/<done\s*\/?>/gi, "").trim();
+      const isDone = /<done\s*\/?>/i.test(replyText as string);
+      const cleanReply = (replyText as string).replace(/<done\s*\/?>/gi, "").trim();
 
       if (!cleanReply) break;
 

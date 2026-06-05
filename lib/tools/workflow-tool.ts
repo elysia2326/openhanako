@@ -1,4 +1,3 @@
-// @ts-nocheck
 // lib/tools/workflow-tool.js
 import path from "node:path";
 import { Type } from "../pi-sdk/index.ts";

@@ -1,4 +1,3 @@
-// @ts-nocheck
 // lib/net/outbound-proxy.js
 
 import {
@@ -16,11 +15,11 @@ import {
 } from "../../shared/network-proxy.ts";
 
 const originalGlobalDispatcher = getGlobalDispatcher();
-let currentConfig = normalizeNetworkProxyConfig();
-let currentDispatcher = null;
-let nodeProxyAgentCache = new Map();
+let currentConfig = normalizeNetworkProxyConfig(undefined);
+let currentDispatcher: any = null;
+let nodeProxyAgentCache: Map<string, any> = new Map();
 
-function proxyProtocol(proxyUrl) {
+function proxyProtocol(proxyUrl: any) {
   try {
     return new URL(proxyUrl).protocol;
   } catch {
@@ -28,7 +27,7 @@ function proxyProtocol(proxyUrl) {
   }
 }
 
-function createUndiciProxyDispatcher(proxyUrl) {
+function createUndiciProxyDispatcher(proxyUrl: any) {
   const protocol = proxyProtocol(proxyUrl);
   if (protocol === "http:" || protocol === "https:") {
     return new UndiciProxyAgent(proxyUrl);
@@ -39,21 +38,21 @@ function createUndiciProxyDispatcher(proxyUrl) {
   throw new Error(`unsupported proxy protocol: ${protocol || "(unknown)"}`);
 }
 
-function collectUnique(values) {
+function collectUnique(values: any[]) {
   return [...new Set(values.filter(Boolean))];
 }
 
-function buildEffectiveProxyConfig(config, env) {
+function buildEffectiveProxyConfig(config: any, env: any) {
   const normalized = normalizeNetworkProxyConfig(config);
   if (normalized.mode === "system") return proxyConfigFromEnvironment(env);
   return normalized;
 }
 
-function hasUsableProxy(config) {
+function hasUsableProxy(config: any) {
   return !!(config.httpProxy || config.httpsProxy || config.wsProxy || config.wssProxy);
 }
 
-function createGlobalDispatcher(config, env = process.env) {
+function createGlobalDispatcher(config: any, env = process.env) {
   const effective = buildEffectiveProxyConfig(config, env);
   if (effective.mode === "direct" || !hasUsableProxy(effective)) return null;
 
@@ -62,7 +61,7 @@ function createGlobalDispatcher(config, env = process.env) {
   const proxyDispatchers = new Map(proxyUrls.map(url => [url, createUndiciProxyDispatcher(url)]));
 
   return {
-    dispatch(opts, handler) {
+    dispatch(opts: any, handler: any) {
       const origin = opts?.origin ? String(opts.origin) : "";
       const proxyUrl = origin ? resolveProxyForUrl(origin, effective, env) : "";
       const dispatcher = proxyUrl ? proxyDispatchers.get(proxyUrl) : null;
@@ -74,7 +73,7 @@ function createGlobalDispatcher(config, env = process.env) {
         ...[...proxyDispatchers.values()].map(dispatcher => dispatcher.close?.()),
       ]);
     },
-    destroy(err) {
+    destroy(err: any) {
       direct.destroy?.(err);
       for (const dispatcher of proxyDispatchers.values()) {
         dispatcher.destroy?.(err);
@@ -90,14 +89,14 @@ function resetNodeProxyAgentCache() {
   nodeProxyAgentCache = new Map();
 }
 
-function closeDispatcher(dispatcher) {
+function closeDispatcher(dispatcher: any) {
   if (!dispatcher) return;
   try {
     dispatcher.close?.().catch?.(() => {});
   } catch {}
 }
 
-function describeProxyMode(config, env = process.env) {
+function describeProxyMode(config: any, env = process.env) {
   const effective = buildEffectiveProxyConfig(config, env);
   if (config.mode === "system") {
     return hasUsableProxy(effective) ? "system-env" : "system";
@@ -105,16 +104,16 @@ function describeProxyMode(config, env = process.env) {
   return config.mode;
 }
 
-export function createOutboundProxyRuntime({ log = () => {}, warn = () => {}, env = process.env } = {}) {
+export function createOutboundProxyRuntime({ log = (..._args: any[]) => {}, warn = (..._args: any[]) => {}, env = process.env }: { log?: (...args: any[]) => void; warn?: (...args: any[]) => void; env?: any } = {}) {
   return {
-    apply(config) {
+    apply(config: any) {
       const normalized = normalizeNetworkProxyConfig(config, { strict: true });
       const nextDispatcher = createGlobalDispatcher(normalized, env);
       closeDispatcher(currentDispatcher);
       resetNodeProxyAgentCache();
       currentConfig = normalized;
       currentDispatcher = nextDispatcher;
-      setGlobalDispatcher(nextDispatcher || originalGlobalDispatcher);
+      setGlobalDispatcher((nextDispatcher || originalGlobalDispatcher) as any);
       const modeDesc = describeProxyMode(normalized, env);
       log(`[proxy] outbound mode=${modeDesc}`);
       if (modeDesc === "system-env") {
@@ -133,7 +132,7 @@ export function createOutboundProxyRuntime({ log = () => {}, warn = () => {}, en
     reset() {
       closeDispatcher(currentDispatcher);
       resetNodeProxyAgentCache();
-      currentConfig = normalizeNetworkProxyConfig();
+      currentConfig = normalizeNetworkProxyConfig(undefined);
       currentDispatcher = null;
       setGlobalDispatcher(originalGlobalDispatcher);
     },
@@ -155,12 +154,12 @@ export function getNodeProxyAgentForUrl(targetUrl, env = process.env) {
   return agent;
 }
 
-export function webSocketOptionsForUrl(targetUrl) {
+export function webSocketOptionsForUrl(targetUrl: any) {
   const agent = getNodeProxyAgentForUrl(targetUrl);
   return agent ? { agent } : {};
 }
 
-export function telegramBotOptions(baseOptions = {}) {
+export function telegramBotOptions(baseOptions: any = {}) {
   const agent = getNodeProxyAgentForUrl("https://api.telegram.org");
   if (!agent) return { ...baseOptions };
   return {

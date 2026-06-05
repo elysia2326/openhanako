@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * deep-memory.js — 深度记忆处理器
  *
@@ -42,7 +41,7 @@ function cleanExpiredFailCounts() {
  * @param {{ model: string, api: string, api_key: string, base_url: string }} resolvedModel
  * @returns {Promise<{ processed: number, factsAdded: number }>}
  */
-export async function processDirtySessions(summaryManager, factStore, resolvedModel, opts = {}) {
+export async function processDirtySessions(summaryManager, factStore, resolvedModel, opts: { since?: any; getSourceTimeRange?: any; timeZone?: any } = {}) {
   const dirty = summaryManager.getDirtySessions({ since: opts.since || null });
   if (dirty.length === 0) {
     return { processed: 0, factsAdded: 0 };
@@ -167,6 +166,8 @@ async function extractFactsFromDiff(currentSummary, previousSnapshot, resolvedMo
     api, model: utilityModel,
     apiKey: api_key,
     baseUrl: base_url,
+    headers: null,
+    signal: null,
     systemPrompt: layout.systemPrompt,
     messages: layout.messages,
     temperature: 0.3,
@@ -174,7 +175,7 @@ async function extractFactsFromDiff(currentSummary, previousSnapshot, resolvedMo
     timeoutMs: 60_000,
     usageLedger: resolvedModel.usageLedger,
     usageContext,
-  });
+  }) as string;
 
   // 兼容 markdown 代码块包裹（提取最外层 fence 之间的内容）
   const fenceMatch = raw.match(/^```(?:json)?\s*\n([\s\S]*?)\n\s*```\s*$/);

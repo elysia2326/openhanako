@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * subagent-tool-policy.js —— subagent 工具访问策略的唯一决策点（收口）
  *
@@ -67,7 +66,7 @@ function resolvePermissionMode(access, parentPermissionMode) {
  *   subagentContext: boolean,          // 拦截层据此做固定边界（防自递归、禁越权工具）
  * }}
  */
-export function resolveSubagentToolAccess({ access, parentPermissionMode, strategy } = {}) {
+export function resolveSubagentToolAccess({ access, parentPermissionMode, strategy }: { access?: string; parentPermissionMode?: string; strategy?: string } = {}) {
   const strat = strategy || resolveSubagentToolStrategy();
   const permissionMode = resolvePermissionMode(access, parentPermissionMode);
   const readOnly = permissionMode === SESSION_PERMISSION_MODES.READ_ONLY;

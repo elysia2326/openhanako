@@ -1,4 +1,3 @@
-// @ts-nocheck
 import fs from "node:fs";
 import path from "node:path";
 import crypto from "node:crypto";
@@ -13,6 +12,11 @@ import crypto from "node:crypto";
  * 加载时按 nodeSeq 索引到 Map，顺序由 nodeSeq 字段保证。
  */
 export class WorkflowJournal {
+  declare _path: string | null;
+  declare _entries: Map<number, { key: string; result: any; status: string; ts: number }>;
+  declare _invalidatedAfter: number;
+  declare _replayHits: number;
+
   /**
    * @param {string|null} journalPath  JSONL 文件路径；null = 纯内存（不持久化）
    */

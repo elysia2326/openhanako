@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * ChannelManager — 频道管理
  *
@@ -23,6 +22,11 @@ import {
 const log = createModuleLogger("channel");
 
 export class ChannelManager {
+  declare _channelsDir: string;
+  declare _agentsDir: string;
+  declare _userDir: string;
+  declare _getHub: () => any;
+
   /**
    * @param {object} deps
    * @param {string} deps.channelsDir - 频道目录
@@ -30,14 +34,14 @@ export class ChannelManager {
    * @param {string} deps.userDir    - 用户数据目录
    * @param {() => object|null} deps.getHub - 返回 Hub（可能为 null）
    */
-  constructor(deps) {
+  constructor(deps: any) {
     this._channelsDir = deps.channelsDir;
     this._agentsDir = deps.agentsDir;
     this._userDir = deps.userDir;
     this._getHub = deps.getHub;
   }
 
-  async createChannelEntry({ name, description, members, intro, addUserBookmark = true } = {}) {
+  async createChannelEntry({ name, description, members, intro, addUserBookmark = true }: any = {}) {
     const normalizedMembers = Array.isArray(members) ? members : [];
     fs.mkdirSync(this._channelsDir, { recursive: true });
     for (const memberId of normalizedMembers) {
@@ -51,7 +55,7 @@ export class ChannelManager {
       description,
       members: normalizedMembers,
       intro,
-    });
+    } as any);
 
     for (const memberId of normalizedMembers) {
       const memberDir = this._safeAgentDir(memberId);
@@ -78,7 +82,7 @@ export class ChannelManager {
    * - 移除后只剩 ≤1 人的频道直接删除
    * - 清理相关 bookmark
    */
-  async cleanupAgentFromChannels(agentId) {
+  async cleanupAgentFromChannels(agentId: any) {
     if (!this._channelsDir || !fs.existsSync(this._channelsDir)) return;
 
     const channelFiles = fs.readdirSync(this._channelsDir).filter(f => f.endsWith(".md"));
@@ -101,7 +105,7 @@ export class ChannelManager {
           deletedChannels.push(channelId);
           log.log(`频道 "${channelId}" 成员不足，已删除`);
         }
-      } catch (err) {
+      } catch (err: any) {
         log.error(`清理频道 "${channelId}" 失败: ${err.message}`);
       }
     }
@@ -114,7 +118,7 @@ export class ChannelManager {
   /**
    * 删除频道及其所有关联数据
    */
-  async deleteChannelByName(channelId) {
+  async deleteChannelByName(channelId: any) {
     const filePath = path.join(this._channelsDir, `${channelId}.md`);
     if (!fs.existsSync(filePath)) {
       throw new Error(t("error.channelNotFoundById", { id: channelId }));
@@ -142,15 +146,15 @@ export class ChannelManager {
   /**
    * 触发频道立即手机送达（群聊新消息后调用）
    */
-  async triggerChannelDelivery(channelName, opts) {
+  async triggerChannelDelivery(channelName: any, opts: any) {
     return this._getHub()?.triggerChannelDelivery(channelName, opts);
   }
 
-  async triggerChannelTriage(channelName, opts) {
+  async triggerChannelTriage(channelName: any, opts: any) {
     return this.triggerChannelDelivery(channelName, opts);
   }
 
-  _safeAgentDir(agentId) {
+  _safeAgentDir(agentId: any) {
     if (!agentId || /[/\\]|\.\./.test(agentId)) return null;
     const dirPath = path.resolve(this._agentsDir, agentId);
     const base = path.resolve(this._agentsDir);
@@ -158,7 +162,7 @@ export class ChannelManager {
     return fs.existsSync(dirPath) ? dirPath : null;
   }
 
-  _emitChannelCreated(channel) {
+  _emitChannelCreated(channel: any) {
     const eventBus = this._getHub?.()?.eventBus;
     if (typeof eventBus?.emit !== "function") return;
     eventBus.emit({
@@ -168,7 +172,7 @@ export class ChannelManager {
     }, null);
   }
 
-  _abortChannelPhoneSessions(channelId, agentId, reason) {
+  _abortChannelPhoneSessions(channelId: any, agentId: any, reason: any) {
     const hub = this._getHub?.();
     if (typeof hub?.abortAgentPhoneSessions !== "function") return;
     hub.abortAgentPhoneSessions(reason, {
@@ -185,7 +189,7 @@ export class ChannelManager {
    * channels.md（last-read cursor）。不自动建群、不自动拉人——建群由用户
    * 通过 POST /channels 或 channel 工具显式发起。
    */
-  async setupChannelsForNewAgent(agentId) {
+  async setupChannelsForNewAgent(agentId: any) {
     const channelsMdPath = path.join(this._agentsDir, agentId, "channels.md");
 
     // 扫描所有频道，加入包含该 agent 的（写 last-read cursor 投影）
@@ -248,7 +252,7 @@ export class ChannelManager {
   }
 
   /** 清理被删频道的 bookmark（从其他 agent 和用户的 bookmark 中移除） */
-  async _cleanupBookmarks(deletedChannels, excludeAgentId) {
+  async _cleanupBookmarks(deletedChannels: any, excludeAgentId: any) {
     const agentDirs = fs.readdirSync(this._agentsDir, { withFileTypes: true })
       .filter(d => d.isDirectory() && d.name !== excludeAgentId);
 
@@ -257,7 +261,7 @@ export class ChannelManager {
       for (const ch of deletedChannels) {
         try {
           await removeBookmarkEntry(channelsMd, ch);
-        } catch (err) {
+        } catch (err: any) {
           log.error(`清理 ${d.name} bookmark "${ch}" 失败: ${err.message}`);
         }
       }
@@ -267,7 +271,7 @@ export class ChannelManager {
     for (const ch of deletedChannels) {
       try {
         await removeBookmarkEntry(userBookmarkPath, ch);
-      } catch (err) {
+      } catch (err: any) {
         log.error(`清理用户 bookmark "${ch}" 失败: ${err.message}`);
       }
     }

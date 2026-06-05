@@ -1,10 +1,9 @@
-// @ts-nocheck
-function parseVersionPart(value) {
+function parseVersionPart(value: any) {
   const n = Number.parseInt(value, 10);
   return Number.isFinite(n) && n >= 0 ? n : 0;
 }
 
-export function parsePluginVersion(version) {
+export function parsePluginVersion(version: any) {
   const text = String(version || "0.0.0").trim();
   const match = /^v?(\d+)(?:\.(\d+))?(?:\.(\d+))?(?:-([0-9A-Za-z.-]+))?(?:\+[0-9A-Za-z.-]+)?$/.exec(text);
   if (!match) return null;
@@ -17,7 +16,7 @@ export function parsePluginVersion(version) {
   };
 }
 
-function comparePrerelease(a, b) {
+function comparePrerelease(a: any, b: any) {
   if (!a && !b) return 0;
   if (!a) return 1;
   if (!b) return -1;
@@ -39,7 +38,7 @@ function comparePrerelease(a, b) {
   return 0;
 }
 
-export function comparePluginVersions(a, b) {
+export function comparePluginVersions(a: any, b: any) {
   const left = parsePluginVersion(a);
   const right = parsePluginVersion(b);
   if (!left && !right) return String(a || "").localeCompare(String(b || ""), undefined, { numeric: true });
@@ -51,16 +50,16 @@ export function comparePluginVersions(a, b) {
   return comparePrerelease(left.prerelease, right.prerelease);
 }
 
-export function semverGte(a, b) {
+export function semverGte(a: any, b: any) {
   return comparePluginVersions(a, b) >= 0;
 }
 
-export function isVersionCompatible(appVersion, compatibility = {}) {
+export function isVersionCompatible(appVersion: any, compatibility: any = {}) {
   const minAppVersion = compatibility?.minAppVersion;
   if (!minAppVersion) return true;
   return semverGte(appVersion || "0.0.0", minAppVersion);
 }
 
-export function sortVersionRecordsDesc(records = []) {
+export function sortVersionRecordsDesc(records: any[] = []) {
   return [...records].sort((a, b) => comparePluginVersions(b?.version, a?.version));
 }

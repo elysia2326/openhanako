@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// @ts-nocheck
+
 import path from "path";
 import { fileURLToPath } from "url";
 import { parseCliArgs, helpText } from "./args.ts";
@@ -33,7 +33,7 @@ export async function main(argv = process.argv.slice(2)) {
     return 0;
   }
 
-  let connection = resolveConnection({ url: args.url, token: args.token });
+  let connection: any = resolveConnection({ url: args.url, token: args.token });
   if (!connection.ok && shouldAutoStartServer(args)) {
     console.error(`${ansi.dim}Starting local HanaAgent Server...${ansi.reset}`);
     connection = await startLocalServerAndWait({ projectRoot: PROJECT_ROOT });

@@ -1,4 +1,3 @@
-// @ts-nocheck
 export const UNKNOWN_USAGE_CONTEXT = Object.freeze({
   source: Object.freeze({
     subsystem: "unknown",
@@ -16,7 +15,7 @@ export function normalizeUsageContext(input) {
 
   const sourceInput = isRecord(input.source) ? input.source : {};
   const attributionInput = isRecord(input.attribution) ? input.attribution : {};
-  const source = {
+  const source: Record<string, any> = {
     subsystem: stringOr(sourceInput.subsystem, "unknown"),
     operation: stringOr(sourceInput.operation, "unknown"),
     surface: stringOr(sourceInput.surface, "unknown"),

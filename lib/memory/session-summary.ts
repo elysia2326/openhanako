@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * session-summary.js — Session 摘要管理器
  *
@@ -33,6 +32,10 @@ import { withMemoryReasoningBuffer } from "./llm-budget.ts";
 const log = createModuleLogger("session-summary");
 
 export class SessionSummaryManager {
+  declare summariesDir: string;
+  declare _cache: Map<string, any>;
+  declare _cachePopulated: boolean;
+
   /**
    * @param {string} summariesDir - summaries/ 目录的绝对路径
    */
@@ -84,7 +87,7 @@ export class SessionSummaryManager {
    * 获取所有"脏" session（summary !== snapshot）
    * @returns {Array<{ session_id, summary, snapshot, snapshot_at, updated_at }>}
    */
-  getDirtySessions(opts = {}) {
+  getDirtySessions(opts: Record<string, any> = {}) {
     this._ensureCachePopulated();
     const since = normalizeSince(opts.since);
     const dirty = [];
@@ -148,7 +151,7 @@ export class SessionSummaryManager {
    * @param {Date} endDate
    * @returns {Array<object>}
    */
-  getSummariesInRange(startDate, endDate, opts = {}) {
+  getSummariesInRange(startDate, endDate, opts: Record<string, any> = {}) {
     const startISO = startDate.toISOString();
     const endISO = endDate.toISOString();
     const since = normalizeSince(opts.since);
@@ -202,7 +205,7 @@ export class SessionSummaryManager {
    * @param {Array<{role: string, content: any, timestamp?: string}>} messages
    * @returns {string}
    */
-  _buildConversationText(messages, opts = {}) {
+  _buildConversationText(messages, opts: Record<string, any> = {}) {
     const parts = [];
     const isZh = getLocale().startsWith("zh");
     const timeZone = resolveMemoryTimeZone(opts.timeZone);
@@ -358,7 +361,7 @@ export class SessionSummaryManager {
    * @param {{ model: string, api: string, api_key: string, base_url: string }} resolvedModel
    * @returns {Promise<string>} 更新后的摘要文本
    */
-  async rollingSummary(sessionId, messages, resolvedModel, opts = {}) {
+  async rollingSummary(sessionId, messages, resolvedModel, opts: Record<string, any> = {}) {
     const draft = await this.createRollingSummaryDraft(sessionId, messages, resolvedModel, opts);
     if (draft?.data) {
       this.saveSummary(sessionId, draft.data);
@@ -376,7 +379,7 @@ export class SessionSummaryManager {
    * @param {{ model: string, api: string, api_key: string, base_url: string }} resolvedModel
    * @returns {Promise<{summary: string, changed: boolean, data: object|null, usage?: object|null, reason?: string}>}
    */
-  async createRollingSummaryDraft(sessionId, messages, resolvedModel, opts = {}) {
+  async createRollingSummaryDraft(sessionId, messages, resolvedModel, opts: Record<string, any> = {}) {
     const resetAt = latestSince(opts.resetAt, readCompiledResetAt(path.dirname(this.summariesDir)));
     const existingRaw = this.getSummary(sessionId);
     const existing = resetAt && existingRaw && !isAfter(existingRaw.updated_at || existingRaw.created_at, resetAt)
@@ -411,7 +414,7 @@ export class SessionSummaryManager {
       usageTrigger: opts.usageTrigger,
     });
     const usage = typeof llmResult === "object" && llmResult !== null ? llmResult.usage || null : null;
-    let newSummary = typeof llmResult === "object" && llmResult !== null ? llmResult.text : llmResult;
+    let newSummary: any = typeof llmResult === "object" && llmResult !== null ? llmResult.text : llmResult;
     if (!newSummary?.trim()) {
       return {
         summary: prevSummary,
@@ -468,7 +471,7 @@ export class SessionSummaryManager {
    * @param {{ model: string, api: string, api_key: string, base_url: string }} resolvedModel
    * @returns {Promise<string>}
    */
-  async _callRollingLLM(convText, prevSummary, resolvedModel, turnCount = 10, opts = {}) {
+  async _callRollingLLM(convText, prevSummary, resolvedModel, turnCount = 10, opts: Record<string, any> = {}) {
     const { model: utilityModel, api, api_key, base_url } = resolvedModel;
 
     const isZh = getLocale().startsWith("zh");
@@ -672,11 +675,13 @@ Word limit: follow the per-run summary budget. If three sentences suffice, don't
       api, model: utilityModel,
       apiKey: api_key,
       baseUrl: base_url,
+      headers: undefined,
       systemPrompt: layout.systemPrompt,
       messages: layout.messages,
       temperature: 0.3,
       maxTokens: maxTokens,
       timeoutMs: 60_000,
+      signal: undefined,
       returnUsage: opts.returnUsage === true,
       usageLedger: resolvedModel.usageLedger,
       usageContext,

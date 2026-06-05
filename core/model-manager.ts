@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * ModelManager -- 模型发现、切换、凭证解析
  *
@@ -26,6 +25,13 @@ import {
 } from "./session-thinking-level.ts";
 
 export class ModelManager {
+  declare _authStorage: any;
+  declare _availableModels: any;
+  declare _defaultModel: any;
+  declare _hanakoHome: any;
+  declare _modelRegistry: any;
+  declare executionRouter: any;
+  declare providerRegistry: any;
   /**
    * @param {object} opts
    * @param {string} opts.hanakoHome - 用户数据根目录
@@ -111,7 +117,7 @@ export class ModelManager {
     // 但用户只想看自己配置的模型。用 added-models.yaml 的模型列表过滤。
     const rawProviders = this.providerRegistry.getAllProvidersRaw();
     const userModelSets = new Map();
-    for (const [name, raw] of Object.entries(rawProviders)) {
+    for (const [name, raw] of Object.entries(rawProviders) as [string, any][]) {
       if (!raw.models?.length) continue;
       const chatIds = typeof this.providerRegistry.getChatModelIds === "function"
         ? this.providerRegistry.getChatModelIds(name)
@@ -147,8 +153,8 @@ export class ModelManager {
     this._removeApiKeyProviderAuthEntries();
     const rawProviders = this.providerRegistry.getAllProvidersRaw();
     // 合并 plugin 默认值（base_url/api），YAML 里可能只存了 api_key + models
-    const providers = {};
-    for (const [name, raw] of Object.entries(rawProviders)) {
+    const providers: any = {};
+    for (const [name, raw] of Object.entries(rawProviders) as [string, any][]) {
       const entry = this.providerRegistry.get(name);
       providers[name] = {
         ...raw,
@@ -175,7 +181,7 @@ export class ModelManager {
 
   _applyRuntimeApiKeyOverrides(providers) {
     if (!this._authStorage?.setRuntimeApiKey) return;
-    for (const [providerId, provider] of Object.entries(providers || {})) {
+    for (const [providerId, provider] of Object.entries(providers || {}) as [string, any][]) {
       if (typeof provider?.api_key === "string" && provider.api_key.length > 0) {
         this._authStorage.setRuntimeApiKey(providerId, provider.api_key);
       } else {
@@ -204,7 +210,7 @@ export class ModelManager {
    * @private
    */
   _buildOAuthKeyMap() {
-    const map = {};
+    const map: any = {};
     for (const id of this.providerRegistry.getOAuthProviderIds()) {
       const authKey = this.providerRegistry.getAuthJsonKey(id);
       if (authKey !== id) map[id] = authKey;
@@ -213,7 +219,7 @@ export class ModelManager {
   }
 
   _buildChatProjectionMap() {
-    const map = {};
+    const map: any = {};
     for (const id of Object.keys(this.providerRegistry.getAllProvidersRaw())) {
       const projection = this.providerRegistry.getChatProjection?.(id);
       if (projection && projection !== "models-json") map[id] = projection;
@@ -408,13 +414,13 @@ export class ModelManager {
     }
     const allowsMissingApiKey = this.providerRegistry?.allowsMissingApiKey?.(provider, creds.base_url)
       ?? isLocalBaseUrl(creds.base_url);
-    const headers = creds.headers || {};
+    const headers = (creds as any).headers || {};
     const hasHeaders = Object.keys(headers).length > 0;
     if (!creds.base_url || (!creds.api_key && !hasHeaders && !allowsMissingApiKey)) {
       throw new Error(t("error.providerMissingCreds", { provider }));
     }
     const modelWithHeaders = Object.keys(headers).length > 0
-      ? { ...entry, headers: { ...(entry.headers || {}), ...headers } }
+      ? { ...entry, headers: { ...((entry as any).headers || {}), ...headers } }
       : entry;
     return {
       model: modelWithHeaders,

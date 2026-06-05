@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * path-guard.js — 路径权限校验
  *
@@ -37,6 +36,13 @@ const OP_REQUIREMENTS = {
 };
 
 export class PathGuard {
+  declare _fullAccess: boolean;
+  declare hanakoHome: string;
+  declare agentDir: string;
+  declare workspaceRoots: string[];
+  declare policyWritablePaths: string[];
+  declare allowExternalReads: boolean;
+
   /**
    * @param {object} policy  从 deriveSandboxPolicy() 得到，或兼容旧格式
    */

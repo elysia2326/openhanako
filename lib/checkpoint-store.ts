@@ -1,4 +1,3 @@
-// @ts-nocheck
 import fs from "fs";
 import path from "path";
 import { randomBytes } from "crypto";
@@ -15,11 +14,13 @@ const BINARY_EXTENSIONS = new Set([
 ]);
 
 export class CheckpointStore {
-  constructor(checkpointsDir) {
+  declare _dir: string;
+
+  constructor(checkpointsDir: string) {
     this._dir = checkpointsDir;
   }
 
-  async save({ sessionPath, tool, filePath, maxSizeKb, source, reason }) {
+  async save({ sessionPath, tool, filePath, maxSizeKb, source, reason }: { sessionPath: string; tool: string; filePath: string; maxSizeKb: number; source: string; reason: string }) {
     const ext = path.extname(filePath).toLowerCase();
     if (BINARY_EXTENSIONS.has(ext)) return null;
 
@@ -93,7 +94,7 @@ export class CheckpointStore {
     return results;
   }
 
-  async restore(id) {
+  async restore(id: string) {
     const filePath = path.join(this._dir, `${id}.json`);
     const raw = fs.readFileSync(filePath, "utf-8");
     const obj = JSON.parse(raw);
@@ -104,14 +105,14 @@ export class CheckpointStore {
     return { restoredTo: obj.path };
   }
 
-  async remove(id) {
+  async remove(id: string) {
     const filePath = path.join(this._dir, `${id}.json`);
     try {
       fs.unlinkSync(filePath);
     } catch {}
   }
 
-  async cleanup(retentionDays) {
+  async cleanup(retentionDays: number) {
     let entries;
     try {
       entries = fs.readdirSync(this._dir);

@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * rc-state.js — /rc & /exitrc 的内存态管理
  *
@@ -38,6 +37,11 @@ const PENDING_DEFAULT_TTL_MS = 5 * 60 * 1000;  // 5 分钟
  */
 
 export class RcStateStore {
+  declare _pending: Map<string, any>;
+  declare _attachment: Map<string, any>;
+  declare _attachedDesktopToBridge: Map<string, string>;
+  declare _ttlMs: number;
+
   /**
    * @param {{ ttlMs?: number }} [opts]
    */
@@ -92,7 +96,7 @@ export class RcStateStore {
    * @param {string} sessionKey
    * @param {string} desktopSessionPath  桌面 session 的 jsonl 绝对路径
    */
-  attach(sessionKey, desktopSessionPath, meta = {}) {
+  attach(sessionKey, desktopSessionPath, meta: any = {}) {
     const current = this._attachment.get(sessionKey) ?? null;
     const holderSessionKey = this._attachedDesktopToBridge.get(desktopSessionPath) ?? null;
     if (holderSessionKey && holderSessionKey !== sessionKey) {

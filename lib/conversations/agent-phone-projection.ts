@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * Agent Phone Projection
  *
@@ -197,7 +196,7 @@ export async function resetAgentPhoneProjection({
   });
   const existing = fs.readFileSync(filePath, "utf-8");
   const parsed = parseProjection(existing);
-  const nextMeta = {
+  const nextMeta: Record<string, any> = {
     ...parsed.meta,
     agentId,
     conversationId,
@@ -238,7 +237,7 @@ export async function recordAgentPhoneActivity({
 
   const existing = fs.readFileSync(filePath, "utf-8");
   const parsed = parseProjection(existing);
-  const meta = {
+  const meta: Record<string, any> = {
     ...parsed.meta,
     agentId,
     conversationId,

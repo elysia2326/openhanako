@@ -1,4 +1,3 @@
-// @ts-nocheck
 import fs from "node:fs";
 import fsp from "node:fs/promises";
 import path from "node:path";
@@ -9,8 +8,8 @@ export const UNKNOWN_EXECUTOR_NAME = "Unknown agent";
 
 const metaWriteQueues = new Map();
 
-export function normalizeExecutorMetadata(raw = {}) {
-  const source = raw && typeof raw === "object" ? raw : {};
+export function normalizeExecutorMetadata(raw: Record<string, any> = {}) {
+  const source: Record<string, any> = raw && typeof raw === "object" ? raw : {};
   const executorAgentId = source.executorAgentId || source.agentId || null;
   const executorAgentNameSnapshot =
     source.executorAgentNameSnapshot
