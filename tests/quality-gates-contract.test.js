@@ -11,6 +11,10 @@ function readYaml(relativePath) {
   return yaml.load(fs.readFileSync(path.resolve(process.cwd(), relativePath), "utf8"));
 }
 
+function readText(relativePath) {
+  return fs.readFileSync(path.resolve(process.cwd(), relativePath), "utf8");
+}
+
 describe("quality gates", () => {
   it("typecheck covers app TypeScript, root TypeScript tests, and workspace package sources", () => {
     const tsconfig = readJson("tsconfig.json");
@@ -49,5 +53,39 @@ describe("quality gates", () => {
     expect(lintIndex).toBeGreaterThan(-1);
     expect(lintIndex).toBeLessThan(buildIndex);
     expect(lintIndex).toBeLessThan(testIndex);
+  });
+
+  it("keeps build host, bundled server runtime, and bundle targets aligned on Node 24", () => {
+    const packageJson = readJson("package.json");
+    const buildServer = readText("scripts/build-server.mjs");
+    const serverConfig = readText("vite.config.server.js");
+    const mainConfig = readText("vite.config.main.js");
+    const preloadConfig = readText("vite.config.preload.js");
+    const ci = readYaml(".github/workflows/ci.yml");
+    const build = readYaml(".github/workflows/build.yml");
+
+    expect(packageJson.engines.node).toBe(">=24.12.0 <25");
+    expect(buildServer).toContain('const NODE_VERSION = "v24.15.0"');
+    expect(buildServer).toContain("--target=node24");
+    expect(serverConfig).toContain('target: "node24"');
+    expect(mainConfig).toContain('target: "node24"');
+    expect(preloadConfig).toContain('target: "node24"');
+    expect(ci.jobs.test.strategy.matrix["node-version"]).toEqual(["24.15.0"]);
+    expect(build.jobs.build.steps).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          with: expect.objectContaining({ "node-version": "24.15.0" }),
+        }),
+      ]),
+    );
+  });
+
+  it("verifies downloaded Node runtime archives before extraction", () => {
+    const buildServer = readText("scripts/build-server.mjs");
+
+    expect(buildServer).toContain("NODE_RUNTIME_SHA256");
+    expect(buildServer).toContain("verifyNodeRuntimeArchive");
+    expect(buildServer).toContain("createHash(\"sha256\")");
+    expect(buildServer).toContain("node runtime archive checksum mismatch");
   });
 });

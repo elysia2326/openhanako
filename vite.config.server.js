@@ -46,7 +46,7 @@ export default defineConfig({
         inlineDynamicImports: true,
       },
     },
-    target: "node22",
+    target: "node24",
     // esbuild minify 只做标识符缩短和空白移除，不做 tree-shaking 变换，
     // 不会触发 inlineDynamicImports 场景下的 TDZ ReferenceError。
     minify: "esbuild",
