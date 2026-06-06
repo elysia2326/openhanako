@@ -59,6 +59,7 @@ import { createRequestContext } from "../http/boundary.ts";
 import { createModuleLogger } from "../../lib/debug-log.ts";
 import { searchSessions } from "../../lib/search/session-search.ts";
 import { SessionSearchTokenizerUnavailableError } from "../../lib/search/session-search-tokenizer.ts";
+import { MountAwareFileError, MountAwareFileService } from "../../core/mount-aware-file-service.ts";
 
 const log = createModuleLogger("sessions");
 const lifecycleLog = createModuleLogger("sessions/lifecycle");
@@ -96,6 +97,35 @@ function authorizeSessionRoute(requestContext, capability, target) {
   if (requestContext.authPrincipal?.kind === "unknown") return { allowed: true, reason: "legacy_test_context" };
   if (typeof requestContext.authorize !== "function") return { allowed: false, reason: "missing_policy" };
   return requestContext.authorize(capability, target);
+}
+
+function resolveSessionWorkspaceMountCwd(engine, requestContext, body) {
+  const mountId = typeof body?.workspaceMountId === "string" && body.workspaceMountId.trim()
+    ? body.workspaceMountId.trim()
+    : null;
+  if (!mountId) return typeof body?.cwd === "string" && body.cwd.trim() ? body.cwd : null;
+  if (typeof body?.cwd === "string" && body.cwd.trim()) {
+    throw routeError("cwd and workspaceMountId cannot be combined", "ambiguous_workspace", 400);
+  }
+  try {
+    return new MountAwareFileService({
+      hanakoHome: engine.hanakoHome,
+      defaultRoot: engine.defaultDeskCwd || engine.homeCwd || engine.deskCwd,
+      studioId: requestContext?.studioId || engine.getRuntimeContext?.()?.studioId || null,
+    }).resolveDirectory(mountId, "");
+  } catch (err) {
+    if (err instanceof MountAwareFileError) {
+      throw routeError(err.message, err.code, err.status);
+    }
+    throw err;
+  }
+}
+
+function routeError(message, code, status) {
+  const err: any = new Error(message);
+  err.code = code;
+  err.status = status;
+  return err;
 }
 
 const TODO_COMPLETE_MESSAGE =
@@ -479,7 +509,7 @@ export function createSessionsRoute(engine, hub = null) {
         });
       }));
     } catch (err) {
-      return c.json({ error: err.message }, 500);
+      return c.json({ error: err.message }, err.status || 500);
     }
   });
 
@@ -565,7 +595,7 @@ export function createSessionsRoute(engine, hub = null) {
       const record = getSessionSummaryRecord(sessionPath);
       return c.json(serializeSessionSummaryRecord(record));
     } catch (err) {
-      return c.json({ error: err.message }, 500);
+      return c.json({ error: err.message }, err.status || 500);
     }
   });
 
@@ -1047,7 +1077,8 @@ export function createSessionsRoute(engine, hub = null) {
       });
       if (!auth.allowed) return c.json({ error: "insufficient_scope", reason: auth.reason }, 403);
       const body = await safeJson(c);
-      const { cwd, memoryEnabled, agentId, currentSessionPath: oldSessionPath, thinkingLevel } = body;
+      const { memoryEnabled, agentId, currentSessionPath: oldSessionPath, thinkingLevel } = body;
+      const cwd = resolveSessionWorkspaceMountCwd(engine, requestContext, body);
       const workspaceFolders = Array.isArray(body.workspaceFolders)
         ? body.workspaceFolders.filter(p => typeof p === "string" && p.trim())
         : [];
@@ -1143,7 +1174,8 @@ export function createSessionsRoute(engine, hub = null) {
       }
 
       const body = await safeJson(c);
-      const { cwd, memoryEnabled, agentId, permissionMode, thinkingLevel } = body;
+      const { memoryEnabled, agentId, permissionMode, thinkingLevel } = body;
+      const cwd = resolveSessionWorkspaceMountCwd(engine, requestContext, body);
       const workspaceFolders = Array.isArray(body.workspaceFolders)
         ? body.workspaceFolders.filter(p => typeof p === "string" && p.trim())
         : [];

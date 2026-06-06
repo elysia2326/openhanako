@@ -107,6 +107,69 @@ describe("/reset", () => {
   });
 });
 
+describe("/confirm and /reject", () => {
+  const confirm = bridgeCommands.find(c => c.name === "confirm");
+  const reject = bridgeCommands.find(c => c.name === "reject");
+
+  it("confirms a pending request and broadcasts the resolved state", async () => {
+    const confirmStore = {
+      get: vi.fn(() => ({ kind: "cron", sessionPath: "/sessions/a.jsonl", payload: {} })),
+      resolve: vi.fn(() => true),
+    };
+    const emitEvent = vi.fn();
+    const ctx = makeCtx({
+      args: "confirm_1",
+      engine: { confirmStore, emitEvent },
+    });
+
+    const r = await confirm.handler(ctx);
+
+    expect(confirmStore.get).toHaveBeenCalledWith("confirm_1");
+    expect(confirmStore.resolve).toHaveBeenCalledWith("confirm_1", "confirmed");
+    expect(emitEvent).toHaveBeenCalledWith({
+      type: "confirmation_resolved",
+      confirmId: "confirm_1",
+      action: "confirmed",
+    }, null);
+    expect((r as any).reply).toMatch(/已确认/);
+  });
+
+  it("rejects a pending request", async () => {
+    const confirmStore = {
+      get: vi.fn(() => ({ kind: "cron", sessionPath: "/sessions/a.jsonl", payload: {} })),
+      resolve: vi.fn(() => true),
+    };
+    const ctx = makeCtx({
+      args: "confirm_2",
+      engine: { confirmStore, emitEvent: vi.fn() },
+    });
+
+    const r = await reject.handler(ctx);
+
+    expect(confirmStore.resolve).toHaveBeenCalledWith("confirm_2", "rejected");
+    expect((r as any).reply).toMatch(/已拒绝/);
+  });
+
+  it("reports usage when confirmation id is missing", async () => {
+    const r = await confirm.handler(makeCtx({ args: "" }));
+    expect((r as any).reply).toBe("用法：/confirm <确认ID>");
+  });
+
+  it("reports missing or already resolved confirmation without resolving", async () => {
+    const confirmStore = {
+      get: vi.fn(() => null),
+      resolve: vi.fn(),
+    };
+    const r = await confirm.handler(makeCtx({
+      args: "missing",
+      engine: { confirmStore },
+    }));
+
+    expect(confirmStore.resolve).not.toHaveBeenCalled();
+    expect((r as any).reply).toMatch(/不存在或已处理/);
+  });
+});
+
 describe("/compact", () => {
   const cmd = bridgeCommands.find(c => c.name === "compact");
 

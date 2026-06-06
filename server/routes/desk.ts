@@ -497,9 +497,13 @@ export function createDeskRoute(engine, hub) {
     if (raw.kind !== "workbench-file" && raw.kind !== "mobile-workbench") {
       throw coverRouteError("target.kind must be workbench-file", "invalid_target", 400);
     }
+    const mountId = typeof raw.mountId === "string" && raw.mountId.trim()
+      ? raw.mountId.trim()
+      : (typeof raw.rootId === "string" && raw.rootId.trim() ? raw.rootId.trim() : "default");
     return {
       kind: "workbench-file",
-      rootId: typeof raw.rootId === "string" && raw.rootId.trim() ? raw.rootId.trim() : "default",
+      mountId,
+      rootId: typeof raw.rootId === "string" && raw.rootId.trim() ? raw.rootId.trim() : mountId,
       subdir: typeof raw.subdir === "string" ? raw.subdir : "",
       name: typeof raw.name === "string" ? raw.name : "",
     };
@@ -509,13 +513,14 @@ export function createDeskRoute(engine, hub) {
     try {
       const target = normalizeWorkbenchCoverTarget(body);
       if (target) {
-        const resolved = fileServiceForRequest(c).writeFileTarget(target.rootId, target.subdir, target.name);
+        const resolved = fileServiceForRequest(c).writeFileTarget(target.mountId, target.subdir, target.name);
         const fileError = validateBeautifyMarkdownFilePath(resolved.target);
         if (fileError) return { error: fileError, status: 400 };
         return {
           filePath: resolved.target,
           target: {
             kind: "workbench-file",
+            mountId: resolved.root?.mountId || resolved.root?.id || target.mountId,
             rootId: resolved.root?.id || target.rootId,
             subdir: target.subdir,
             name: resolved.filename,
@@ -932,7 +937,8 @@ export function createDeskRoute(engine, hub) {
         const executor = normalizeRouteExecutor(params.executor);
         const executorError = validateRouteExecutor(executor);
         if (executorError) return c.json({ error: executorError }, 400);
-        const requiresPrompt = !executor || executor.kind === "agent_session";
+        const enabled = params.enabled !== false;
+        const requiresPrompt = enabled && (!executor || executor.kind === "agent_session");
         if (!type || !params.schedule || (requiresPrompt && !params.prompt)) {
           return c.json({ error: "scheduleType, schedule, prompt required" }, 400);
         }
@@ -967,6 +973,7 @@ export function createDeskRoute(engine, hub) {
           executionContext,
           executor,
           createdBy: normalizeRouteCreatedBy(params.createdBy),
+          enabled,
         });
         return c.json({ ok: true, job, jobs: store.listJobs() });
       }
@@ -980,7 +987,13 @@ export function createDeskRoute(engine, hub) {
 
       case "toggle": {
         if (!params.id) return c.json({ error: "id required" });
-        const job = store.toggleJob(params.id);
+        let job;
+        try {
+          job = store.toggleJob(params.id);
+        } catch (err) {
+          const message = err instanceof Error ? err.message : String(err);
+          return c.json({ error: message }, 400);
+        }
         if (!job) return c.json({ error: "not found" });
         return c.json({ ok: true, job, jobs: store.listJobs() });
       }
@@ -988,17 +1001,37 @@ export function createDeskRoute(engine, hub) {
       case "update": {
         if (!params.id) return c.json({ error: "id required" });
         const { id, ...fields } = params;
-        if (fields.schedule !== undefined) {
-          const existingJob = store.getJob(id);
-          if (existingJob?.type === "every") {
-            const minutes = parseInt(fields.schedule, 10);
-            if (!isNaN(minutes) && minutes > 0) {
-              fields.schedule = minutes * 60_000;
+        const existingJob = store.getJob(id);
+        if (!existingJob) return c.json({ error: "not found" });
+        const VALID_TYPES = new Set(["at", "every", "cron"]);
+        if (fields.type !== undefined && !VALID_TYPES.has(fields.type)) {
+          return c.json({ error: `Invalid scheduleType: ${fields.type}. Must be at/every/cron.` }, 400);
+        }
+        if (fields.type !== undefined && fields.type !== existingJob.type && fields.schedule === undefined) {
+          return c.json({ error: "schedule required when changing scheduleType" }, 400);
+        }
+        const nextType = fields.type || existingJob.type;
+        if (fields.schedule !== undefined && nextType === "every") {
+          if (typeof fields.schedule === "number") {
+            if (!Number.isFinite(fields.schedule) || fields.schedule <= 0) {
+              return c.json({ error: "every schedule must be a positive number" }, 400);
             }
+            fields.schedule = fields.schedule < 60_000 ? fields.schedule * 60_000 : fields.schedule;
+          } else {
+            const minutes = parseInt(fields.schedule, 10);
+            if (isNaN(minutes) || minutes <= 0) {
+              return c.json({ error: "every schedule must be a positive number (minutes)" }, 400);
+            }
+            fields.schedule = minutes * 60_000;
           }
         }
-        const job = store.updateJob(id, fields);
-        if (!job) return c.json({ error: "not found" });
+        let job;
+        try {
+          job = store.updateJob(id, fields);
+        } catch (err) {
+          const message = err instanceof Error ? err.message : String(err);
+          return c.json({ error: message }, 400);
+        }
         return c.json({ ok: true, job, jobs: store.listJobs() });
       }
 

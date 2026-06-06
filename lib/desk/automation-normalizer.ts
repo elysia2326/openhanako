@@ -1,4 +1,9 @@
-export const AUTOMATION_SCHEMA_VERSION = 2;
+import {
+  buildNotifyAgentRunPrompt,
+  createAgentSessionAutomationExecutor,
+} from "./agent-run-automation.ts";
+
+export const AUTOMATION_SCHEMA_VERSION = 3;
 
 function clone(value: any) {
   if (value === undefined) return undefined;
@@ -53,11 +58,26 @@ export function executorFromLegacyCronJob(job: any = {}) {
   const existing = job.executor && typeof job.executor === "object" && !Array.isArray(job.executor)
     ? clone(job.executor)
     : null;
+  const actorAgentId = normalizeActorAgentId(job);
+
+  if (existing?.kind === "direct_action" && existing.action === "notify") {
+    const prompt = buildNotifyAgentRunPrompt(existing.params || {});
+    return createAgentSessionAutomationExecutor({
+      agentId: existing.agentId || actorAgentId,
+      prompt,
+      model: hasOwn(job, "model") ? clone(job.model ?? "") : "",
+      executionContext: hasOwn(job, "executionContext") ? clone(job.executionContext || null) : null,
+      migratedFrom: {
+        kind: "direct_action",
+        action: "notify",
+      },
+    });
+  }
+
   if (existing && existing.kind !== "agent_session") {
     return existing;
   }
 
-  const actorAgentId = normalizeActorAgentId(job);
   if (existing?.kind === "agent_session") {
     const existingAgentId = typeof existing.agentId === "string" && existing.agentId.trim()
       ? existing.agentId.trim()
@@ -96,11 +116,19 @@ export function createdByFromLegacyCronJob(job: any = {}) {
 }
 
 export function normalizeAutomationJob(job: any = {}) {
+  const trigger = triggerFromLegacyCronJob(job);
+  const executor = executorFromLegacyCronJob(job);
+  const prompt = typeof job.prompt === "string" && job.prompt
+    ? job.prompt
+    : executor?.kind === "agent_session" && typeof executor.prompt === "string"
+      ? executor.prompt
+      : job.prompt;
   return {
     ...job,
+    prompt,
     schemaVersion: normalizeSchemaVersion(job.schemaVersion),
-    trigger: triggerFromLegacyCronJob(job),
-    executor: executorFromLegacyCronJob(job),
+    trigger,
+    executor,
     createdBy: createdByFromLegacyCronJob(job),
   };
 }
@@ -113,6 +141,7 @@ export function patchAutomationJobForMigration(job: any = {}) {
   const normalized = normalizeAutomationJob(job);
   return {
     ...job,
+    prompt: normalized.prompt,
     schemaVersion: normalized.schemaVersion,
     trigger: normalized.trigger,
     executor: normalized.executor,

@@ -470,10 +470,11 @@ describe('cron', () => {
   it('with jobData and confirmed true: status is approved', () => {
     const result = extractor({ jobData, confirmed: true });
     expect(result).toHaveLength(1);
-    expect(result[0].type).toBe('cron_confirm');
+    expect(result[0].type).toBe('suggestion_card');
     expect(result[0].status).toBe('approved');
-    expect(result[0].jobData).toBe(jobData);
+    expect(result[0].detail.jobData).toBe(jobData);
     expect(result[0].confirmId).toBe('');
+    expect(result[0].kind).toBe('automation_draft');
   });
 
   it('with jobData and confirmed undefined: status is approved', () => {
@@ -486,9 +487,35 @@ describe('cron', () => {
     expect(result[0].status).toBe('rejected');
   });
 
+  it('pending add keeps confirmId for non-blocking confirmation cards', () => {
+    const result = extractor({ action: 'pending_add', jobData, confirmId: 'confirm_async' });
+    expect(result[0].status).toBe('pending');
+    expect(result[0].confirmId).toBe('confirm_async');
+  });
+
   it('no jobData: returns null', () => {
     expect(extractor({})).toBeNull();
     expect(extractor({ confirmed: true })).toBeNull();
+  });
+});
+
+describe('automation', () => {
+  const extractor = BLOCK_EXTRACTORS.automation;
+
+  const jobData = { type: 'cron', schedule: '0 12 * * *', label: 'Tea', prompt: 'notify' };
+
+  it('pending add with jobData returns an automation suggestion card', () => {
+    const result = extractor({ action: 'pending_add', jobData, confirmId: 'confirm_auto' });
+    expect(result).toHaveLength(1);
+    expect(result[0].type).toBe('suggestion_card');
+    expect(result[0].kind).toBe('automation_draft');
+    expect(result[0].status).toBe('pending');
+    expect(result[0].confirmId).toBe('confirm_auto');
+    expect(result[0].detail.jobData).toBe(jobData);
+  });
+
+  it('confirmed add does not duplicate the live confirmation card', () => {
+    expect(extractor({ action: 'added', confirmed: true, jobData })).toBeNull();
   });
 });
 

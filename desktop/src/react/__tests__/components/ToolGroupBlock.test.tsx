@@ -82,4 +82,20 @@ describe('ToolGroupBlock', () => {
     expect(screen.queryByText('toolGroup.count')).toBeNull();
     expect(screen.getByText('npm test')).toBeTruthy();
   });
+
+  it('hides automation create tools because the suggestion card is the UI', () => {
+    const { container } = render(
+      <ToolGroupBlock
+        collapsed={false}
+        tools={[{
+          name: 'automation',
+          args: { action: 'add_notify', label: 'Tea' },
+          done: true,
+          success: true,
+        }]}
+      />,
+    );
+
+    expect(container.firstChild).toBeNull();
+  });
 });

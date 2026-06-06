@@ -120,6 +120,8 @@ const migrations = {
   36: migrateSubagentThreadRegistry,
   // subagent direct instance：旧 ephemeral/reusable kind 归一为 direct，instance 变成展示 label
   37: migrateSubagentDirectThreadSemantics,
+  // automation 执行模型收敛：旧 direct notify 显式改写为 Agent Run
+  38: migrateDirectNotifyAutomationsToAgentRuns,
 };
 
 // ── Runner ──────────────────────────────────────────────────────────────────
@@ -1311,6 +1313,37 @@ function patchCronJobsFileForAutomation(jobsPath, log) {
 
   atomicWriteSync(jobsPath, JSON.stringify({ ...data, jobs }, null, 2) + "\n");
   return { changed: true, patchedJobs };
+}
+
+function migrateDirectNotifyAutomationsToAgentRuns(ctx) {
+  const { hanakoHome, agentsDir, log } = ctx;
+  const paths = [];
+
+  const studiosDir = path.join(hanakoHome, "studios");
+  try {
+    for (const entry of fs.readdirSync(studiosDir, { withFileTypes: true })) {
+      if (!entry.isDirectory()) continue;
+      paths.push(path.join(studiosDir, entry.name, "desk", "cron-jobs.json"));
+    }
+  } catch {}
+
+  try {
+    for (const entry of fs.readdirSync(agentsDir, { withFileTypes: true })) {
+      if (!entry.isDirectory()) continue;
+      paths.push(path.join(agentsDir, entry.name, "desk", "cron-jobs.json"));
+    }
+  } catch {}
+
+  let patchedFiles = 0;
+  let patchedJobs = 0;
+  for (const jobsPath of paths) {
+    const result = patchCronJobsFileForAutomation(jobsPath, log);
+    if (!result.changed) continue;
+    patchedFiles++;
+    patchedJobs += result.patchedJobs;
+  }
+
+  log?.(`[migrations] #38: direct notify automations rewritten as Agent runs (${patchedJobs} jobs in ${patchedFiles} files)`);
 }
 
 const MIGRATION_SAFE_SKILL_NAME = /^[a-zA-Z0-9][a-zA-Z0-9_-]{0,63}$/;

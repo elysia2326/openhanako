@@ -3,6 +3,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import fs from "fs";
 import os from "os";
 import path from "path";
+import { upsertStudioMount } from "../core/studio-mounts.ts";
 
 const { replayLatestUserTurnMock } = vi.hoisted(() => ({
   replayLatestUserTurnMock: vi.fn(async () => ({ text: null, toolMedia: [] })),
@@ -167,6 +168,79 @@ describe("sessions route", () => {
       }),
       "/tmp/agents/hana/sessions/new.jsonl",
     );
+  });
+
+  it("resolves workspaceMountId on the server when creating a new session", async () => {
+    const { createSessionsRoute } = await import("../server/routes/sessions.ts");
+    const app = new Hono();
+    const hanakoHome = path.join(tmpDir, "hana");
+    const defaultRoot = path.join(tmpDir, "default");
+    const mountedRoot = path.join(tmpDir, "mounted");
+    fs.mkdirSync(defaultRoot, { recursive: true });
+    fs.mkdirSync(mountedRoot, { recursive: true });
+    const resolvedMountedRoot = fs.realpathSync(mountedRoot);
+    upsertStudioMount(hanakoHome, {
+      mountId: "mount_docs",
+      hostStudioId: "studio_1",
+      sourceKind: "storage",
+      provider: "local_fs",
+      rootLocator: { path: mountedRoot },
+      label: "Docs",
+      presentation: "folder",
+      capabilities: ["list", "read", "write"],
+    });
+
+    const engine = {
+      hanakoHome,
+      homeCwd: defaultRoot,
+      currentAgentId: "hana",
+      config: {},
+      cwd: defaultRoot,
+      memoryEnabled: true,
+      planMode: false,
+      memoryModelUnavailableReason: null,
+      getRuntimeContext: () => ({
+        serverId: "server_1",
+        serverNodeId: "node_1",
+        userId: "user_1",
+        studioId: "studio_1",
+        connectionKind: "local",
+        credentialKind: "loopback_token",
+      }),
+      createSession: vi.fn(async (_sessionMgr, cwd) => {
+        engine.cwd = cwd;
+        return { sessionPath: "/tmp/agents/hana/sessions/new.jsonl", agentId: "hana" };
+      }),
+      createSessionForAgent: vi.fn(),
+      persistSessionMeta: vi.fn(),
+      updateConfig: vi.fn(async (patch) => Object.assign(engine.config, patch)),
+      getAgent: vi.fn(() => ({ agentName: "Hana" })),
+      getSessionWorkspaceFolders: vi.fn(() => []),
+      getSessionThinkingLevel: vi.fn(() => "medium"),
+    };
+
+    app.route("/api", createSessionsRoute(engine));
+
+    const res = await app.request("/api/sessions/new", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ workspaceMountId: "mount_docs" }),
+    });
+    const data = await res.json();
+
+    expect(res.status).toBe(200);
+    expect(engine.createSession).toHaveBeenCalledWith(
+      null,
+      resolvedMountedRoot,
+      true,
+      undefined,
+      { workspaceFolders: [], visibleInSessionList: true },
+    );
+    expect(engine.updateConfig).toHaveBeenCalledWith({
+      last_cwd: resolvedMountedRoot,
+      cwd_history: [resolvedMountedRoot],
+    });
+    expect(data.cwd).toBe(resolvedMountedRoot);
   });
 
   it("creates a detached session without switching the focused session", async () => {

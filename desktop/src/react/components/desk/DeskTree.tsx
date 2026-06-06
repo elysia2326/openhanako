@@ -333,7 +333,7 @@ function TreeNode({
   const previewFile = useCallback(() => {
     if (file.isDir) return;
     if (isWebRuntime()) {
-      void openMobileWorkbenchPreview({ file, subdir: parent, rootId: 'default' });
+      void openMobileWorkbenchPreview({ file, subdir: parent, mountId: 'default' });
       return;
     }
     const path = fullPath(deskBasePath, subdir);

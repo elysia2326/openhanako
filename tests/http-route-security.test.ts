@@ -166,6 +166,25 @@ describe("HTTP route security policy", () => {
       });
   });
 
+  it("gates Studio workspace APIs by file scopes instead of local-only filtering them", async () => {
+    const { authorizeHttpRoute } = await import("../server/http/route-security.ts");
+    const reader = devicePrincipal(["files.read"]);
+    const writer = devicePrincipal(["files.read", "files.write"]);
+    const chatOnly = devicePrincipal(["chat"]);
+
+    expect(authorizeHttpRoute({ method: "GET", path: "/api/studio/workspaces", principal: reader }))
+      .toMatchObject({ allowed: true });
+    expect(authorizeHttpRoute({ method: "GET", path: "/api/studio/workspaces/mount_docs/files", principal: reader }))
+      .toMatchObject({ allowed: true });
+    expect(authorizeHttpRoute({ method: "POST", path: "/api/studio/workspaces", principal: writer }))
+      .toMatchObject({ allowed: true });
+
+    expect(authorizeHttpRoute({ method: "GET", path: "/api/studio/workspaces", principal: chatOnly }))
+      .toMatchObject({ allowed: false, error: "insufficient_scope", requiredScope: "files.read" });
+    expect(authorizeHttpRoute({ method: "POST", path: "/api/studio/workspaces", principal: reader }))
+      .toMatchObject({ allowed: false, error: "insufficient_scope", requiredScope: "files.write" });
+  });
+
   it("allows remote plugin UI metadata, settings tabs, and iframe ticket issuance without opening plugin route apps", async () => {
     const { authorizeHttpRoute } = await import("../server/http/route-security.ts");
     const principal = devicePrincipal(["chat", "settings.read"]);

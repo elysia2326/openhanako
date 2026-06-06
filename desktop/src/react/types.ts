@@ -248,7 +248,8 @@ export interface VersionedWriteResult {
 
 export interface RemoteWorkbenchContentRef {
   kind: 'workbench-file' | 'mobile-workbench';
-  rootId: string;
+  mountId?: string;
+  rootId?: string;
   subdir: string;
   name: string;
   contentPath: string;

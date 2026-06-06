@@ -442,7 +442,7 @@ describe('MobileApp', () => {
         const url = String(input);
         return url.includes('/api/workbench/content')
           && url.includes('name=note.md')
-          && url.includes('rootId=default');
+          && url.includes('mountId=default');
       })).toBe(true);
       expect(useStore.getState().previewOpen).toBe(true);
       expect(useStore.getState().previewItems.some(item => item.content.includes('来自手机工作台预览'))).toBe(true);

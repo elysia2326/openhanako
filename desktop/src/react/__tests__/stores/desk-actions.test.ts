@@ -712,7 +712,7 @@ describe('desk-actions workspace roots', () => {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         action: 'safeDelete',
-        rootId: 'default',
+        mountId: 'default',
         subdir: 'notes',
         name: 'chapter.md',
       }),
@@ -744,7 +744,7 @@ describe('desk-actions workspace roots', () => {
       headers: { 'Content-Type': 'application/json' },
     });
     expect(JSON.parse(call[1].body)).toEqual({
-      rootId: 'default',
+      mountId: 'default',
       subdir: 'notes',
       files: [{
         name: 'note.md',

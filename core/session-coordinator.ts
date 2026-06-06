@@ -3472,6 +3472,7 @@ export class SessionCoordinator {
    *   toolFilter, builtinFilter, extraCustomTools, signal,
    *   fileReadSessionPaths (string[] = parent session SessionFile scopes inherited as read-only),
    *   subagentContext (true = 走 subagent 专用 prompt：跳过记忆三段和团队名单),
+   *   allowHumanApproval (false = 后台执行遇到人工确认请求时快速返回未批准),
    *   emitEvents (true 时将 session 事件转发到 EventBus),
    *   onSessionReady (sessionPath => void) 回调，session 创建后、prompt 执行前触发
    */
@@ -3598,6 +3599,7 @@ export class SessionCoordinator {
           fileReadSessionPaths,
           getPermissionMode: () => execPermissionMode,
           permissionContext: { isSubagent: !!opts.subagentContext },
+          allowHumanApproval: opts.allowHumanApproval !== false,
         },
       );
 

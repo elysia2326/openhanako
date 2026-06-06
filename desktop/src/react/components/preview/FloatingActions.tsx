@@ -125,7 +125,7 @@ function remoteRefToCoverTarget(ref: RemoteWorkbenchContentRef): WorkbenchMarkdo
   const normalized = normalizeWorkbenchContentRef(ref);
   return {
     kind: 'workbench-file',
-    rootId: normalized.rootId,
+    mountId: normalized.mountId || normalized.rootId || 'default',
     subdir: normalized.subdir,
     name: normalized.name,
   };

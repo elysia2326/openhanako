@@ -27,6 +27,16 @@ interface SelectWidgetProps {
   density?: 'compact' | 'comfortable';
   /** Popup horizontal alignment relative to trigger */
   align?: 'start' | 'end';
+  /** Skip the built-in trigger chrome (border/padding/bg) so a custom trigger fully owns its look */
+  triggerBare?: boolean;
+  /** Gap in px between trigger and popup (default 2) */
+  offset?: number;
+  /** Force the popup min-width in px; defaults to the trigger width */
+  popupMinWidth?: number;
+  /** Force open direction; 'auto' decides by available space */
+  placement?: 'auto' | 'top' | 'bottom';
+  /** Guard run before opening; return false to veto (e.g. show a toast instead) */
+  onAttemptOpen?: () => boolean;
 }
 
 export function SelectWidget({
@@ -42,6 +52,11 @@ export function SelectWidget({
   renderOption,
   density = 'compact',
   align = 'end',
+  triggerBare = false,
+  offset = 2,
+  popupMinWidth,
+  placement = 'auto',
+  onAttemptOpen,
 }: SelectWidgetProps) {
   const [open, setOpen] = useState(false);
   const triggerRef = useRef<HTMLButtonElement>(null);
@@ -56,7 +71,11 @@ export function SelectWidget({
     const rect = triggerRef.current.getBoundingClientRect();
     const spaceBelow = window.innerHeight - rect.bottom;
     const spaceAbove = rect.top;
-    const openAbove = spaceBelow < 200 && spaceAbove > spaceBelow;
+    const openAbove = placement === 'top'
+      ? true
+      : placement === 'bottom'
+        ? false
+        : (spaceBelow < 200 && spaceAbove > spaceBelow);
     setOpenDirection(openAbove ? 'up' : 'down');
 
     setPanelStyle({
@@ -64,13 +83,13 @@ export function SelectWidget({
       ...(align === 'start'
         ? { left: rect.left }
         : { right: window.innerWidth - rect.right }),
-      minWidth: rect.width,
+      minWidth: popupMinWidth ?? rect.width,
       ...(openAbove
-        ? { bottom: window.innerHeight - rect.top + 2 }
-        : { top: rect.bottom + 2 }),
+        ? { bottom: window.innerHeight - rect.top + offset }
+        : { top: rect.bottom + offset }),
       zIndex: 9999,
     });
-  }, [open, align]);
+  }, [open, align, offset, popupMinWidth, placement]);
 
   useEffect(() => {
     if (!open) return;
@@ -153,12 +172,17 @@ export function SelectWidget({
     <div className={[styles.root, open && styles.open, className].filter(Boolean).join(' ')}>
       <button
         type="button"
-        className={[styles.trigger, triggerClassName].filter(Boolean).join(' ')}
+        className={[!triggerBare && styles.trigger, triggerClassName].filter(Boolean).join(' ')}
         ref={triggerRef}
-        onClick={() => !disabled && setOpen(!open)}
+        onClick={() => {
+          if (disabled) return;
+          if (!open && onAttemptOpen && !onAttemptOpen()) return;
+          setOpen(!open);
+        }}
         disabled={disabled}
         aria-haspopup="listbox"
         aria-expanded={open}
+        data-open={open}
         title={displayText}
       >
         {renderTrigger ? renderTrigger(current, open) : (

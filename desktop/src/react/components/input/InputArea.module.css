@@ -342,7 +342,7 @@
     filter: drop-shadow(0 0 2px rgba(var(--accent-rgb), 0.5));
 }
 
-.thinking-selector.open .thinking-pill {
+.thinking-pill[data-open="true"] {
     color: var(--accent);
     border-color: rgba(var(--accent-rgb), 0.25);
 }

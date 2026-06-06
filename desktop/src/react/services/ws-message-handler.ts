@@ -509,7 +509,17 @@ export function handleServerMessage(msg: any): void {
 
     case 'activity_update':
       if (msg.activity) {
-        useStore.setState({ activities: [msg.activity, ...state.activities.slice(0, 499)] });
+        useStore.setState((current: any) => {
+          const incoming = msg.activity;
+          const existing = current.activities.find((activity: any) => activity.id === incoming.id);
+          const merged = existing ? { ...existing, ...incoming } : incoming;
+          return {
+            activities: [
+              merged,
+              ...current.activities.filter((activity: any) => activity.id !== incoming.id),
+            ].slice(0, 500),
+          };
+        });
       }
       break;
 

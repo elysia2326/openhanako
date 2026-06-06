@@ -76,6 +76,18 @@ function validateAutomationExecutorForWrite(executor) {
   throw new Error(`unsupported automation executor: ${executor.kind}`);
 }
 
+function isAgentSessionAutomation(job) {
+  const normalized = normalizeAutomationJob(job);
+  return !normalized.executor || normalized.executor.kind === "agent_session";
+}
+
+function assertCanEnableAutomationJob(job) {
+  if (!job?.enabled) return;
+  if (!isAgentSessionAutomation(job)) return;
+  if (typeof job.prompt === "string" && job.prompt.trim()) return;
+  throw new Error("prompt required to enable agent automation");
+}
+
 export class CronStore {
   declare _idPrefix: any;
   declare _jobs: any;
@@ -208,6 +220,7 @@ export class CronStore {
     legacyRef = null,
     executor = null,
     createdBy = null,
+    enabled = true,
   }) {
     // type 枚举校验
     const VALID_TYPES = new Set(["at", "every", "cron"]);
@@ -243,7 +256,7 @@ export class CronStore {
       mode,
       label: deriveJobLabel({ label, prompt, executor }),
       model: normalizeCronModelRef(model),
-      enabled: true,
+      enabled: enabled !== false,
       consecutiveErrors: 0,
       createdAt: now,
       lastRunAt: null,
@@ -253,6 +266,7 @@ export class CronStore {
     this._attachAutomationFields(job, { executor, createdBy });
 
     const normalized = normalizeAutomationJob(job);
+    assertCanEnableAutomationJob(normalized);
     this._jobs.push(normalized);
     this._save();
     return normalized;
@@ -371,24 +385,59 @@ export class CronStore {
   updateJob(id, partial) {
     const job = this._jobs.find(j => j.id === id);
     if (!job) return null;
+    const before = JSON.parse(JSON.stringify(job));
 
-    const ALLOWED = new Set(["label", "model", "schedule", "prompt", "enabled"]);
+    const ALLOWED = new Set(["label", "model", "schedule", "prompt", "enabled", "type"]);
+    const VALID_TYPES = new Set(["at", "every", "cron"]);
+    if ("type" in partial && !VALID_TYPES.has(partial.type)) {
+      throw new Error(`无效的 job type: "${partial.type}"，必须是 at / every / cron`);
+    }
+    if ("type" in partial && partial.type !== job.type && !("schedule" in partial)) {
+      throw new Error("修改 job type 时必须同时提供 schedule");
+    }
 
     for (const key of Object.keys(partial)) {
       if (!ALLOWED.has(key)) continue;
       let value = partial[key];
 
       if (key === "model") value = normalizeCronModelRef(value);
+      if (key === "type") value = String(value);
 
       job[key] = value;
     }
 
+    if ("schedule" in partial || "type" in partial) {
+      if (job.type === "every") {
+        const ms = typeof job.schedule === "number" ? job.schedule : parseInt(job.schedule, 10);
+        if (!Number.isFinite(ms) || ms <= 0) {
+          throw new Error(`无效的 every schedule: "${job.schedule}"，必须是正整数毫秒`);
+        }
+        job.schedule = Math.max(60000, ms);
+      }
+      if (job.type === "at") {
+        const target = new Date(job.schedule);
+        if (isNaN(target.getTime())) {
+          throw new Error(`无效的 at schedule: "${job.schedule}"，无法解析为日期`);
+        }
+        if (target <= new Date()) {
+          throw new Error(`at schedule 已过期: "${job.schedule}"，必须是未来时间`);
+        }
+      }
+    }
+
     // schedule 变更时重新计算 nextRunAt
-    if ("schedule" in partial && ALLOWED.has("schedule")) {
+    if ("schedule" in partial || "type" in partial) {
       job.nextRunAt = this._calcNextRun(job.type, job.schedule, new Date().toISOString());
     }
 
     const normalized = normalizeAutomationJob(job);
+    try {
+      assertCanEnableAutomationJob(normalized);
+    } catch (err) {
+      Object.keys(job).forEach((key) => delete job[key]);
+      Object.assign(job, before);
+      throw err;
+    }
     Object.assign(job, normalized);
     this._save();
     return normalized;
@@ -402,12 +451,20 @@ export class CronStore {
   toggleJob(id) {
     const job = this._jobs.find(j => j.id === id);
     if (!job) return null;
+    const before = JSON.parse(JSON.stringify(job));
     job.enabled = !job.enabled;
     if (job.enabled) {
       // 重新计算下次执行时间
       job.nextRunAt = this._calcNextRun(job.type, job.schedule, new Date().toISOString());
     }
     const normalized = normalizeAutomationJob(job);
+    try {
+      assertCanEnableAutomationJob(normalized);
+    } catch (err) {
+      Object.keys(job).forEach((key) => delete job[key]);
+      Object.assign(job, before);
+      throw err;
+    }
     Object.assign(job, normalized);
     this._save();
     return normalized;

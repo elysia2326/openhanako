@@ -8,7 +8,7 @@ import {
 import type { RemoteWorkbenchContentRef } from '../types';
 
 export type CoverThemeTone = 'light' | 'dark';
-export type WorkbenchMarkdownCoverTarget = Pick<RemoteWorkbenchContentRef, 'kind' | 'rootId' | 'subdir' | 'name'>;
+export type WorkbenchMarkdownCoverTarget = Pick<RemoteWorkbenchContentRef, 'kind' | 'mountId' | 'rootId' | 'subdir' | 'name'>;
 export type MarkdownCoverTargetInput =
   | { filePath: string; target?: never }
   | { filePath?: never; target: WorkbenchMarkdownCoverTarget };
@@ -100,7 +100,7 @@ function coverTargetBody(input: MarkdownCoverTargetInput): Record<string, unknow
   return {
     target: {
       kind: 'workbench-file',
-      rootId: target.rootId,
+      mountId: target.mountId || target.rootId || 'default',
       subdir: target.subdir,
       name: target.name,
     },

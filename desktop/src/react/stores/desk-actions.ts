@@ -542,7 +542,7 @@ export async function deskUploadBrowserFilesToSubdir(files: File[], subdir: stri
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        rootId: 'default',
+        mountId: 'default',
         subdir: normalizedSubdir,
         files: payloadFiles,
       }),
@@ -797,7 +797,7 @@ async function deskSafeDeleteMobileWorkbenchItems(items: DeskTreeMoveItem[]): Pr
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           action: 'safeDelete',
-          rootId: 'default',
+          mountId: 'default',
           subdir: item.sourceSubdir,
           name: item.name,
         }),

@@ -3,6 +3,7 @@ import os from "node:os";
 import path from "node:path";
 import { Hono } from "hono";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { upsertStudioMount } from "../core/studio-mounts.ts";
 
 const PNG_HEADER = Buffer.from([
   0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a,
@@ -38,6 +39,14 @@ function makeEngine(tmpDir, options: any = {}) {
     hanakoHome: path.join(tmpDir, "hana"),
     deskCwd: tmpDir,
     homeCwd: tmpDir,
+    getRuntimeContext: () => ({
+      serverId: "server_1",
+      serverNodeId: "node_1",
+      userId: "user_1",
+      studioId: "studio_1",
+      connectionKind: "local",
+      credentialKind: "loopback_token",
+    }),
     currentAgentId: agent.id,
     agent,
     agentsDir: path.join(tmpDir, "agents"),
@@ -123,7 +132,7 @@ describe("desk beautify cover apply route", () => {
     expect(res.status).toBe(200);
     const body = await res.json();
     expect(body.ok).toBe(true);
-    expect(body.target).toEqual(target);
+    expect(body.target).toMatchObject(target);
     expect(body.cover.image).toMatch(/^文本附件\/note-cover-/);
     expect(fs.existsSync(path.join(tmpDir, ...body.cover.image.split("/")))).toBe(true);
     expect(fs.readFileSync(notePath, "utf-8")).toContain("cover:");
@@ -131,10 +140,54 @@ describe("desk beautify cover apply route", () => {
       type: "app_event",
       event: {
         type: "markdown-cover-updated",
-        payload: { target },
+        payload: { target: expect.objectContaining(target) },
         source: "server",
       },
     }, null);
+  });
+
+  it("applies uploaded cover bytes to a non-default workbench mount target", async () => {
+    const mountRoot = path.join(tmpDir, "mounted");
+    const defaultNotePath = path.join(tmpDir, "note.md");
+    const mountedNotePath = path.join(mountRoot, "note.md");
+    fs.mkdirSync(mountRoot, { recursive: true });
+    fs.writeFileSync(defaultNotePath, "# Default\n", "utf-8");
+    fs.writeFileSync(mountedNotePath, "# Mounted\n", "utf-8");
+
+    const engine = makeEngine(tmpDir);
+    upsertStudioMount(engine.hanakoHome, {
+      mountId: "mount_docs",
+      hostStudioId: "studio_1",
+      sourceKind: "storage",
+      provider: "local_fs",
+      rootLocator: { path: mountRoot },
+      label: "Mounted Docs",
+      presentation: "folder",
+      capabilities: ["list", "read", "write"],
+    });
+    const { createDeskRoute } = await import("../server/routes/desk.ts");
+    const app = new Hono();
+    app.route("/api", createDeskRoute(engine, null));
+
+    const target = { kind: "workbench-file", mountId: "mount_docs", subdir: "", name: "note.md" };
+    const res = await app.request("/api/desk/beautify/cover/apply", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        target,
+        image: {
+          filename: "client-cover.png",
+          contentBase64: PNG_HEADER.toString("base64"),
+        },
+      }),
+    });
+
+    expect(res.status).toBe(200);
+    const body = await res.json();
+    expect(body.ok).toBe(true);
+    expect(body.target).toMatchObject(target);
+    expect(fs.readFileSync(mountedNotePath, "utf-8")).toContain("cover:");
+    expect(fs.readFileSync(defaultNotePath, "utf-8")).toBe("# Default\n");
   });
 
   it("allows direct UI local image apply when the Agent beautify tool is disabled", async () => {
@@ -215,7 +268,7 @@ describe("desk beautify cover apply route", () => {
     expect(res.status).toBe(200);
     const body = await res.json();
     expect(body.ok).toBe(true);
-    expect(body.target).toEqual(target);
+    expect(body.target).toMatchObject(target);
     expect(body.cover.image).toMatch(/^文本附件\/note-cover-/);
     expect(fs.existsSync(path.join(tmpDir, ...body.cover.image.split("/")))).toBe(true);
     expect(fs.readFileSync(notePath, "utf-8")).toContain("cover:");

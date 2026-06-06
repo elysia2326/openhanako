@@ -26,6 +26,7 @@ import { AppError } from "../../shared/errors.ts";
 import { errorBus } from "../../shared/error-bus.ts";
 import { createRequestContext } from "../http/boundary.ts";
 import { buildDeferredResultInterludeBlock, resolveDeferredReceiverName } from "../deferred-result-interlude.ts";
+import { buildAutomationSuggestionBlock } from "../suggestion-blocks.ts";
 import { isAllowedChatImageMime, isChatImageBase64WithinLimit } from "../../shared/image-mime.ts";
 import { isAllowedChatVideoMime, isChatVideoBase64WithinLimit } from "../../shared/video-mime.ts";
 import { isAllowedChatAudioMime, isChatAudioBase64WithinLimit } from "../../shared/audio-mime.ts";
@@ -696,11 +697,15 @@ export function createChatRoute(engine: any, hub: any, { upgradeWebSocket }: any
         block: event.request,
       });
     } else if (event.type === "cron_confirmation" && event.confirmId) {
-      // 新的阻塞式 cron 确认（通过 emitEvent 触发）
+      // 新的阻塞式自动化建议（通过 emitEvent 触发）
       if (!ss) return;
       emitStreamEvent(sessionPath, ss, {
         type: "content_block",
-        block: { type: "cron_confirm", confirmId: event.confirmId, jobData: event.jobData, status: "pending" },
+        block: buildAutomationSuggestionBlock({
+          confirmId: event.confirmId,
+          jobData: event.jobData || {},
+          status: "pending",
+        }),
       });
     } else if (event.type === "settings_confirmation") {
       if (!ss) return;

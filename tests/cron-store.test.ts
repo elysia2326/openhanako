@@ -265,7 +265,7 @@ describe("Automation job read model", () => {
       model,
     } as any);
 
-    expect(job.schemaVersion).toBe(2);
+    expect(job.schemaVersion).toBe(3);
     expect(job.trigger).toEqual({ kind: "cron", expression: "0 9 * * *" });
     expect(job.executor).toMatchObject({
       kind: "agent_session",
@@ -339,7 +339,7 @@ describe("Automation job read model", () => {
     new CronStore(jobsPath, runsDir);
 
     const [job] = JSON.parse(fs.readFileSync(jobsPath, "utf-8")).jobs;
-    expect(job.schemaVersion).toBe(2);
+    expect(job.schemaVersion).toBe(3);
     expect(job.trigger).toEqual({ kind: "cron", expression: "0 9 * * *" });
     expect(job.executor).toMatchObject({
       kind: "agent_session",
@@ -348,7 +348,7 @@ describe("Automation job read model", () => {
     });
   });
 
-  it("preserves explicit notify direct-action executors without requiring a legacy prompt", () => {
+  it("converts explicit notify direct-action executors into Agent-run automations", () => {
     const store = makeTmpStore();
 
     const job = store.addJob({
@@ -375,16 +375,25 @@ describe("Automation job read model", () => {
       createdBy: { kind: "agent", agentId: "hana", sourceSessionPath: "/sessions/source.jsonl" },
     } as any);
 
-    expect(job.prompt).toBe("");
+    expect(job.prompt).toContain("notify");
+    expect(job.prompt).toContain("站起来活动一下");
     expect(job.label).toBe("Drink Water");
     expect(job.trigger).toEqual({ kind: "cron", expression: "0 9 * * *" });
     expect(job.executor).toEqual({
-      kind: "direct_action",
-      action: "notify",
-      params: {
-        title: "喝水",
-        body: "站起来活动一下",
-        channels: ["desktop"],
+      kind: "agent_session",
+      agentId: "hana",
+      prompt: job.prompt,
+      model: "",
+      executionContext: {
+        kind: "session_workspace",
+        cwd: "/workspace",
+        workspaceFolders: [],
+        sourceSessionPath: "/sessions/source.jsonl",
+        createdByAgentId: "hana",
+      },
+      migratedFrom: {
+        kind: "direct_action",
+        action: "notify",
       },
     });
     expect(job.createdBy).toEqual({ kind: "agent", agentId: "hana", sourceSessionPath: "/sessions/source.jsonl" });
@@ -501,6 +510,32 @@ describe("CronStore updateJob 字段白名单", () => {
     expect(updated.schedule).toBe(7200000);
     // nextRunAt 应该被重算（基于当前时间 + 7200000），跟原来不同
     expect(updated.nextRunAt).not.toBe(origNextRunAt);
+  });
+
+  it("updateJob 允许同步变更 type 和 schedule", () => {
+    const store = makeTmpStore();
+    const job = store.addJob({
+      type: "cron",
+      schedule: "0 9 * * *",
+      prompt: "test",
+    });
+
+    const updated = store.updateJob(job.id, { type: "every", schedule: 7200000 });
+    expect(updated.type).toBe("every");
+    expect(updated.schedule).toBe(7200000);
+    expect(updated.nextRunAt).toBeTruthy();
+  });
+
+  it("updateJob 修改 type 时必须同步提供 schedule", () => {
+    const store = makeTmpStore();
+    const job = store.addJob({
+      type: "cron",
+      schedule: "0 9 * * *",
+      prompt: "test",
+    });
+
+    expect(() => store.updateJob(job.id, { type: "every" }))
+      .toThrow(/schedule/);
   });
 });
 

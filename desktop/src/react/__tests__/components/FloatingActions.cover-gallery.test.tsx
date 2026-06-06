@@ -243,12 +243,12 @@ describe('FloatingActions cover gallery', () => {
   it('shows cover actions for remote workbench markdown and applies presets by target', async () => {
     const remoteContentRef = {
       kind: 'workbench-file',
-      rootId: 'default',
+      mountId: 'mount_docs',
       subdir: 'notes',
       name: 'remote.md',
-      contentPath: '/api/workbench/content?rootId=default&subdir=notes&name=remote.md',
+      contentPath: '/api/workbench/content?mountId=mount_docs&subdir=notes&name=remote.md',
       version: { mtimeMs: 10, size: 7 },
-    } as const;
+    } as any;
 
     render(
       <FloatingActions
@@ -271,7 +271,7 @@ describe('FloatingActions cover gallery', () => {
           body: JSON.stringify({
             target: {
               kind: 'workbench-file',
-              rootId: 'default',
+              mountId: 'mount_docs',
               subdir: 'notes',
               name: 'remote.md',
             },
@@ -289,12 +289,12 @@ describe('FloatingActions cover gallery', () => {
     } as unknown as PlatformApi;
     const remoteContentRef = {
       kind: 'workbench-file',
-      rootId: 'default',
+      mountId: 'mount_docs',
       subdir: '',
       name: 'remote.md',
-      contentPath: '/api/workbench/content?rootId=default&subdir=&name=remote.md',
+      contentPath: '/api/workbench/content?mountId=mount_docs&subdir=&name=remote.md',
       version: { mtimeMs: 10, size: 7 },
-    } as const;
+    } as any;
 
     render(
       <FloatingActions
@@ -317,7 +317,7 @@ describe('FloatingActions cover gallery', () => {
           body: JSON.stringify({
             target: {
               kind: 'workbench-file',
-              rootId: 'default',
+              mountId: 'mount_docs',
               subdir: '',
               name: 'remote.md',
             },

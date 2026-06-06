@@ -164,7 +164,7 @@ function remoteWorkbenchCoverImageUrl(previewItem: PreviewItem, image: string | 
   if (!name) return null;
   const subdir = [normalized.subdir, ...parts].filter(Boolean).join('/');
   const params = new URLSearchParams();
-  params.set('rootId', normalized.rootId || 'default');
+  params.set('mountId', normalized.mountId || normalized.rootId || 'default');
   params.set('subdir', subdir);
   params.set('name', name);
   return `/api/workbench/content?${params.toString()}`;

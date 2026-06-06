@@ -441,6 +441,75 @@ describe("mobile workbench route", () => {
     expect(JSON.stringify(data)).not.toContain(mountRoot);
   });
 
+  it("accepts mountId as the canonical workbench mount selector while preserving rootId in the response", async () => {
+    tmpDir = makeTmpDir();
+    const workspace = path.join(tmpDir, "workspace");
+    const mountRoot = path.join(tmpDir, "mounted-docs");
+    const hanakoHome = path.join(tmpDir, "hana");
+    fs.mkdirSync(workspace, { recursive: true });
+    fs.mkdirSync(mountRoot, { recursive: true });
+    fs.writeFileSync(path.join(mountRoot, "mounted.md"), "mount body", "utf-8");
+    upsertStudioMount(hanakoHome, {
+      mountId: "mount_docs",
+      hostStudioId: "studio_1",
+      sourceKind: "storage",
+      provider: "local_fs",
+      rootLocator: { path: mountRoot },
+      label: "Mounted Docs",
+      presentation: "folder",
+      capabilities: ["list", "read", "write"],
+    });
+    const app = await makeApp({
+      hanakoHome,
+      deskCwd: workspace,
+      homeCwd: workspace,
+      getRuntimeContext: () => ({
+        serverId: "server_1",
+        serverNodeId: "node_1",
+        userId: "user_1",
+        studioId: "studio_1",
+        connectionKind: "local",
+        credentialKind: "loopback_token",
+      }),
+    });
+
+    const files = await app.request("/api/workbench/files?mountId=mount_docs");
+    expect(files.status).toBe(200);
+    expect(await files.json()).toMatchObject({
+      rootId: "mount_docs",
+      mountId: "mount_docs",
+      mount: {
+        mountId: "mount_docs",
+        label: "Mounted Docs",
+        sourceKind: "storage",
+        provider: "local_fs",
+      },
+      files: [{ name: "mounted.md", isDir: false }],
+    });
+
+    const content = await app.request("/api/workbench/content?mountId=mount_docs&name=mounted.md");
+    expect(content.status).toBe(200);
+    expect(await content.text()).toBe("mount body");
+
+    const write = await app.request("/api/workbench/actions", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        action: "writeText",
+        mountId: "mount_docs",
+        name: "mounted.md",
+        content: "new mount body",
+      }),
+    });
+    expect(write.status).toBe(200);
+    expect(await write.json()).toMatchObject({
+      ok: true,
+      rootId: "mount_docs",
+      mountId: "mount_docs",
+    });
+    expect(fs.readFileSync(path.join(mountRoot, "mounted.md"), "utf-8")).toBe("new mount body");
+  });
+
   it("creates and consumes an execution lease for remote mobile writes", async () => {
     tmpDir = makeTmpDir();
     const workspace = path.join(tmpDir, "workspace");

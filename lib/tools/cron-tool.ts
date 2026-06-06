@@ -14,6 +14,21 @@
 import { Type, StringEnum } from "../pi-sdk/index.ts";
 import { t, getLocale } from "../i18n.ts";
 import { getToolSessionCwd, getToolSessionPath } from "./tool-session.ts";
+import { applyConfirmedAutomationDraft } from "./automation-draft.ts";
+
+function attachDeferredCreate({ promise, cronStore, jobData }: { promise: Promise<any>; cronStore: any; jobData: any }) {
+  void promise.then((result) => {
+    if (result?.action !== "confirmed") return;
+    const confirmedJobData = applyConfirmedAutomationDraft(jobData, result.value);
+    cronStore.addJob(confirmedJobData);
+  }).catch(() => {});
+}
+
+function pendingConfirmationText(label, confirmId) {
+  const base = t("error.cronPendingConfirm", { label });
+  if (!confirmId) return base;
+  return `${base}\nConfirmation ID: ${confirmId}\nDesktop users can confirm from the card. Remote Bridge users can reply /confirm ${confirmId} or /reject ${confirmId}.`;
+}
 
 /**
  * 创建 cron 工具
@@ -24,7 +39,7 @@ export function createCronTool(cronStore: any, {
   autoApprove = false,
   getAutoApprove,
   confirmStore,
-  emitEvent,
+  getConfirmStore,
   getSessionPath,
   getAgentId,
   getSessionCwd,
@@ -34,6 +49,7 @@ export function createCronTool(cronStore: any, {
   autoApprove?: boolean;
   getAutoApprove?: () => boolean;
   confirmStore?: any;
+  getConfirmStore?: () => any;
   emitEvent?: (event: any, sessionPath: any) => void;
   getSessionPath?: () => string;
   getAgentId?: () => string;
@@ -157,28 +173,20 @@ export function createCronTool(cronStore: any, {
             };
           }
 
-          // 阻塞式确认
-          if (confirmStore) {
-            const { confirmId, promise } = confirmStore.create("cron", { jobData }, sessionPath);
-            emitEvent?.({ type: "cron_confirmation", confirmId, jobData }, sessionPath);
-            const result = await promise;
-
-            if (result.action === "confirmed") {
-              const job = cronStore.addJob(jobData);
-              return {
-                content: [{ type: "text", text: t("error.cronConfirmed", { label: job.label, id: job.id }) }],
-                details: { action: "added", job, jobs: cronStore.listJobs(), jobData, confirmed: true },
-              };
-            }
+          // 非阻塞确认：工具立即返回草稿卡片，确认 resolve 后再异步创建任务。
+          const runtimeConfirmStore = getConfirmStore?.() || confirmStore || null;
+          if (runtimeConfirmStore && sessionPath) {
+            const { confirmId, promise } = runtimeConfirmStore.create("cron", { jobData }, sessionPath);
+            attachDeferredCreate({ promise, cronStore, jobData });
             return {
-              content: [{ type: "text", text: result.action === "rejected" ? t("error.cronRejected", { label }) : t("error.cronTimeout", { label }) }],
-              details: { action: "cancelled", jobs: cronStore.listJobs(), jobData, confirmed: false },
+              content: [{ type: "text", text: pendingConfirmationText(label, confirmId) }],
+              details: { action: "pending_add", jobs: cronStore.listJobs(), jobData, confirmId },
             };
           }
 
           // fallback：无 confirmStore 时走旧逻辑
           return {
-            content: [{ type: "text", text: t("error.cronPendingConfirm", { label }) }],
+            content: [{ type: "text", text: pendingConfirmationText(label, null) }],
             details: {
               action: "pending_add",
               jobData,

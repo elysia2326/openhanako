@@ -416,6 +416,7 @@ export class Agent {
     this._cronTool = createCronTool(this._cronStore, {
       getAutoApprove: () => false,
       confirmStore: this._cb?.getConfirmStore?.(),
+      getConfirmStore: () => this._cb?.getConfirmStore?.(),
       emitEvent: (event, sp) => { if (sp) this._cb?.emitEvent?.(event, sp); },
       getSessionPath: () => this._cb?.getCurrentSessionPath?.(),
       getAgentId: () => this.id,
@@ -426,6 +427,7 @@ export class Agent {
     this._automationTool = createAutomationTool(this._cronStore, {
       getAutoApprove: () => false,
       confirmStore: this._cb?.getConfirmStore?.(),
+      getConfirmStore: () => this._cb?.getConfirmStore?.(),
       emitEvent: (event, sp) => { if (sp) this._cb?.emitEvent?.(event, sp); },
       getSessionPath: () => this._cb?.getCurrentSessionPath?.(),
       getAgentId: () => this.id,
