@@ -13,6 +13,11 @@
   "selection": {
     "quoteToChat": "会話に引用"
   },
+  "mermaid": {
+    "viewSource": "ソースを表示",
+    "hideSource": "ソースを隠す",
+    "copySource": "ソースをコピー"
+  },
   "quickChat": {
     "title": "クイックチャット",
     "close": "クイックチャットを閉じる",
@@ -172,10 +177,11 @@
     "archive": "アーカイブ",
     "deletedAgent": {
       "title": "Agent は削除済みです",
-      "description": "このチャットは読み取り専用の履歴として保持されます。続行すると、古いコンテキストを圧縮してから主 Agent で新しいセッションを作成します。",
+      "description": "このチャットは読み取り専用の履歴として保持されます。続行すると、主 Agent で新しいセッションを作成し、古いコンテキストの圧縮を試みます。",
       "continueButton": "主 Agent に移行",
-      "continuing": "圧縮してセッションを作成中",
+      "continuing": "移行し、セッション圧縮を試行中",
       "continueFailed": "移行に失敗しました",
+      "continueCompactionFailed": "移行は完了しましたが、古いコンテキストの圧縮に失敗しました",
       "meta": "読み取り専用"
     },
     "summary": {
@@ -306,6 +312,7 @@
     "selectOtherFolder": "別のフォルダを選択",
     "extraFolders": "追加フォルダ",
     "addExternalFolder": "ワークスペース外のフォルダを追加",
+    "removeStudioWorkspace": "ワークスペースを削除",
     "planMode": "アクセスモード",
     "accessMode": "セッションのアクセスモード",
     "autoMode": "自動承認",
@@ -1544,13 +1551,14 @@
       "heartbeatMaster": "巡回マスタースイッチ",
       "heartbeatMasterDesc": "オフにするとすべてのエージェントの巡回が一時停止します",
       "heartbeatEnabled": "巡回モード",
+      "heartbeatOperationalNotice": "オンにすると、アシスタントはバックグラウンドで操作可能な状態になり、ワークスペースファイルの読み書き、ツール呼び出し、予期しないファイルや動作の生成を行う場合があります。自動審査モードと併用してください。審査に通らない操作は拒否されます。",
       "heartbeatOn": "オン",
       "heartbeatOff": "オフ",
       "heartbeatInterval": "巡回間隔",
       "heartbeatUnit": "分",
       "heartbeatDesc": "アシスタントがワークスペースを自動チェックする間隔",
       "automationPermissionMode": "自動化の権限モード",
-      "automationPermissionModeDesc": "バックグラウンド自動化 Agent Run がツール呼び出しを自動審査するか、完全権限で実行するか、読み取り専用にするかを決めます",
+      "automationPermissionModeDesc": "バックグラウンド自動化 Agent Run がツール呼び出しを自動審査するか、完全権限で実行するか、読み取り専用にするかを決めます。自動審査に通らない操作は拒否されます",
       "homeFolder": "ワークスペース",
       "homeFolderDesc": "新しいチャット、巡回、cron タスクのデフォルト作業ディレクトリ",
       "homeFolderPlaceholder": "未設定（毎回手動で選択）",

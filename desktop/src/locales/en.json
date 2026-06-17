@@ -19,6 +19,11 @@
   "selection": {
     "quoteToChat": "Quote to chat"
   },
+  "mermaid": {
+    "viewSource": "View source",
+    "hideSource": "Hide source",
+    "copySource": "Copy source"
+  },
   "quickChat": {
     "title": "Quick Chat",
     "close": "Close Quick Chat",
@@ -178,10 +183,11 @@
     "archive": "Archive",
     "deletedAgent": {
       "title": "Agent deleted",
-      "description": "This chat is kept as read-only history. Continuing will create a new session on your primary Agent after compacting the old context.",
+      "description": "This chat is kept as read-only history. Continuing will create a new session on your primary Agent and try to compact the old context.",
       "continueButton": "Migrate to primary Agent",
-      "continuing": "Compacting and creating session",
+      "continuing": "Migrating and trying to compact session",
       "continueFailed": "Migration failed",
+      "continueCompactionFailed": "Migration completed, but old context compaction failed",
       "meta": "Read-only"
     },
     "summary": {
@@ -339,6 +345,7 @@
     "selectOtherFolder": "Choose another folder",
     "extraFolders": "Extra folders",
     "addExternalFolder": "Add folder outside workspace",
+    "removeStudioWorkspace": "Remove workspace",
     "planMode": "Access mode",
     "accessMode": "Session access mode",
     "autoMode": "Auto approval",
@@ -1691,13 +1698,14 @@
       "heartbeatMaster": "Heartbeat Master Switch",
       "heartbeatMasterDesc": "When off, all agent heartbeats are paused",
       "heartbeatEnabled": "Patrol mode",
+      "heartbeatOperationalNotice": "When enabled, the assistant can operate in the background and may read or modify workspace files, call tools, and create unexpected files or behavior. Use it with auto-review mode so rejected actions are blocked.",
       "heartbeatOn": "On",
       "heartbeatOff": "Off",
       "heartbeatInterval": "Patrol interval",
       "heartbeatUnit": "minutes",
       "heartbeatDesc": "How often the assistant auto-checks the workspace",
       "automationPermissionMode": "Automation permission mode",
-      "automationPermissionModeDesc": "Controls whether background automation Agent runs auto-review tool calls, run with full access, or stay read-only",
+      "automationPermissionModeDesc": "Controls whether background automation Agent runs auto-review tool calls, runs with full access, or stays read-only; failed auto-review blocks the action",
       "homeFolder": "Workspace",
       "homeFolderDesc": "Default working directory for new chats, patrol and cron tasks",
       "homeFolderPlaceholder": "Not set (choose manually each time)",
