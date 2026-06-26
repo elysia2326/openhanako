@@ -104,9 +104,9 @@ jobs:
         run: |
           $tag = "${{ steps.release.outputs.tag }}"
           if (gh release view $tag 2>$null) {
-            gh release edit $tag --draft=true --prerelease
+            gh release edit $tag --draft=true --prerelease=false
           } else {
-            gh release create $tag --draft --prerelease --title $tag --generate-notes
+            gh release create $tag --draft --title $tag --generate-notes
           }
 
       - name: Upload Windows release assets
@@ -139,4 +139,4 @@ jobs:
         shell: pwsh
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: gh release edit "${{ steps.release.outputs.tag }}" --draft=false --prerelease
+        run: gh release edit "${{ steps.release.outputs.tag }}" --draft=false --prerelease=false

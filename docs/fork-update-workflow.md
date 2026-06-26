@@ -78,7 +78,7 @@ Pushing the tag runs `Fork Windows Release`. The workflow:
 - verifies the update feed still points to `elysia2326/openhanako`;
 - builds the Windows installer;
 - uploads `HanaAgent-*-Windows-x64.exe` and `latest.yml`;
-- publishes the release as a prerelease.
+- publishes the release as the latest stable GitHub Release.
 
 After the workflow completes, run:
 

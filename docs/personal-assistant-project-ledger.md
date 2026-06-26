@@ -760,3 +760,4 @@ Fork 发布链路维护记录：
 - 新增发布前校验脚本：`node scripts/verify-fork-release.mjs`，检查 tag 与 package version 一致，并确认更新源仍指向 `elysia2326/openhanako`。
 - 发布规则写入 `docs/fork-update-workflow.md`：tag 必须匹配版本号，例如 `v0.345.7` 对应 `package.json.version = 0.345.7`；推送 tag 后 GitHub Actions 生成 Windows 安装器与 `latest.yml`。
 - 该链路优先解决 Windows 自动更新闭环；macOS/Linux 仍可沿用原 `build.yml`，但 fork 若缺 macOS 签名 secrets，不建议先走全平台发布。
+- 2026-06-26 18:58：`v0.345.7` 已从 prerelease 改为正式 GitHub Release；`Fork Windows Release` 工作流同步改为发布 stable release，确保 `/releases/latest` 和 electron-updater 可读取。
