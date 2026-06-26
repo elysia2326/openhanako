@@ -750,3 +750,13 @@ npm run check:update-health:remote
 - `npx electron-builder --dir`：PASS，并确认 afterPack 输出写入 `dist\win-unpacked\resources\app-update.yml`。
 - `npm run check:update-health`：PASS=12 WARN=0 FAIL=0。
 - `npm run check:update-health:remote`：PASS=12 WARN=1 FAIL=0；唯一警告是 `https://api.github.com/repos/elysia2326/openhanako/releases/latest` 目前没有可读取的 latest release。含义：本机和源码已经指向用户 fork，但线上自动更新真正可用前，需要在 `elysia2326/openhanako` 发布 GitHub Release，并包含 electron-updater 需要的 `latest.yml` 与 Windows 安装器资产。
+
+### 2026-06-26 18:45
+
+Fork 发布链路维护记录：
+
+- 新增 Windows-only fork release 工作流：`.github/workflows/fork-windows-release.yml`。
+- 新增版本同步脚本：`node scripts/bump-hana-version.mjs <semver>`，同步 `package.json` 与 `package-lock.json` 的版本。
+- 新增发布前校验脚本：`node scripts/verify-fork-release.mjs`，检查 tag 与 package version 一致，并确认更新源仍指向 `elysia2326/openhanako`。
+- 发布规则写入 `docs/fork-update-workflow.md`：tag 必须匹配版本号，例如 `v0.345.7` 对应 `package.json.version = 0.345.7`；推送 tag 后 GitHub Actions 生成 Windows 安装器与 `latest.yml`。
+- 该链路优先解决 Windows 自动更新闭环；macOS/Linux 仍可沿用原 `build.yml`，但 fork 若缺 macOS 签名 secrets，不建议先走全平台发布。

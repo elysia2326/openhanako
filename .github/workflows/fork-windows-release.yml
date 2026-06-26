@@ -1,0 +1,142 @@
+name: Fork Windows Release
+
+on:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Release tag, must match package.json version, for example v0.345.7"
+        required: true
+        type: string
+
+permissions:
+  contents: write
+
+concurrency:
+  group: fork-windows-release-${{ github.ref_name || inputs.tag }}
+  cancel-in-progress: false
+
+jobs:
+  release-windows:
+    if: github.repository == 'elysia2326/openhanako'
+    runs-on: windows-latest
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: ${{ github.event_name == 'workflow_dispatch' && inputs.tag || github.ref }}
+
+      - name: Resolve release tag
+        id: release
+        shell: pwsh
+        run: |
+          $tag = if ("${{ github.event_name }}" -eq "workflow_dispatch") { "${{ inputs.tag }}" } else { "${{ github.ref_name }}" }
+          if (-not ($tag -match '^v\d+\.\d+\.\d+')) {
+            throw "Release tag must look like v0.345.7. Got: $tag"
+          }
+          "tag=$tag" >> $env:GITHUB_OUTPUT
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "24.15.0"
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Verify fork release invariants
+        shell: pwsh
+        env:
+          GITHUB_REF_NAME: ${{ steps.release.outputs.tag }}
+        run: node scripts/verify-fork-release.mjs
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Run HanaAgent quality harness
+        run: node scripts/hana-agent-quality-harness.mjs --stage all
+
+      - name: Generate Windows icon
+        run: npm run generate:windows-icon
+
+      - name: Download and prune PortableGit
+        run: node scripts/download-git-portable.js
+
+      - name: Smoke-test PortableGit
+        run: node scripts/smoke-git-portable.mjs vendor/git-portable
+
+      - name: Build Windows sandbox helper
+        run: npm run build:windows-sandbox-helper
+
+      - name: Build client bundles
+        run: npm run build:client
+
+      - name: Build server bundle
+        run: npm run build:server
+
+      - name: Build Windows installer
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          HANAKO_UPDATE_OWNER: elysia2326
+          HANAKO_UPDATE_REPO: openhanako
+        run: npx electron-builder --win nsis --publish never
+
+      - name: Verify packaged update metadata
+        shell: pwsh
+        run: |
+          $config = Get-Content -Raw "dist\win-unpacked\resources\app-update.yml"
+          if ($config -notmatch "owner:\s*elysia2326" -or $config -notmatch "repo:\s*openhanako") {
+            throw "Packaged app-update.yml does not point to elysia2326/openhanako"
+          }
+          if (-not (Test-Path "dist\latest.yml")) {
+            throw "dist\latest.yml was not generated"
+          }
+
+      - name: Create draft release
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          $tag = "${{ steps.release.outputs.tag }}"
+          if (gh release view $tag 2>$null) {
+            gh release edit $tag --draft=true --prerelease
+          } else {
+            gh release create $tag --draft --prerelease --title $tag --generate-notes
+          }
+
+      - name: Upload Windows release assets
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          $tag = "${{ steps.release.outputs.tag }}"
+          $installer = Get-ChildItem dist -Filter "HanaAgent-*-Windows-x64.exe" | Select-Object -First 1
+          if (-not $installer) { throw "Windows installer not found" }
+          gh release upload $tag $installer.FullName --clobber
+          gh release upload $tag "dist\latest.yml" --clobber
+
+      - name: Verify release assets
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          $tag = "${{ steps.release.outputs.tag }}"
+          $assets = gh release view $tag --json assets --jq ".assets[].name"
+          $assets | Write-Host
+          if (-not ($assets -contains "latest.yml")) {
+            throw "latest.yml missing from release"
+          }
+          if (-not ($assets | Where-Object { $_ -match '^HanaAgent-.*-Windows-x64\.exe$' })) {
+            throw "Windows installer missing from release"
+          }
+
+      - name: Publish release
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: gh release edit "${{ steps.release.outputs.tag }}" --draft=false --prerelease
