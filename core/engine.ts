@@ -278,6 +278,7 @@ export class HanaEngine {
         if (!studioId) throw new Error("runtime studioId unavailable");
         return studioId;
       },
+      getPrimaryAgentId: () => this.currentAgentId || null,
     });
     this._sessionFiles = new SessionFileRegistry({
       managedCacheRoot: path.join(hanakoHome, "session-files"),

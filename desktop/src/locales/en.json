@@ -742,7 +742,22 @@
     "automation": {
       "running": "🤖 {name} is dispatching a shortcut",
       "done": "🤖 Shortcut completed",
-      "failed": "🤖 Shortcut execution failed"
+      "failed": "🤖 Shortcut execution failed",
+      "actions": {
+        "runNow": "Run now",
+        "viewLogs": "View logs",
+        "openOutput": "Open output",
+        "fusionOnce": "Review this run"
+      },
+      "logs": {
+        "title": "Automation run logs",
+        "recent": "Recent runs",
+        "loading": "Loading run logs...",
+        "empty": "No run records yet"
+      },
+      "fusion": {
+        "enabled": "Fusion review enabled"
+      }
     },
     "computer": {
       "running": "🖥️ {name} is controlling your screen",
@@ -2290,6 +2305,21 @@
     "promptRequired": "Write what the Agent should do before enabling this automation.",
     "createFailed": "Failed to create automation",
     "agentRequired": "Choose an Agent first",
+    "actions": {
+      "runNow": "Run now",
+      "viewLogs": "View logs",
+      "openOutput": "Open output",
+      "fusionOnce": "Review this run"
+    },
+    "logs": {
+      "title": "Automation run logs",
+      "recent": "Recent runs",
+      "loading": "Loading run logs...",
+      "empty": "No run records yet"
+    },
+    "fusion": {
+      "enabled": "Fusion review enabled"
+    },
     "field": {
       "label": "Name",
       "agent": "Agent",

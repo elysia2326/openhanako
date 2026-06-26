@@ -178,6 +178,88 @@ describe("CronStore cron 解析", () => {
   });
 });
 
+describe("CronStore personal task metadata", () => {
+  it("preserves personalTask and modelPolicyKey on add, import, load, and update", () => {
+    const { jobsPath, runsDir } = makeTmpPaths();
+    const store = new CronStore(jobsPath, runsDir);
+
+    const personalTask = {
+      key: "github_digest",
+      source: "codex_import",
+      codexTitle: "GitHub整理",
+      importedAt: "2026-06-25T00:00:00.000Z",
+      outputPath: "D:\\obsidian\\GitHub整理.md",
+    };
+    const job = store.addJob({
+      type: "cron",
+      schedule: "0 9 * * *",
+      prompt: "personal task",
+      personalTask,
+      modelPolicyKey: "automation_cheap",
+    } as any);
+
+    expect(job.personalTask).toEqual(personalTask);
+    expect(job.modelPolicyKey).toBe("automation_cheap");
+
+    const reloaded = new CronStore(jobsPath, runsDir);
+    expect(reloaded.getJob(job.id).personalTask).toEqual(personalTask);
+    expect(reloaded.getJob(job.id).modelPolicyKey).toBe("automation_cheap");
+
+    const updated = reloaded.updateJob(job.id, {
+      personalTask: { ...personalTask, source: "hana_template" },
+      modelPolicyKey: "automation_cheap",
+    } as any);
+    expect(updated.personalTask.source).toBe("hana_template");
+
+    const imported = reloaded.addImportedJob({
+      type: "cron",
+      schedule: "0 10 * * *",
+      prompt: "imported personal task",
+      personalTask: { ...personalTask, key: "digital_government_research" },
+      modelPolicyKey: "automation_cheap",
+    } as any);
+    expect(imported.personalTask.key).toBe("digital_government_research");
+    expect(imported.modelPolicyKey).toBe("automation_cheap");
+  });
+
+  it("persists fusion config on add, import, load, and update", () => {
+    const { jobsPath, runsDir } = makeTmpPaths();
+    const store = new CronStore(jobsPath, runsDir);
+
+    const fusion = {
+      enabled: true,
+      importance: "important",
+      reviewerPolicies: ["automation_cheap", "daily"],
+      judgePolicy: "fusion_judge",
+      finalizerPolicy: "fusion_finalizer",
+    };
+    const job = store.addJob({
+      type: "cron",
+      schedule: "0 9 * * *",
+      prompt: "fusion task",
+      fusion,
+    } as any);
+
+    expect(job.fusion).toEqual(fusion);
+
+    const reloaded = new CronStore(jobsPath, runsDir);
+    expect(reloaded.getJob(job.id).fusion).toEqual(fusion);
+
+    const updated = reloaded.updateJob(job.id, {
+      fusion: { enabled: false, importance: "normal", reviewerPolicies: ["hard"] },
+    } as any);
+    expect(updated.fusion).toEqual({ enabled: false, importance: "normal", reviewerPolicies: ["hard"] });
+
+    const imported = reloaded.addImportedJob({
+      type: "cron",
+      schedule: "0 10 * * *",
+      prompt: "imported fusion task",
+      fusion: { enabledOnce: true, importance: "critical" },
+    } as any);
+    expect(imported.fusion).toEqual({ enabledOnce: true, importance: "critical" });
+  });
+});
+
 describe("CronStore _calcNextRun", () => {
   it("every 类型：返回 from + ms", () => {
     const store = makeTmpStore();

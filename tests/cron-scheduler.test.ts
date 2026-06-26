@@ -124,6 +124,73 @@ describe("cron-scheduler", () => {
     expect(done).toEqual([{ id: "job_2", result: { status: "error", error: "boom" } }]);
   });
 
+  it("scheduled error run history redacts bearer tokens and api keys before storage", async () => {
+    vi.spyOn(console, "log").mockImplementation(() => {});
+    vi.spyOn(console, "error").mockImplementation(() => {});
+
+    const job = {
+      id: "job_secret_error",
+      label: "失败脱敏任务",
+      enabled: true,
+      nextRunAt: new Date(Date.now() - 1000).toISOString(),
+    };
+    const { store, calls } = createStore(job);
+    const scheduler = createCronScheduler({
+      cronStore: store,
+      executeJob: async () => {
+        throw new Error("Authorization: Bearer abc.def+/tail== sk-1234567890abcdef");
+      },
+    } as any);
+
+    await scheduler.checkJobs();
+
+    expect(calls.runs[0].run).toEqual(expect.objectContaining({
+      status: "error",
+      error: "Authorization: Bearer [redacted] [redacted]",
+    }));
+  });
+
+  it("scheduled error observable outputs redact common secrets", async () => {
+    vi.spyOn(console, "log").mockImplementation(() => {});
+    const consoleError = vi.spyOn(console, "error").mockImplementation(() => {});
+
+    const job = {
+      id: "job_secret_observable",
+      label: "可观察脱敏任务",
+      enabled: true,
+      nextRunAt: new Date(Date.now() - 1000).toISOString(),
+    };
+    const { store, calls } = createStore(job);
+    const done = [];
+    const secretMessage = [
+      "Authorization: Bearer abc.def+/tail==",
+      "api_key: gsk_1234567890abcdefghijklmnopqrst",
+      "client_secret=client-secret-value",
+      "https://example.test/callback?token=url-token-value",
+    ].join(" ");
+    const scheduler = createCronScheduler({
+      cronStore: store,
+      executeJob: async () => {
+        throw new Error(secretMessage);
+      },
+      onJobDone: (j, result) => done.push({ id: j.id, result }),
+    } as any);
+
+    await scheduler.checkJobs();
+
+    const observed = JSON.stringify({
+      run: calls.runs[0].run,
+      done,
+      consoleError: consoleError.mock.calls,
+    });
+    expect(observed).not.toContain("abc.def+/tail==");
+    expect(observed).not.toContain("gsk_1234567890abcdefghijklmnopqrst");
+    expect(observed).not.toContain("client-secret-value");
+    expect(observed).not.toContain("url-token-value");
+    expect(calls.runs[0].run.error).toContain("Authorization: Bearer [redacted]");
+    expect(done[0].result.error).toContain("api_key=[redacted]");
+  });
+
   it("executeJob 抛 skipped 错误时记录 skipped，不推进 nextRunAt", async () => {
     vi.spyOn(console, "log").mockImplementation(() => {});
     vi.spyOn(console, "error").mockImplementation(() => {});

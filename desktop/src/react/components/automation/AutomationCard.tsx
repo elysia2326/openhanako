@@ -18,6 +18,7 @@ import {
   storedScheduleFromDraft,
   type ScheduleDraft,
 } from './schedule-draft';
+import { AutomationRunActions } from './AutomationRunActions';
 import styles from './AutomationPanel.module.css';
 
 function Chevron({ open }: { open: boolean }) {
@@ -40,6 +41,12 @@ export function AutomationCard({
   onToggleEnabled,
   onRemove,
   onUpdate,
+  fusionOnce,
+  busy = false,
+  onRunNow,
+  onShowLogs,
+  onOpenOutput,
+  onFusionOnceChange,
 }: {
   job: CronJob;
   availableModels: ModelOption[];
@@ -48,6 +55,12 @@ export function AutomationCard({
   onToggleEnabled: (id: string) => void;
   onRemove: (id: string) => void;
   onUpdate: (id: string, fields: Record<string, unknown>) => Promise<void> | void;
+  fusionOnce: boolean;
+  busy?: boolean;
+  onRunNow: (id: string, options: { fusionOnce: boolean }) => Promise<void> | void;
+  onShowLogs: (id: string) => void;
+  onOpenOutput: (path: string) => void;
+  onFusionOnceChange: (jobId: string, enabled: boolean) => void;
 }) {
   const t = window.t ?? ((p: string) => p);
   const agents = useStore(s => s.agents);
@@ -178,6 +191,16 @@ export function AutomationCard({
               />
             </label>
           ) : null}
+          <AutomationRunActions
+            jobId={job.id}
+            outputPath={job.lastOutputPath || null}
+            fusionOnce={fusionOnce}
+            busy={busy}
+            onRunNow={onRunNow}
+            onShowLogs={onShowLogs}
+            onOpenOutput={onOpenOutput}
+            onFusionOnceChange={(enabled) => onFusionOnceChange(job.id, enabled)}
+          />
           <div className={styles.actions}>
             <button className={styles.textButton} type="button" disabled={!dirty} onClick={save}>{t('common.confirm')}</button>
             <button className={`${styles.textButton} ${styles.dangerButton}`} type="button" onClick={() => onRemove(job.id)}>{t('automation.delete')}</button>

@@ -1,8 +1,9 @@
 import fs from "fs";
 import os from "os";
 import path from "path";
-import { afterEach, describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { StudioCronService } from "../core/studio-cron-service.ts";
+import * as personalTaskSeed from "../lib/desk/personal-tasks/personal-task-seed.ts";
 
 function makeRoot() {
   return fs.mkdtempSync(path.join(os.tmpdir(), "hana-studio-cron-"));
@@ -30,6 +31,15 @@ function writeStudioJobs(root, studioId, jobs) {
   fs.writeFileSync(
     path.join(deskDir, "cron-jobs.json"),
     JSON.stringify({ jobs, nextNum: jobs.length + 1 }, null, 2) + "\n",
+    "utf-8",
+  );
+}
+
+function writeCodexAutomations(root, automations) {
+  fs.mkdirSync(root, { recursive: true });
+  fs.writeFileSync(
+    path.join(root, "automations.json"),
+    JSON.stringify({ automations }, null, 2) + "\n",
     "utf-8",
   );
 }
@@ -84,7 +94,9 @@ describe("StudioCronService", () => {
       getStudioId: () => "studio-main",
     });
 
-    const jobs = service.listJobs().sort((a, b) => a.actorAgentId.localeCompare(b.actorAgentId));
+    const jobs = service.listJobs()
+      .filter((job) => !job.personalTask)
+      .sort((a, b) => a.actorAgentId.localeCompare(b.actorAgentId));
 
     expect(jobs).toHaveLength(2);
     expect(new Set(jobs.map((job) => job.id)).size).toBe(2);
@@ -158,11 +170,11 @@ describe("StudioCronService", () => {
 
     const opts = { hanakoHome: root, agentsDir, getStudioId: () => "studio-main" };
     const first = new StudioCronService(opts);
-    expect(first.listJobs()).toHaveLength(1);
-    expect(first.listJobs()).toHaveLength(1);
+    expect(first.listJobs().filter((job) => !job.personalTask)).toHaveLength(1);
+    expect(first.listJobs().filter((job) => !job.personalTask)).toHaveLength(1);
 
     const second = new StudioCronService(opts);
-    expect(second.listJobs()).toHaveLength(1);
+    expect(second.listJobs().filter((job) => !job.personalTask)).toHaveLength(1);
   });
 
   it("does not re-import a deleted legacy job after the legacy store was reconciled", () => {
@@ -188,7 +200,7 @@ describe("StudioCronService", () => {
 
     const opts = { hanakoHome: root, agentsDir, getStudioId: () => "studio-main" };
     const first = new StudioCronService(opts);
-    const imported = first.listJobs();
+    const imported = first.listJobs().filter((job) => !job.personalTask);
     expect(imported).toHaveLength(1);
     expect(first.getRunHistory(imported[0].id, 10)).toEqual([
       expect.objectContaining({
@@ -197,10 +209,10 @@ describe("StudioCronService", () => {
       }),
     ]);
     expect(first.removeJob(imported[0].id)).toBe(true);
-    expect(first.listJobs()).toHaveLength(0);
+    expect(first.listJobs().filter((job) => !job.personalTask)).toHaveLength(0);
 
     const second = new StudioCronService(opts);
-    expect(second.listJobs()).toHaveLength(0);
+    expect(second.listJobs().filter((job) => !job.personalTask)).toHaveLength(0);
 
     const legacyData = JSON.parse(
       fs.readFileSync(path.join(agentsDir, "agent-a", "desk", "cron-jobs.json"), "utf-8"),
@@ -246,17 +258,17 @@ describe("StudioCronService", () => {
       agentsDir,
       getStudioId: () => "studio-main",
     });
-    const jobs = service.listJobs();
+    const jobs = service.listJobs().filter((job) => !job.personalTask);
     expect(jobs).toHaveLength(1);
     expect(service.removeJob("studio_job_1")).toBe(true);
-    expect(service.listJobs()).toHaveLength(0);
+    expect(service.listJobs().filter((job) => !job.personalTask)).toHaveLength(0);
 
     const restarted = new StudioCronService({
       hanakoHome: root,
       agentsDir,
       getStudioId: () => "studio-main",
     });
-    expect(restarted.listJobs()).toHaveLength(0);
+    expect(restarted.listJobs().filter((job) => !job.personalTask)).toHaveLength(0);
   });
 
   it("requires new jobs to carry actorAgentId and executionContext", () => {
@@ -281,5 +293,117 @@ describe("StudioCronService", () => {
       prompt: "missing context",
       actorAgentId: "agent-a",
     })).toThrow("cron job requires executionContext");
+  });
+
+  it("seeds native personal tasks into the studio cron store once", () => {
+    const root = makeRoot();
+    roots.push(root);
+    const codexRoot = path.join(root, "codex");
+    writeCodexAutomations(codexRoot, [
+      {
+        title: "GitHub整理",
+        scheduleType: "cron",
+        schedule: "0 9 * * *",
+        prompt: "github imported prompt",
+        cwd: "D:\\hana agent\\openhanako",
+        workspaceFolders: ["D:\\hana agent\\openhanako"],
+        outputPath: "D:\\obsidian\\GitHub整理.md",
+        cachePolicy: { kind: "read_write" },
+        failurePolicy: { kind: "retry" },
+      },
+      {
+        title: "数字政府资料查找并整理",
+        scheduleType: "cron",
+        schedule: "0 10 * * *",
+        prompt: "digital government imported prompt",
+        cwd: "D:\\hana agent\\openhanako",
+        workspaceFolders: ["D:\\hana agent\\openhanako"],
+        outputPath: "D:\\obsidian\\数字政府资料查找并整理.md",
+        cachePolicy: { kind: "read_only" },
+        failurePolicy: { kind: "abort" },
+      },
+    ]);
+
+    const opts = {
+      hanakoHome: root,
+      agentsDir: path.join(root, "agents"),
+      getStudioId: () => "studio-main",
+      getPrimaryAgentId: () => "agent-a",
+      codexAutomationRoot: codexRoot,
+    };
+    const first = new StudioCronService(opts as any);
+    expect(first.listJobs().filter((job) => job.personalTask)).toHaveLength(2);
+    expect(first.listJobs().filter((job) => job.personalTask)).toHaveLength(2);
+
+    const second = new StudioCronService(opts as any);
+    const jobs = second.listJobs().filter((job) => job.personalTask);
+    expect(jobs).toHaveLength(2);
+    expect(jobs.every((job) => job.enabled)).toBe(true);
+    expect(jobs.every((job) => job.modelPolicyKey === "automation_cheap")).toBe(true);
+  });
+
+  it("does not reseed personal tasks on repeated store reads for the same studio", () => {
+    const root = makeRoot();
+    roots.push(root);
+    const codexRoot = path.join(root, "codex");
+    writeCodexAutomations(codexRoot, [
+      {
+        title: "GitHub整理",
+        scheduleType: "cron",
+        schedule: "0 9 * * *",
+        prompt: "github imported prompt",
+        cwd: "D:\\hana agent\\openhanako",
+        workspaceFolders: ["D:\\hana agent\\openhanako"],
+        outputPath: "D:\\obsidian\\GitHub整理.md",
+      },
+      {
+        title: "数字政府资料查找并整理",
+        scheduleType: "cron",
+        schedule: "0 10 * * *",
+        prompt: "digital government imported prompt",
+        cwd: "D:\\hana agent\\openhanako",
+        workspaceFolders: ["D:\\hana agent\\openhanako"],
+        outputPath: "D:\\obsidian\\数字政府资料查找并整理.md",
+      },
+    ]);
+
+    const seedSpy = vi.spyOn(personalTaskSeed, "seedPersonalTasks");
+    const logSpy = vi.spyOn(console, "log").mockImplementation(() => {});
+    const opts = {
+      hanakoHome: root,
+      agentsDir: path.join(root, "agents"),
+      getStudioId: () => "studio-main",
+      getPrimaryAgentId: () => "agent-a",
+      codexAutomationRoot: codexRoot,
+    };
+
+    try {
+      const service = new StudioCronService(opts as any);
+      expect(service.listJobs().filter((job) => job.personalTask)).toHaveLength(2);
+      expect(service.listJobs().filter((job) => job.personalTask)).toHaveLength(2);
+      expect(service.getJob(service.listJobs().find((job) => job.personalTask)?.id)).toBeTruthy();
+      expect(seedSpy).toHaveBeenCalledTimes(1);
+      expect(logSpy).toHaveBeenCalledTimes(1);
+    } finally {
+      seedSpy.mockRestore();
+      logSpy.mockRestore();
+    }
+  });
+
+  it("does not enable seeded personal tasks when the primary agent id is unavailable", () => {
+    const root = makeRoot();
+    roots.push(root);
+    const service = new StudioCronService({
+      hanakoHome: root,
+      agentsDir: path.join(root, "agents"),
+      getStudioId: () => "studio-main",
+      getPrimaryAgentId: () => null,
+      codexAutomationRoot: path.join(root, "missing-codex"),
+    } as any);
+
+    const jobs = service.listJobs().filter((job) => job.personalTask);
+    expect(jobs).toHaveLength(2);
+    expect(jobs.every((job) => job.enabled === false)).toBe(true);
+    expect(jobs.every((job) => job.personalTask.source === "hana_template")).toBe(true);
   });
 });

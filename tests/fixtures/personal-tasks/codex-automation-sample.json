@@ -1,0 +1,37 @@
+[
+  {
+    "title": "GitHub整理",
+    "scheduleType": "cron",
+    "schedule": "0 9 * * *",
+    "prompt": "从 Codex 导入的 GitHub 整理 prompt",
+    "cwd": "D:\\hana agent\\openhanako",
+    "workspaceFolders": [
+      "D:\\hana agent\\openhanako"
+    ],
+    "outputPath": "D:\\obsidian\\GitHub整理.md",
+    "cachePolicy": {
+      "kind": "read_write"
+    },
+    "failurePolicy": {
+      "kind": "retry",
+      "maxAttempts": 3
+    }
+  },
+  {
+    "title": "数字政府资料查找并整理",
+    "scheduleType": "cron",
+    "schedule": "0 10 * * *",
+    "prompt": "从 Codex 导入的数字政府资料查找并整理 prompt",
+    "cwd": "D:\\hana agent\\openhanako",
+    "workspaceFolders": [
+      "D:\\hana agent\\openhanako"
+    ],
+    "outputPath": "D:\\obsidian\\数字政府资料查找并整理.md",
+    "cachePolicy": {
+      "kind": "read_only"
+    },
+    "failurePolicy": {
+      "kind": "abort"
+    }
+  }
+]

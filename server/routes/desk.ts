@@ -31,6 +31,7 @@ import { createRequestContext } from "../http/boundary.ts";
 import { createApiResourceOperationContext, requestIdFromHono } from "../http/resource-operation-context.ts";
 import { MountAwareFileError, MountAwareFileService } from "../../core/mount-aware-file-service.ts";
 import { materializeUploadedSkillPackage } from "../utils/uploaded-skill-package.ts";
+import { normalizeAutomationRun } from "../../lib/desk/automation-runs/run-summary.ts";
 
 /** 安全路径校验：target 必须在 baseDir 内部（解析 symlink 后比较） */
 function isInsidePath(target, baseDir) {
@@ -137,6 +138,25 @@ function normalizeRouteCreatedBy(value) {
     return JSON.parse(JSON.stringify(value));
   }
   return { kind: "user" };
+}
+
+function normalizeRouteFusion(value) {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return null;
+  const out: any = {};
+  if (typeof value.enabled === "boolean") out.enabled = value.enabled;
+  if (typeof value.enabledOnce === "boolean") out.enabledOnce = value.enabledOnce;
+  if (value.importance === "normal" || value.importance === "important" || value.importance === "critical") {
+    out.importance = value.importance;
+  }
+  if (Array.isArray(value.reviewerPolicies)) {
+    const reviewerPolicies = value.reviewerPolicies.filter((item) =>
+      item === "automation_cheap" || item === "daily" || item === "hard"
+    );
+    if (reviewerPolicies.length > 0) out.reviewerPolicies = reviewerPolicies;
+  }
+  if (value.judgePolicy === "fusion_judge") out.judgePolicy = value.judgePolicy;
+  if (value.finalizerPolicy === "fusion_finalizer") out.finalizerPolicy = value.finalizerPolicy;
+  return Object.keys(out).length > 0 ? out : null;
 }
 
 function normalizeRouteEverySchedule(schedule) {
@@ -882,6 +902,17 @@ export function createDeskRoute(engine, hub) {
     return c.json({ jobs: store.listJobs() });
   });
 
+  /** 读取 cron 运行历史 */
+  route.get("/desk/cron/:id/runs", async (c) => {
+    const store = getStudioCronStore(engine);
+    if (!store) return deskRouteError(c, "cron_store_unavailable", "Desk not initialized", 503);
+    const id = c.req.param("id");
+    const limitRaw = Number(c.req.query("limit") || 20);
+    const limit = Number.isFinite(limitRaw) ? Math.min(Math.max(Math.trunc(limitRaw), 1), 100) : 20;
+    const runs = store.getRunHistory(id, limit).map((run) => normalizeAutomationRun(id, run));
+    return c.json({ runs });
+  });
+
   /** 操作 cron 任务 */
   route.post("/desk/cron", async (c) => {
     const store = getStudioCronStore(engine);
@@ -891,6 +922,17 @@ export function createDeskRoute(engine, hub) {
     const { action, ...params } = body;
 
     switch (action) {
+      case "runNow": {
+        if (!params.id) return c.json({ error: "id required" }, 400);
+        const job = store.getJob(params.id);
+        if (!job) return c.json({ error: "not found" }, 404);
+        if (typeof hub?.scheduler?.runCronJobNow !== "function") {
+          return deskRouteError(c, "scheduler_unavailable", "Scheduler not initialized", 503);
+        }
+        const run = await hub.scheduler.runCronJobNow(params.id, { fusionOnce: params.fusionOnce === true });
+        return c.json({ ok: true, run });
+      }
+
       case "add": {
         const type = params.scheduleType || params.type;
         const executor = normalizeRouteExecutor(params.executor);
@@ -932,6 +974,7 @@ export function createDeskRoute(engine, hub) {
           executionContext,
           executor,
           createdBy: normalizeRouteCreatedBy(params.createdBy),
+          fusion: normalizeRouteFusion(params.fusion),
           enabled,
         });
         return c.json({ ok: true, job, jobs: store.listJobs() });
@@ -982,6 +1025,9 @@ export function createDeskRoute(engine, hub) {
             : existingJob.actorAgentId;
           fields.executionContext = normalizeRouteExecutionContext(fields.executionContext, actorAgentId);
           if (!fields.executionContext) return c.json({ error: "executionContext required" }, 400);
+        }
+        if (Object.prototype.hasOwnProperty.call(fields, "fusion")) {
+          fields.fusion = normalizeRouteFusion(fields.fusion);
         }
         const VALID_TYPES = new Set(["at", "every", "cron"]);
         if (fields.type !== undefined && !VALID_TYPES.has(fields.type)) {

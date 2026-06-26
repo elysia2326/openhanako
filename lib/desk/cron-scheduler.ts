@@ -9,6 +9,7 @@
  */
 
 import { debugLog, createModuleLogger } from "../debug-log.ts";
+import { redactAutomationRunText, sanitizeAutomationRunForLog } from "./automation-runs/run-summary.ts";
 
 const log = createModuleLogger("cron");
 export const DEFAULT_CRON_EXECUTION_TIMEOUT_MS = 20 * 60 * 1000;
@@ -94,14 +95,14 @@ export function createCronScheduler({ cronStore, executeJob, abortJob, onJobDone
           const finishedAt = new Date().toISOString();
 
           // 记录成功
-          cronStore.logRun(job.id, {
+          cronStore.logRun(job.id, sanitizeAutomationRunForLog({
             status: "success",
             startedAt,
             finishedAt,
             ...(executionResult && typeof executionResult === "object" && !Array.isArray(executionResult)
               ? executionResult
               : {}),
-          });
+          }));
           cronStore.markRun(job.id, { success: true });
           debugLog()?.log("cron", `job success ${job.id}`);
 
@@ -116,17 +117,18 @@ export function createCronScheduler({ cronStore, executeJob, abortJob, onJobDone
 
           if (err.skipped) {
             // 跳过：不推进 nextRunAt，下次 check 时重试
-            cronStore.logRun(job.id, { status: "skipped", startedAt, finishedAt });
+            cronStore.logRun(job.id, sanitizeAutomationRunForLog({ status: "skipped", startedAt, finishedAt }));
             debugLog()?.log("cron", `job skipped ${job.id}: ${err.message}`);
             onJobDone?.(job, { status: "skipped" });
           } else {
             // 真正失败：记录并推进 nextRunAt（含退避）
-            cronStore.logRun(job.id, { status: "error", startedAt, finishedAt, error: err.message });
+            const safeError = redactAutomationRunText(err.message) || "unknown error";
+            cronStore.logRun(job.id, sanitizeAutomationRunForLog({ status: "error", startedAt, finishedAt, error: safeError }));
             cronStore.markRun(job.id, { success: false });
 
-            log.error(`任务失败 ${job.id}: ${err.message}`);
-            debugLog()?.error("cron", `job failed ${job.id}: ${err.message}`);
-            onJobDone?.(job, { status: "error", error: err.message });
+            log.error(`任务失败 ${job.id}: ${safeError}`);
+            debugLog()?.error("cron", `job failed ${job.id}: ${safeError}`);
+            onJobDone?.(job, { status: "error", error: safeError });
           }
         }
       }

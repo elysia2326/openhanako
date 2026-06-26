@@ -704,7 +704,22 @@
     "automation": {
       "running": "🤖 {name}이(가) 단축어를 실행 중이에요",
       "done": "🤖 단축어 완료",
-      "failed": "🤖 단축어 실행 실패"
+      "failed": "🤖 단축어 실행 실패",
+      "actions": {
+        "runNow": "Run now",
+        "viewLogs": "View logs",
+        "openOutput": "Open output",
+        "fusionOnce": "Review this run"
+      },
+      "logs": {
+        "title": "Automation run logs",
+        "recent": "Recent runs",
+        "loading": "Loading run logs...",
+        "empty": "No run records yet"
+      },
+      "fusion": {
+        "enabled": "Fusion review enabled"
+      }
     },
     "computer": {
       "running": "🖥️ {name}이(가) 화면을 조작하고 있어요",
@@ -2062,6 +2077,21 @@
     "promptRequired": "이 자동화를 사용하기 전에 Agent가 할 일을 먼저 적어 주세요.",
     "createFailed": "자동화 생성 실패",
     "agentRequired": "먼저 Agent를 선택해 주세요",
+    "actions": {
+      "runNow": "지금 실행",
+      "viewLogs": "로그 보기",
+      "openOutput": "출력 열기",
+      "fusionOnce": "이번만 복기"
+    },
+    "logs": {
+      "title": "자동화 실행 로그",
+      "recent": "최근 실행",
+      "loading": "실행 로그를 불러오는 중...",
+      "empty": "아직 실행 기록이 없어요"
+    },
+    "fusion": {
+      "enabled": "Fusion 복기가 켜져 있어요"
+    },
     "field": {
       "label": "이름",
       "agent": "Agent",

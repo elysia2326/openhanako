@@ -18,6 +18,12 @@ import { createFreshCompactDailyScheduler } from "../lib/fresh-compact/daily-sch
 import { FreshCompactMaintainer } from "./fresh-compact-maintainer.ts";
 import { createModuleLogger } from "../lib/debug-log.ts";
 import { WORKSPACE_OUTPUT_ROOT_DIRNAME } from "../shared/workspace-output.ts";
+import { resolveAutomationOutputPath } from "../lib/desk/automation-runs/run-output-resolver.ts";
+import { sanitizeAutomationRunForLog } from "../lib/desk/automation-runs/run-summary.ts";
+import { resolveAutomationModel } from "../lib/desk/model-routing/model-routing-policy.ts";
+import { automationModelRoutingStore } from "../lib/desk/model-routing/model-routing-store.ts";
+import { runFusionReview } from "../lib/desk/fusion/fusion-runner.ts";
+import { shouldRunFusion } from "../lib/desk/fusion/fusion-types.ts";
 
 const log = createModuleLogger("scheduler");
 const freshCompactLog = createModuleLogger("fresh-compact");
@@ -264,8 +270,41 @@ export class Scheduler {
     if (!actorAgentId) {
       throw new Error(`cron job ${job.id} missing actorAgentId`);
     }
-    await this._executeCronJobForAgent(actorAgentId, job, executor);
-    return { executorKind: "agent_session" };
+    const result = await this._executeCronJobForAgent(actorAgentId, job, executor);
+    return sanitizeAutomationRunForLog({ executorKind: "agent_session", ...result });
+  }
+
+  async runCronJobNow(jobId, options: any = {}) {
+    const cronStore = this._engine.getStudioCronStore?.();
+    if (!cronStore) throw new Error("cron store unavailable");
+    const job = cronStore.getJob(jobId);
+    if (!job) throw new Error("not found");
+    const startedAt = new Date().toISOString();
+    const runJob = options.fusionOnce
+      ? { ...job, fusion: { ...(job.fusion || {}), enabledOnce: true } }
+      : job;
+    try {
+      const result = await this._executeCronJob(runJob);
+      const finishedAt = new Date().toISOString();
+      cronStore.logRun(job.id, sanitizeAutomationRunForLog({
+        id: result?.id || `manual_${Date.now()}`,
+        status: "success",
+        startedAt,
+        finishedAt,
+        ...result,
+      }));
+      return { ...result, jobId: job.id, status: result?.status || "done" };
+    } catch (err) {
+      const finishedAt = new Date().toISOString();
+      cronStore.logRun(job.id, sanitizeAutomationRunForLog({
+        id: `manual_${Date.now()}`,
+        status: err?.skipped ? "skipped" : "error",
+        startedAt,
+        finishedAt,
+        error: err?.message || String(err),
+      }));
+      throw err;
+    }
   }
 
   /**
@@ -285,7 +324,6 @@ export class Scheduler {
     try {
       const isZh = getLocale().startsWith("zh");
       const promptBody = executor.prompt || job.prompt || "";
-      const model = executor.model || job.model || undefined;
       const prompt = isZh
         ? [
             `[定时任务 ${job.id}: ${job.label}]`,
@@ -303,13 +341,86 @@ export class Scheduler {
             "",
             promptBody,
           ].join("\n");
-      await this._executeActivityForAgent(agentId, prompt, "cron", job.label, {
-        model,
-        signal: ac.signal,
+      let activityResult: any = null;
+      const modelAttempts: any[] = [];
+      let lastError: unknown = null;
+      for (const phase of ["primary", "retry", "fallback"] as const) {
+        try {
+          activityResult = await this._executeCronJobAttempt(agentId, job, executor, prompt, phase, ac.signal, modelAttempts);
+          modelAttempts.push(activityResult.modelDecision);
+          lastError = null;
+          break;
+        } catch (err) {
+          lastError = err;
+          if ((err as any)?.modelDecision) modelAttempts.push((err as any).modelDecision);
+          if (phase === "fallback") throw err;
+        }
+      }
+      if (lastError) throw lastError;
+      let fusion = null;
+      if (shouldRunFusion(job)) {
+        try {
+          fusion = await runFusionReview({
+            engine: this._engine,
+            agentId,
+            job,
+            originalPrompt: promptBody,
+            primaryResult: {
+              summary: activityResult?.summary || null,
+              outputPath: resolveAutomationOutputPath(job, activityResult),
+              sessionPath: activityResult?.sessionPath || null,
+            },
+            signal: ac.signal,
+            persist: path.join(this._engine.agentsDir, agentId, "activity", "automation"),
+          });
+        } catch (err) {
+          fusion = {
+            enabled: true,
+            status: "error",
+            reviewers: [],
+            judge: { model: null, sessionPath: null, summary: null, error: null },
+            finalizer: { model: null, sessionPath: null, summary: null, error: null },
+            judgeSummary: null,
+            finalOutputPath: null,
+            error: err?.message || String(err),
+          };
+        }
+      }
+      return {
+        executorKind: "agent_session",
+        ...activityResult,
+        modelAttempts,
+        outputPath: resolveAutomationOutputPath(job, activityResult),
+        fusion: fusion || activityResult?.fusion || null,
+      };
+    } finally {
+      automationModelRoutingStore.clear(job.id);
+      this._executingJobs.delete(job.id);
+    }
+  }
+
+  async _executeCronJobAttempt(agentId, job, executor, prompt, phase, signal, previousModelAttempts: any[] = []) {
+    const modelDecision = resolveAutomationModel({
+      job,
+      executor,
+      availableModels: this._engine.availableModels || [],
+      phase,
+      previousErrorCount: Number(job.consecutiveErrors || 0) + (phase === "fallback" ? 2 : 0),
+    });
+    const modelAttempts = [...previousModelAttempts, modelDecision];
+    automationModelRoutingStore.record(job.id, modelDecision);
+    try {
+      return await this._executeActivityForAgent(agentId, prompt, "cron", job.label, {
+        model: modelDecision.model || undefined,
+        modelDecision,
+        modelAttempts,
+        recordFailedActivity: phase === "fallback",
+        signal,
         ...this._cronExecutionOptions(job, executor),
       });
-    } finally {
-      this._executingJobs.delete(job.id);
+    } catch (err) {
+      (err as any).modelDecision = modelDecision;
+      throw err;
     }
   }
 
@@ -335,12 +446,14 @@ export class Scheduler {
       reason: type,
     });
     const agentDir = path.join(engine.agentsDir, agentId);
-    const activityDir = path.join(agentDir, "activity");
+    const activityDir = type === "cron"
+      ? path.join(agentDir, "activity", "automation")
+      : path.join(agentDir, "activity");
     const startedAt = Date.now();
     const id = `${type === "heartbeat" ? "hb" : "cron"}_${startedAt}`;
 
     // 所有 agent 统一走 executeIsolated（支持 agentId + signal 参数）
-    const { signal, ...restOpts } = opts;
+    const { signal, modelDecision, modelAttempts, recordFailedActivity = true, ...restOpts } = opts;
     const result = await engine.executeIsolated(prompt, {
       agentId,
       persist: activityDir,
@@ -384,13 +497,17 @@ export class Scheduler {
       sessionFile: typeof sessionPath === "string" ? path.basename(sessionPath) : null,
       status: failed ? "error" : "done",
       error: error || null,
+      modelDecision: modelDecision || null,
+      modelAttempts: Array.isArray(modelAttempts) ? modelAttempts : undefined,
     };
 
     // 写入对应 agent 的 ActivityStore
-    engine.getActivityStore(agentId).add(entry);
+    if (!failed || recordFailedActivity) {
+      engine.getActivityStore(agentId).add(entry);
 
-    // WS 广播
-    this._hub.eventBus.emit({ type: "activity_update", activity: entry }, null);
+      // WS 广播
+      this._hub.eventBus.emit({ type: "activity_update", activity: entry }, null);
+    }
 
     if (failed) {
       const isZhR = getLocale().startsWith("zh");
@@ -400,6 +517,16 @@ export class Scheduler {
     }
 
     engine.emitDevLog(`活动记录: ${entry.summary}`, "heartbeat");
+    return {
+      sessionPath: typeof sessionPath === "string" && sessionPath ? sessionPath : null,
+      sessionFile: typeof sessionPath === "string" && sessionPath ? path.basename(sessionPath) : null,
+      summary: entry.summary,
+      status: entry.status,
+      error: entry.error,
+      modelDecision: modelDecision || null,
+      modelAttempts: Array.isArray(modelAttempts) ? modelAttempts : undefined,
+      fusion: opts.fusion || result?.fusion || null,
+    };
   }
 
 }

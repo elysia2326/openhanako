@@ -525,6 +525,111 @@
     gap: 6px;
 }
 
+.runActions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    align-items: center;
+}
+
+.iconTextButton {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    min-height: 30px;
+}
+
+.fusionToggle {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+}
+
+.runLogPanel {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    border-top: 1px solid rgba(0, 0, 0, 0.045);
+    padding-top: 10px;
+}
+
+.runLogHeader h3 {
+    margin: 0;
+    font-size: 0.72rem;
+    font-weight: 600;
+    color: var(--text);
+}
+
+.runLogList {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    max-height: 220px;
+    overflow: auto;
+}
+
+.runLogItem {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    padding: 8px;
+    border: 1px solid rgba(0, 0, 0, 0.055);
+    border-radius: 6px;
+    background: var(--bg);
+}
+
+.runLogMain {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px 8px;
+    min-width: 0;
+    font-size: 0.68rem;
+}
+
+.runStatus {
+    border: 1px solid rgba(var(--accent-rgb), 0.18);
+    border-radius: var(--radius-sm);
+    padding: 2px 4px;
+    color: var(--accent);
+    font-size: 0.58rem;
+    line-height: 1;
+    white-space: nowrap;
+}
+
+.runLogSummary {
+    min-width: 0;
+    font-size: 0.68rem;
+}
+
+.runLogMeta {
+    margin: 0;
+    color: var(--text-muted);
+    font-size: 0.68rem;
+    line-height: 1.45;
+}
+
+.runLogError {
+    margin: 0;
+    color: var(--danger, #d9534f);
+    font-size: 0.68rem;
+    line-height: 1.45;
+}
+
+.runLogErrorState {
+    color: var(--danger, #d9534f);
+    font-size: 0.68rem;
+    line-height: 1.45;
+    padding: 8px 0;
+}
+
+.runLogEmpty {
+    color: var(--text-muted);
+    font-size: 0.68rem;
+    padding: 8px 0;
+}
+
 .textButton {
     border: 1px solid rgba(var(--accent-rgb), 0.22);
     border-radius: var(--radius-sm);

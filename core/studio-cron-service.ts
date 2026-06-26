@@ -1,6 +1,7 @@
 import fs from "fs";
 import path from "path";
 import { CronStore } from "../lib/desk/cron-store.ts";
+import { seedPersonalTasks } from "../lib/desk/personal-tasks/personal-task-seed.ts";
 import { createModuleLogger } from "../lib/debug-log.ts";
 import { atomicWriteSync } from "../shared/safe-fs.ts";
 
@@ -85,24 +86,33 @@ export class StudioCronService {
   declare _hanakoHome: string;
   declare _agentsDir: string;
   declare _getStudioId: () => string;
+  declare _getPrimaryAgentId: () => string | null;
+  declare _codexAutomationRoot: string;
   declare _store: CronStore;
   declare _storeStudioId: string;
+  declare _personalTasksSeededForStudioId: string | null;
 
   /**
    * @param {object} opts
    * @param {string} opts.hanakoHome
    * @param {string} opts.agentsDir
    * @param {() => string} opts.getStudioId
+   * @param {() => string|null} [opts.getPrimaryAgentId]
+   * @param {string} [opts.codexAutomationRoot]
    */
-  constructor({ hanakoHome, agentsDir, getStudioId }) {
+  constructor({ hanakoHome, agentsDir, getStudioId, getPrimaryAgentId = () => null, codexAutomationRoot = null }) {
     if (!hanakoHome) throw new Error("StudioCronService requires hanakoHome");
     if (!agentsDir) throw new Error("StudioCronService requires agentsDir");
     if (typeof getStudioId !== "function") throw new Error("StudioCronService requires getStudioId");
     this._hanakoHome = hanakoHome;
     this._agentsDir = agentsDir;
     this._getStudioId = getStudioId;
+    this._getPrimaryAgentId = typeof getPrimaryAgentId === "function" ? getPrimaryAgentId : () => null;
+    this._codexAutomationRoot = codexAutomationRoot
+      || (process.platform === "win32" ? "C:\\Users\\23697\\Documents\\Codex" : "");
     this._store = null;
     this._storeStudioId = null;
+    this._personalTasksSeededForStudioId = null;
   }
 
   listJobs() {
@@ -159,9 +169,25 @@ export class StudioCronService {
         { idPrefix: "studio_job" },
       );
       this._storeStudioId = studioId;
+      this._personalTasksSeededForStudioId = null;
     }
     this._importLegacyJobs(this._store, studioId);
+    this._seedPersonalTasksOnce(this._store, studioId);
     return this._store;
+  }
+
+  _seedPersonalTasksOnce(store, studioId) {
+    if (this._personalTasksSeededForStudioId === studioId) return;
+    try {
+      seedPersonalTasks({
+        store,
+        actorAgentId: this._getPrimaryAgentId(),
+        codexRoot: this._codexAutomationRoot,
+      });
+      this._personalTasksSeededForStudioId = studioId;
+    } catch (err) {
+      log.warn(`failed to seed personal tasks: ${err.message}`);
+    }
   }
 
   _importLegacyJobs(store, studioId) {

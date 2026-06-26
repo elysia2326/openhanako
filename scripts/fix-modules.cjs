@@ -17,6 +17,12 @@ const SERVER_NODE_MODULE_REQUIRED_FILES = [
   ...CRITICAL_BUNDLED_EXTERNALS.map((pkg) => `${pkg}/package.json`),
   "better-sqlite3/build/Release/better_sqlite3.node",
 ];
+const UPDATE_FEED = {
+  owner: process.env.HANAKO_UPDATE_OWNER || "elysia2326",
+  repo: process.env.HANAKO_UPDATE_REPO || "openhanako",
+  provider: "github",
+  updaterCacheDirName: "hanako-updater",
+};
 
 function resolveNodeModuleFile(nodeModulesDir, relativePath) {
   return path.join(nodeModulesDir, ...relativePath.split("/"));
@@ -41,6 +47,22 @@ function assertBundledServerNodeModulesReady(nodeModulesDir) {
       `[fix-modules] Packaged server node_modules is incomplete: ${missing.join(", ")}`,
     );
   }
+}
+
+function writeAppUpdateConfig(resourcesDir, opts = {}) {
+  fs.mkdirSync(resourcesDir, { recursive: true });
+  const updateConfigPath = path.join(resourcesDir, "app-update.yml");
+  const content = [
+    `owner: ${UPDATE_FEED.owner}`,
+    `repo: ${UPDATE_FEED.repo}`,
+    `provider: ${UPDATE_FEED.provider}`,
+    `updaterCacheDirName: ${UPDATE_FEED.updaterCacheDirName}`,
+    "",
+  ].join("\n");
+  fs.writeFileSync(updateConfigPath, content, "utf-8");
+
+  const log = typeof opts.log === "function" ? opts.log : console.log;
+  log(`[fix-modules] 写入更新源配置 → ${updateConfigPath}`);
 }
 
 function copyBundledServerNodeModules(serverDir, serverBuildModules, opts = {}) {
@@ -84,6 +106,8 @@ exports.default = async function (context) {
     ? path.join(context.appOutDir, context.packager.appInfo.productFilename + ".app",
         "Contents", "Resources")
     : path.join(context.appOutDir, "resources");
+  writeAppUpdateConfig(resourcesDir);
+
   if (platformName === "mac") {
     const computerUseHelper = path.join(resourcesDir, "computer-use", "macos", "hana-computer-use-helper");
     if (!fs.existsSync(computerUseHelper)) {
@@ -193,3 +217,4 @@ exports.default = async function (context) {
 exports.SERVER_NODE_MODULE_REQUIRED_FILES = SERVER_NODE_MODULE_REQUIRED_FILES;
 exports.assertBundledServerNodeModulesReady = assertBundledServerNodeModulesReady;
 exports.copyBundledServerNodeModules = copyBundledServerNodeModules;
+exports.writeAppUpdateConfig = writeAppUpdateConfig;

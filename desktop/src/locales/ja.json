@@ -704,7 +704,22 @@
     "automation": {
       "running": "🤖 {name} はショートカットを実行中",
       "done": "🤖 ショートカット完了",
-      "failed": "🤖 ショートカットの実行に失敗"
+      "failed": "🤖 ショートカットの実行に失敗",
+      "actions": {
+        "runNow": "Run now",
+        "viewLogs": "View logs",
+        "openOutput": "Open output",
+        "fusionOnce": "Review this run"
+      },
+      "logs": {
+        "title": "Automation run logs",
+        "recent": "Recent runs",
+        "loading": "Loading run logs...",
+        "empty": "No run records yet"
+      },
+      "fusion": {
+        "enabled": "Fusion review enabled"
+      }
     },
     "computer": {
       "running": "🖥️ {name} は画面を操作中",
@@ -2062,6 +2077,21 @@
     "promptRequired": "この自動化を有効にする前に、Agent にしてほしいことを書いてください。",
     "createFailed": "自動化の作成に失敗しました",
     "agentRequired": "先に Agent を選択してください",
+    "actions": {
+      "runNow": "今すぐ実行",
+      "viewLogs": "ログを見る",
+      "openOutput": "出力を開く",
+      "fusionOnce": "今回だけ復核"
+    },
+    "logs": {
+      "title": "自動化実行ログ",
+      "recent": "最近の実行",
+      "loading": "実行ログを読み込み中...",
+      "empty": "実行記録はまだありません"
+    },
+    "fusion": {
+      "enabled": "Fusion 復核が有効です"
+    },
     "field": {
       "label": "名前",
       "agent": "Agent",

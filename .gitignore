@@ -31,6 +31,7 @@ TODO.md
 # 构建产物
 # ═══════════════════════════════════════════
 dist/
+dist-sandbox/
 dist-server/
 dist-server-bundle/
 dist-computer-use/
@@ -83,6 +84,7 @@ logs/
 # 系统文件
 .DS_Store
 *.db
+*.obj
 
 # Codex reviews
 reviews/

@@ -15,6 +15,7 @@
 import fs from "fs";
 import path from "path";
 import { normalizeAutomationJob, normalizeAutomationJobs } from "./automation-normalizer.ts";
+import { sanitizeAutomationRunForLog } from "./automation-runs/run-summary.ts";
 import { parseModelRef } from "../../shared/model-ref.ts";
 import { atomicWriteSync } from "../../shared/safe-fs.ts";
 import { createModuleLogger } from "../debug-log.ts";
@@ -232,6 +233,9 @@ export class CronStore {
     legacyRef = null,
     executor = null,
     createdBy = null,
+    personalTask = null,
+    modelPolicyKey = "",
+    fusion = null,
     enabled = true,
   }) {
     // type 枚举校验
@@ -259,7 +263,7 @@ export class CronStore {
     const now = new Date().toISOString();
     validateAutomationExecutorForWrite(executor);
 
-    const job = {
+    const job: any = {
       id: this._nextJobId(),
       type,
       schedule,
@@ -273,8 +277,11 @@ export class CronStore {
       lastRunAt: null,
       nextRunAt: this._calcNextRun(type, schedule, now),
     };
+    const normalizedFusion = clonePlainObject(fusion);
+    if (normalizedFusion) job.fusion = normalizedFusion;
     this._attachOwnershipFields(job, { actorAgentId, executionContext, legacyRef });
     this._attachAutomationFields(job, { executor, createdBy });
+    this._attachPersonalTaskFields(job, { personalTask, modelPolicyKey });
 
     const normalized = normalizeAutomationJob(job);
     assertCanEnableAutomationJob(normalized);
@@ -306,7 +313,7 @@ export class CronStore {
     }
 
     const now = new Date().toISOString();
-    const job = {
+    const job: any = {
       id: this._nextJobId(),
       type,
       schedule,
@@ -322,8 +329,11 @@ export class CronStore {
         ? input.nextRunAt
         : this._calcNextRun(type, schedule, now),
     };
+    const normalizedFusion = clonePlainObject(input.fusion);
+    if (normalizedFusion) job.fusion = normalizedFusion;
     this._attachOwnershipFields(job, input);
     this._attachAutomationFields(job, input);
+    this._attachPersonalTaskFields(job, input);
 
     const normalized = normalizeAutomationJob(job);
     this._jobs.push(normalized);
@@ -352,6 +362,14 @@ export class CronStore {
     if (normalizedExecutor) job.executor = normalizedExecutor;
     const normalizedCreatedBy = clonePlainObject(createdBy);
     if (normalizedCreatedBy) job.createdBy = normalizedCreatedBy;
+  }
+
+  _attachPersonalTaskFields(job, { personalTask = null, modelPolicyKey = "" } = {}) {
+    const normalizedPersonalTask = clonePlainObject(personalTask);
+    if (normalizedPersonalTask) job.personalTask = normalizedPersonalTask;
+    if (typeof modelPolicyKey === "string" && modelPolicyKey.trim()) {
+      job.modelPolicyKey = modelPolicyKey.trim();
+    }
   }
 
   /**
@@ -408,6 +426,9 @@ export class CronStore {
       "executionContext",
       "executor",
       "createdBy",
+      "personalTask",
+      "modelPolicyKey",
+      "fusion",
     ]);
     const VALID_TYPES = new Set(["at", "every", "cron"]);
     if ("type" in partial && !VALID_TYPES.has(partial.type)) {
@@ -443,6 +464,27 @@ export class CronStore {
       if (key === "createdBy") {
         if (value && typeof value === "object" && !Array.isArray(value)) {
           job.createdBy = JSON.parse(JSON.stringify(value));
+        }
+        continue;
+      }
+      if (key === "personalTask") {
+        if (value && typeof value === "object" && !Array.isArray(value)) {
+          job.personalTask = JSON.parse(JSON.stringify(value));
+        }
+        continue;
+      }
+      if (key === "modelPolicyKey") {
+        if (typeof value === "string" && value.trim()) {
+          job.modelPolicyKey = value.trim();
+        }
+        continue;
+      }
+      if (key === "fusion") {
+        const normalizedFusion = clonePlainObject(value);
+        if (normalizedFusion) {
+          job.fusion = normalizedFusion;
+        } else {
+          delete job.fusion;
         }
         continue;
       }
@@ -557,7 +599,8 @@ export class CronStore {
    */
   logRun(jobId, run) {
     const filePath = path.join(this._runsDir, `${jobId}.jsonl`);
-    const line = JSON.stringify({ ...run, timestamp: new Date().toISOString() }) + "\n";
+    const sanitizedRun = sanitizeAutomationRunForLog(run || {});
+    const line = JSON.stringify({ ...sanitizedRun, timestamp: new Date().toISOString() }) + "\n";
     fs.mkdirSync(this._runsDir, { recursive: true });
     fs.appendFileSync(filePath, line, "utf-8");
 

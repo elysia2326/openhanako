@@ -12,6 +12,11 @@ const path = require("path");
 const fs = require("fs");
 
 const CHECK_INTERVAL = 4 * 60 * 60 * 1000; // 4 小时
+const UPDATE_FEED = {
+  provider: "github",
+  owner: process.env.HANAKO_UPDATE_OWNER || "elysia2326",
+  repo: process.env.HANAKO_UPDATE_REPO || "openhanako",
+};
 
 let _mainWindow = null;
 let _setIsUpdating = null;  // 由 main.cjs 注入
@@ -255,11 +260,7 @@ async function dirSize(dir) {
 
 function setupAutoUpdater() {
   // 显式设置 feed URL，不依赖 app-update.yml（electron-builder --dir 不生成该文件）
-  autoUpdater.setFeedURL({
-    provider: "github",
-    owner: "liliMozi",
-    repo: "openhanako",
-  });
+  autoUpdater.setFeedURL(UPDATE_FEED);
 
   autoUpdater.autoDownload = false;          // 由我们控制（磁盘空间检查后手动触发）
   autoUpdater.autoInstallOnAppQuit = false;  // 只在用户明确点击"重启更新"时安装

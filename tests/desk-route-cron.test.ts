@@ -15,10 +15,10 @@ function writeLegacyJobs(root, agentId, jobs) {
   );
 }
 
-function createApp(engine) {
+function createApp(engine: any, hubOverride: any = { scheduler: { getHeartbeat: vi.fn() } }) {
   return import("../server/routes/desk.ts").then(({ createDeskRoute }) => {
     const app = new Hono();
-    app.route("/api", createDeskRoute(engine, { scheduler: { getHeartbeat: vi.fn() } }));
+    app.route("/api", createDeskRoute(engine, hubOverride));
     return app;
   });
 }
@@ -55,8 +55,8 @@ describe("desk cron route", () => {
     engine.currentAgentId = "agent-b";
     const second = await app.request("/api/desk/cron");
 
-    const firstJobs = (await first.json()).jobs;
-    const secondJobs = (await second.json()).jobs;
+    const firstJobs = (await first.json()).jobs.filter((job) => !job.personalTask);
+    const secondJobs = (await second.json()).jobs.filter((job) => !job.personalTask);
     expect(firstJobs.map((job) => job.actorAgentId).sort()).toEqual(["agent-a", "agent-b"]);
     expect(secondJobs.map((job) => job.actorAgentId).sort()).toEqual(["agent-a", "agent-b"]);
     expect(secondJobs.map((job) => job.id).sort()).toEqual(firstJobs.map((job) => job.id).sort());
@@ -101,6 +101,212 @@ describe("desk cron route", () => {
         code: "unknown_cron_action",
         message: "unknown action: snooze",
       },
+    });
+  });
+
+  it("returns normalized run history for a cron job", async () => {
+    const root = fs.mkdtempSync(path.join(os.tmpdir(), "hana-desk-cron-"));
+    roots.push(root);
+    const service = new StudioCronService({ hanakoHome: root, agentsDir: path.join(root, "agents"), getStudioId: () => "studio-main" });
+    const job = service.addJob({
+      type: "cron",
+      schedule: "0 9 * * *",
+      prompt: "studio job",
+      actorAgentId: "agent-a",
+      executionContext: {
+        kind: "session_workspace",
+        cwd: "/workspace/a",
+        workspaceFolders: [],
+        sourceSessionPath: "/sessions/a.jsonl",
+        createdByAgentId: "agent-a",
+      },
+    });
+    service.logRun(job.id, {
+      id: "run_1",
+      status: "success",
+      startedAt: "2026-06-25T00:00:00.000Z",
+      summary: "api_key: gsk_1234567890abcdefghijklmnopqrst",
+      outputPath: "D:\\obsidian\\out.md?token=file-token-value",
+      modelDecision: { reason: "Bearer abc.def+/tail==" },
+    });
+    const app = await createApp({
+      getAgent: (id) => ({ id, agentName: id }),
+      getStudioCronStore: () => service,
+      listAgents: () => [],
+    });
+
+    const res = await app.request(`/api/desk/cron/${job.id}/runs?limit=10`);
+
+    expect(res.status).toBe(200);
+    const body = await res.json();
+    expect(body).toEqual({
+      runs: [expect.objectContaining({ id: "run_1", jobId: job.id, status: "done" })],
+    });
+    expect(JSON.stringify(body)).not.toContain("gsk_1234567890abcdefghijklmnopqrst");
+    expect(JSON.stringify(body)).not.toContain("file-token-value");
+    expect(JSON.stringify(body)).not.toContain("abc.def+/tail==");
+  });
+
+  it("redacts secrets before run history is written to disk", async () => {
+    const root = fs.mkdtempSync(path.join(os.tmpdir(), "hana-desk-cron-"));
+    roots.push(root);
+    const service = new StudioCronService({ hanakoHome: root, agentsDir: path.join(root, "agents"), getStudioId: () => "studio-main" });
+    const job = service.addJob({
+      type: "cron",
+      schedule: "0 9 * * *",
+      prompt: "studio job",
+      actorAgentId: "agent-a",
+      executionContext: {
+        kind: "session_workspace",
+        cwd: "/workspace/a",
+        workspaceFolders: [],
+        sourceSessionPath: "/sessions/a.jsonl",
+        createdByAgentId: "agent-a",
+      },
+    });
+
+    service.logRun(job.id, {
+      id: "run_secret",
+      status: "success",
+      summary: "Authorization: Bearer raw.secret",
+      error: "api_key=raw-key",
+      outputPath: "D:\\obsidian\\out.md?token=raw-url-token",
+      modelDecision: {
+        reason: "Authorization: Bearer raw.nested",
+        api_key: "raw-structured-key",
+      },
+    });
+
+    const runFile = path.join(root, "studios", "studio-main", "desk", "cron-runs", `${job.id}.jsonl`);
+    const persisted = fs.readFileSync(runFile, "utf-8");
+
+    expect(persisted).not.toContain("raw.secret");
+    expect(persisted).not.toContain("raw-key");
+    expect(persisted).not.toContain("raw-url-token");
+    expect(persisted).not.toContain("raw.nested");
+    expect(persisted).not.toContain("raw-structured-key");
+    expect(persisted).toContain("[redacted]");
+  });
+
+  it("runs a cron job immediately through the scheduler", async () => {
+    const service = {
+      getJob: vi.fn((id) => id === "job_1" ? { id: "job_1", label: "Run Now" } : null),
+      listJobs: vi.fn(() => []),
+    };
+    const runCronJobNow = vi.fn(async (id, options) => ({ jobId: id, status: "done", fusionOnce: options.fusionOnce }));
+    const app = await createApp({
+      getStudioCronStore: () => service,
+      listAgents: () => [],
+    }, { scheduler: { runCronJobNow, getHeartbeat: vi.fn() } });
+
+    const res = await app.request("/api/desk/cron", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ action: "runNow", id: "job_1", fusionOnce: true }),
+    });
+
+    expect(res.status).toBe(200);
+    expect(await res.json()).toEqual({ ok: true, run: { jobId: "job_1", status: "done", fusionOnce: true } });
+    expect(runCronJobNow).toHaveBeenCalledWith("job_1", { fusionOnce: true });
+  });
+
+  it("does not persist fusionOnce when running a cron job immediately", async () => {
+    const job = { id: "job_1", label: "Run Now", fusion: { enabled: false } };
+    const service = {
+      getJob: vi.fn(() => job),
+      updateJob: vi.fn(),
+      listJobs: vi.fn(() => [job]),
+    };
+    const runCronJobNow = vi.fn(async (id, options) => ({
+      jobId: id,
+      status: "done",
+      fusion: options.fusionOnce ? { enabled: true, status: "done" } : null,
+    }));
+    const app = await createApp({
+      getStudioCronStore: () => service,
+      listAgents: () => [],
+    }, { scheduler: { runCronJobNow, getHeartbeat: vi.fn() } });
+
+    const res = await app.request("/api/desk/cron", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ action: "runNow", id: "job_1", fusionOnce: true }),
+    });
+
+    expect(res.status).toBe(200);
+    expect(runCronJobNow).toHaveBeenCalledWith("job_1", { fusionOnce: true });
+    expect(service.updateJob).not.toHaveBeenCalled();
+  });
+
+  it("persists fusion config through add and update cron routes", async () => {
+    const root = fs.mkdtempSync(path.join(os.tmpdir(), "hana-desk-cron-"));
+    roots.push(root);
+    const service = new StudioCronService({
+      hanakoHome: root,
+      agentsDir: path.join(root, "agents"),
+      getStudioId: () => "studio-main",
+    });
+    const engine = {
+      getAgent: (id) => (id === "agent-a" ? { id, agentName: "Agent A" } : null),
+      getStudioCronStore: () => service,
+      listAgents: () => [],
+    };
+    const app = await createApp(engine);
+
+    const addRes = await app.request("/api/desk/cron", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        action: "add",
+        scheduleType: "cron",
+        schedule: "0 9 * * *",
+        prompt: "fusion job",
+        actorAgentId: "agent-a",
+        executionContext: {
+          kind: "session_workspace",
+          cwd: "/workspace/a",
+          workspaceFolders: [],
+          sourceSessionPath: "/sessions/a.jsonl",
+          createdByAgentId: "agent-a",
+        },
+        fusion: {
+          enabled: true,
+          enabledOnce: false,
+          importance: "important",
+          reviewerPolicies: ["automation_cheap", "daily", "invalid"],
+          judgePolicy: "fusion_judge",
+          finalizerPolicy: "fusion_finalizer",
+        },
+      }),
+    });
+
+    expect(addRes.status).toBe(200);
+    const added = await addRes.json();
+    expect(added.job.fusion).toEqual({
+      enabled: true,
+      enabledOnce: false,
+      importance: "important",
+      reviewerPolicies: ["automation_cheap", "daily"],
+      judgePolicy: "fusion_judge",
+      finalizerPolicy: "fusion_finalizer",
+    });
+
+    const updateRes = await app.request("/api/desk/cron", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        action: "update",
+        id: added.job.id,
+        fusion: { enabled: false, importance: "critical", reviewerPolicies: ["hard"] },
+      }),
+    });
+
+    expect(updateRes.status).toBe(200);
+    const updated = await updateRes.json();
+    expect(updated.job.fusion).toEqual({
+      enabled: false,
+      importance: "critical",
+      reviewerPolicies: ["hard"],
     });
   });
 
@@ -483,7 +689,7 @@ describe("desk cron route", () => {
 
     expect(res.status).toBe(400);
     expect(await res.json()).toEqual({ error: "unsupported automation executor: direct_action" });
-    expect(service.listJobs()).toEqual([]);
+    expect(service.listJobs().filter((job) => !job.personalTask)).toEqual([]);
   });
 
   it("rejects plugin-action executors through the cron compatibility route", async () => {
@@ -528,7 +734,7 @@ describe("desk cron route", () => {
 
     expect(res.status).toBe(400);
     expect(await res.json()).toEqual({ error: "unsupported automation executor: plugin_action" });
-    expect(service.listJobs()).toEqual([]);
+    expect(service.listJobs().filter((job) => !job.personalTask)).toEqual([]);
   });
 
   it("rejects removed file.create direct-action jobs through the cron route", async () => {
@@ -571,6 +777,6 @@ describe("desk cron route", () => {
 
     expect(res.status).toBe(400);
     expect(await res.json()).toEqual({ error: "unsupported automation executor: direct_action" });
-    expect(service.listJobs()).toEqual([]);
+    expect(service.listJobs().filter((job) => !job.personalTask)).toEqual([]);
   });
 });

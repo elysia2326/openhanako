@@ -742,7 +742,22 @@
     "automation": {
       "running": "🤖 {name} 正在调度快捷指令",
       "done": "🤖 指令跑完了",
-      "failed": "🤖 指令执行失败"
+      "failed": "🤖 指令执行失败",
+      "actions": {
+        "runNow": "立即执行",
+        "viewLogs": "查看日志",
+        "openOutput": "打开输出",
+        "fusionOnce": "本次复核"
+      },
+      "logs": {
+        "title": "自动化运行日志",
+        "recent": "最近运行",
+        "loading": "正在加载运行日志...",
+        "empty": "暂无运行记录"
+      },
+      "fusion": {
+        "enabled": "Fusion 复核已开启"
+      }
     },
     "computer": {
       "running": "🖥️ {name} 正在操控你的屏幕",
@@ -2290,6 +2305,21 @@
     "promptRequired": "先写下想让 Agent 做什么，再启用这条自动化",
     "createFailed": "创建自动化失败",
     "agentRequired": "需要先选择一个 Agent",
+    "actions": {
+      "runNow": "立即执行",
+      "viewLogs": "查看日志",
+      "openOutput": "打开输出",
+      "fusionOnce": "本次复核"
+    },
+    "logs": {
+      "title": "自动化运行日志",
+      "recent": "最近运行",
+      "loading": "正在加载运行日志...",
+      "empty": "暂无运行记录"
+    },
+    "fusion": {
+      "enabled": "Fusion 复核已开启"
+    },
     "field": {
       "label": "名称",
       "agent": "助手",

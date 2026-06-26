@@ -6,8 +6,9 @@ import { AgentAvatar, resolveAgentDisplayInfo } from '../utils/agent-display';
 import fp from './FloatingPanels.module.css';
 import styles from './automation/AutomationPanel.module.css';
 import { AutomationCard } from './automation/AutomationCard';
+import { AutomationRunLogList } from './automation/AutomationRunLogList';
 import { AgentTabScroller, type AgentTabScrollerItem } from './automation/AgentTabScroller';
-import type { CronJob, ModelOption } from './automation/automation-types';
+import type { AutomationRun, CronJob, ModelOption } from './automation/automation-types';
 import { jobAgentId } from './automation/automation-utils';
 import type { Agent } from '../types';
 
@@ -59,6 +60,12 @@ export function AutomationPanel() {
   const [availableModels, setAvailableModels] = useState<ModelOption[]>([]);
   const [selectedAgentId, setSelectedAgentId] = useState<string | null>(currentAgentId);
   const [openJobs, setOpenJobs] = useState<Record<string, boolean>>({});
+  const [selectedLogJobId, setSelectedLogJobId] = useState<string | null>(null);
+  const [runs, setRuns] = useState<AutomationRun[]>([]);
+  const [runsLoading, setRunsLoading] = useState(false);
+  const [runsError, setRunsError] = useState<string | null>(null);
+  const [runningJobs, setRunningJobs] = useState<Record<string, boolean>>({});
+  const [fusionOnceByJob, setFusionOnceByJob] = useState<Record<string, boolean>>({});
 
   const loadData = useCallback(async () => {
     try {
@@ -94,6 +101,44 @@ export function AutomationPanel() {
     });
     await loadData();
   }, [loadData]);
+
+  const loadRuns = useCallback(async (jobId: string) => {
+    setRunsLoading(true);
+    setRunsError(null);
+    setSelectedLogJobId(jobId);
+    try {
+      const res = await hanaFetch(`/api/desk/cron/${encodeURIComponent(jobId)}/runs?limit=20`);
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const data = await res.json();
+      if (!Array.isArray(data.runs)) throw new Error('Invalid runs response');
+      setRuns(data.runs);
+    } catch (err) {
+      console.error('[automation] load runs failed:', err);
+      setRuns([]);
+      setRunsError(t('automation.logs.loadFailed'));
+    } finally {
+      setRunsLoading(false);
+    }
+  }, [t]);
+
+  const runNow = useCallback(async (jobId: string, options: { fusionOnce: boolean }) => {
+    setRunningJobs(prev => ({ ...prev, [jobId]: true }));
+    try {
+      await hanaFetch('/api/desk/cron', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'runNow', id: jobId, fusionOnce: options.fusionOnce }),
+      });
+      await loadData();
+      await loadRuns(jobId);
+    } finally {
+      setRunningJobs(prev => ({ ...prev, [jobId]: false }));
+    }
+  }, [loadData, loadRuns]);
+
+  const openOutput = useCallback((filePath: string) => {
+    window.platform?.openFile?.(filePath);
+  }, []);
 
   const removeJob = useCallback(async (jobId: string) => {
     await hanaFetch('/api/desk/cron', {
@@ -231,9 +276,22 @@ export function AutomationPanel() {
                       onToggleEnabled={toggleJob}
                       onRemove={removeJob}
                       onUpdate={updateJob}
+                      fusionOnce={fusionOnceByJob[job.id] === true}
+                      busy={runningJobs[job.id] === true}
+                      onRunNow={runNow}
+                      onShowLogs={loadRuns}
+                      onOpenOutput={openOutput}
+                      onFusionOnceChange={(jobId, enabled) => setFusionOnceByJob(prev => ({ ...prev, [jobId]: enabled }))}
                     />
                   ))}
                 </div>
+                <AutomationRunLogList
+                  runs={runs}
+                  loading={runsLoading}
+                  error={runsError}
+                  selectedJobTitle={jobs.find(job => job.id === selectedLogJobId)?.label || null}
+                  onOpenOutput={openOutput}
+                />
               </>
             )}
           </div>
